@@ -1,0 +1,321 @@
+@{
+    ViewBag.Title = "Trang chủ";
+}
+
+<!-- ================= HERO CAROUSEL ================= -->
+<section class="mb-5">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+        <!-- Indicators -->
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
+
+        <!-- Slides -->
+        <div class="carousel-inner">
+            <!-- Slide 1 -->
+            <div class="carousel-item active" data-bs-interval="6000">
+                <img src="~/Content/images/banner_coding_library.png" class="d-block w-100 h-100 object-fit-cover opacity-85" alt="Slide 1" onerror="this.src='https://placehold.co/1200x480/0f172a/ffffff?text=DevLib+Programming+Library'">
+                <div class="carousel-image-overlay">
+                    <div class="carousel-caption-custom animate__animated animate__fadeInLeft">
+                        <span class="badge bg-emerald mb-2 px-3 py-2 text-uppercase">Tài liệu lập trình</span>
+                        <h2>Chinh Phục Thế Giới Lập Trình</h2>
+                        <p>Hội tụ hàng ngàn tài liệu lập trình, khoa học máy tính và các công nghệ phát triển phần mềm mới nhất hiện nay.</p>
+                        <a href="#featured-books" class="btn btn-success px-4 py-2.5 fw-semibold"><i class="fa-solid fa-rocket me-2"></i> Khám phá ngay</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="carousel-item" data-bs-interval="6000">
+                <img src="~/Content/images/banner_algorithms.png" class="d-block w-100 h-100 object-fit-cover opacity-85" alt="Slide 2" onerror="this.src='https://placehold.co/1200x480/0f172a/ffffff?text=Data+Structures+and+Algorithms'">
+                <div class="carousel-image-overlay">
+                    <div class="carousel-caption-custom">
+                        <span class="badge bg-primary mb-2 px-3 py-2 text-uppercase">Cấu trúc dữ liệu & Giải thuật</span>
+                        <h2>Làm Chủ Tư Duy Giải Thuật</h2>
+                        <p>Từ cơ bản đến nâng cao với kho sách chuyên sâu về Python, C++, Java, C# giúp tối ưu hóa tư duy lập trình viên.</p>
+                        <a href="#featured-books" class="btn btn-primary px-4 py-2.5 fw-semibold"><i class="fa-solid fa-magnifying-glass me-2"></i> Tìm sách thuật toán</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="carousel-item" data-bs-interval="6000">
+                <img src="~/Content/images/banner_research.png" class="d-block w-100 h-100 object-fit-cover opacity-85" alt="Slide 3" onerror="this.src='https://placehold.co/1200x480/0f172a/ffffff?text=Scientific+Research'">
+                <div class="carousel-image-overlay">
+                    <div class="carousel-caption-custom">
+                        <span class="badge bg-purple mb-2 px-3 py-2 text-uppercase">Nghiên cứu khoa học</span>
+                        <h2>Nghiên Cứu Công Nghệ AI & DevOps</h2>
+                        <p>Cập nhật liên tục các nghiên cứu mới về Trí tuệ nhân tạo (AI), Học máy (Machine Learning) và tự động hóa hệ thống Cloud.</p>
+                        <a href="#" class="btn btn-info text-white px-4 py-2.5 fw-semibold"><i class="fa-solid fa-graduation-cap me-2"></i> Xem tài liệu nghiên cứu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<!-- ================= CATEGORY GRID (HORIZONTAL SCROLL) ================= -->
+<section class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="h3 mb-1 text-primary">Danh mục tài liệu nổi bật</h2>
+            <p class="text-secondary mb-0 small">Dễ dàng lựa chọn nhóm sách yêu thích phù hợp với nhu cầu học tập và nghiên cứu</p>
+        </div>
+        <!-- Nút điều khiển cuộn nhanh của Grid -->
+        <div class="d-none d-md-flex gap-2">
+            <button class="header-action-btn" id="scrollPrevBtn" title="Cuộn trái"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="header-action-btn" id="scrollNextBtn" title="Cuộn phải"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <div class="category-scroll-wrapper">
+        <div class="category-scroll-container" id="categoryScroll">
+            <!-- 1. Sách Hot -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(249, 115, 22, 0.15) 100%); color: #ef4444;">
+                    <!-- ĐỂ THÊM ẢNH SAU NÀY: Mở comment dưới và cấu hình đường dẫn ảnh -->
+                    <!-- <img src="~/Content/images/categories/hot_books.png" class="img-fluid rounded" alt="Sách Hot" /> -->
+                    <i class="fa-solid fa-fire-flame-curved"></i>
+                </div>
+                <h4 class="category-title">Sách Hot</h4>
+            </div>
+
+            <!-- 2. Sách Mới Xuất Bản -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%); color: #10b981;">
+                    <!-- <img src="~/Content/images/categories/new_books.png" class="img-fluid rounded" alt="Sách Mới" /> -->
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <h4 class="category-title">Sách Mới</h4>
+            </div>
+
+            <!-- 3. Sách Hư Cấu -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); color: #6366f1;">
+                    <!-- <img src="~/Content/images/categories/fiction_books.png" class="img-fluid rounded" alt="Sách Hư Cấu" /> -->
+                    <i class="fa-solid fa-ghost"></i>
+                </div>
+                <h4 class="category-title">Sách Hư Cấu</h4>
+            </div>
+
+            <!-- 4. Sách Phi Hư Cấu -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 179, 8, 0.15) 100%); color: #f59e0b;">
+                    <!-- <img src="~/Content/images/categories/nonfiction_books.png" class="img-fluid rounded" alt="Sách Phi Hư Cấu" /> -->
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <h4 class="category-title">Sách Phi Hư Cấu</h4>
+            </div>
+
+            <!-- 5. Sách Thiếu Nhi -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%); color: #ec4899;">
+                    <!-- <img src="~/Content/images/categories/children_books.png" class="img-fluid rounded" alt="Sách Thiếu Nhi" /> -->
+                    <i class="fa-solid fa-child-reaching"></i>
+                </div>
+                <h4 class="category-title">Sách Thiếu Nhi</h4>
+            </div>
+
+            <!-- 6. Sách Nghiên Cứu -->
+            <div class="category-card">
+                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%); color: #3b82f6;">
+                    <!-- <img src="~/Content/images/categories/research_books.png" class="img-fluid rounded" alt="Sách Nghiên Cứu" /> -->
+                    <i class="fa-solid fa-microscope"></i>
+                </div>
+                <h4 class="category-title">Sách Nghiên Cứu</h4>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ================= NỘI DUNG CHÍNH (SÁCH NỔI BẬT) ================= -->
+<section id="featured-books" class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="h3 mb-1 text-primary">Sách mới cập nhật</h2>
+            <p class="text-secondary mb-0 small">Bắt kịp các xu thế công nghệ thịnh hành nhất trong lập trình phần mềm</p>
+        </div>
+        <a href="#" class="btn btn-outline-success btn-sm rounded-pill px-3">Xem tất cả <i class="fa-solid fa-chevron-right ms-1"></i></a>
+    </div>
+
+    <!-- Grid Sách -->
+    <div class="row g-4">
+        <!-- Cuốn sách 1 -->
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <div class="glass-card book-card p-3">
+                <div class="book-card-img-wrapper">
+                    <img src="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Clean Code" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Clean+Code'">
+                    <span class="badge bg-danger book-card-badge">HOT</span>
+                    <div class="book-card-actions">
+                        <button class="action-icon-btn addToCartBtn" data-id="101" data-title="Clean Code: A Handbook of Agile Software Craftsmanship" data-author="Robert C. Martin" data-img="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </button>
+                        <button class="action-icon-btn addToFavBtn" data-id="101" data-title="Clean Code: A Handbook of Agile Software Craftsmanship" data-author="Robert C. Martin" data-img="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-secondary small mb-1">Kiến trúc & Quy trình</div>
+                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Clean Code: Handbook of Agile Software</h5>
+                    <p class="text-muted small text-truncate mb-2">Robert C. Martin</p>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 8 cuốn</span>
+                        <div class="text-warning small">
+                            <i class="fa-solid fa-star"></i> 4.8
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuốn sách 2 -->
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <div class="glass-card book-card p-3">
+                <div class="book-card-img-wrapper">
+                    <img src="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Design Patterns" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Design+Patterns'">
+                    <span class="badge bg-danger book-card-badge">HOT</span>
+                    <div class="book-card-actions">
+                        <button class="action-icon-btn addToCartBtn" data-id="102" data-title="Design Patterns: Elements of Reusable Object-Oriented Software" data-author="Erich Gamma, Richard Helm" data-img="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </button>
+                        <button class="action-icon-btn addToFavBtn" data-id="102" data-title="Design Patterns: Elements of Reusable Object-Oriented Software" data-author="Erich Gamma, Richard Helm" data-img="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-secondary small mb-1">Mẫu thiết kế</div>
+                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Design Patterns: Reusable Software Elements</h5>
+                    <p class="text-muted small text-truncate mb-2">Erich Gamma, Richard Helm</p>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 5 cuốn</span>
+                        <div class="text-warning small">
+                            <i class="fa-solid fa-star"></i> 4.9
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuốn sách 3 -->
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <div class="glass-card book-card p-3">
+                <div class="book-card-img-wrapper">
+                    <img src="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Introduction to Algorithms" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Algorithms'">
+                    <span class="badge bg-success book-card-badge">MỚI</span>
+                    <div class="book-card-actions">
+                        <button class="action-icon-btn addToCartBtn" data-id="103" data-title="Introduction to Algorithms (3rd Edition)" data-author="Thomas H. Cormen" data-img="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </button>
+                        <button class="action-icon-btn addToFavBtn" data-id="103" data-title="Introduction to Algorithms (3rd Edition)" data-author="Thomas H. Cormen" data-img="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-secondary small mb-1">Thuật toán & Cơ bản</div>
+                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Introduction to Algorithms, 3rd Edition</h5>
+                    <p class="text-muted small text-truncate mb-2">Thomas H. Cormen</p>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 3 cuốn</span>
+                        <div class="text-warning small">
+                            <i class="fa-solid fa-star"></i> 4.7
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuốn sách 4 -->
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+            <div class="glass-card book-card p-3">
+                <div class="book-card-img-wrapper">
+                    <img src="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="C# 10 and .NET 6" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=C%23+10'">
+                    <span class="badge bg-success book-card-badge">MỚI</span>
+                    <div class="book-card-actions">
+                        <button class="action-icon-btn addToCartBtn" data-id="104" data-title="C# 10 and .NET 6 – Modern Cross-Platform Development" data-author="Mark J. Price" data-img="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </button>
+                        <button class="action-icon-btn addToFavBtn" data-id="104" data-title="C# 10 and .NET 6 – Modern Cross-Platform Development" data-author="Mark J. Price" data-img="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <div class="text-secondary small mb-1">C# & .NET</div>
+                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">C# 10 and .NET 6 – Modern Cross-Platform</h5>
+                    <p class="text-muted small text-truncate mb-2">Mark J. Price</p>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-danger fw-semibold"><i class="fa-regular fa-circle-xmark"></i> Hết sách (Đặt chỗ)</span>
+                        <div class="text-warning small">
+                            <i class="fa-solid fa-star"></i> 4.6
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Script xử lý các nút bấm mượn/yêu thích tại Trang chủ -->
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Nút Thêm vào giỏ sách tại Trang chủ
+            $('.addToCartBtn').on('click', function () {
+                const id = parseInt($(this).data('id'));
+                const title = $(this).data('title');
+                const author = $(this).data('author');
+                const img = $(this).data('img');
+                
+                // Gọi hàm toàn cục được định nghĩa trong _Layout.cshtml
+                if (typeof window.addToCart === 'function') {
+                    window.addToCart(id, title, author, img);
+                }
+            });
+
+            // Nút Thêm vào mục Yêu thích tại Trang chủ
+            $('.addToFavBtn').on('click', function () {
+                const id = parseInt($(this).data('id'));
+                const title = $(this).data('title');
+                const author = $(this).data('author');
+                const img = $(this).data('img');
+                
+                // Thay đổi icon sang hình tim đỏ
+                $(this).find('i').removeClass('fa-regular').addClass('fa-solid text-danger');
+                
+                if (typeof window.addToFav === 'function') {
+                    window.addToFav(id, title, author, img);
+                }
+            });
+
+            // Xử lý cuộn Grid Danh mục hàng ngang
+            const scrollContainer = $('#categoryScroll');
+            
+            $('#scrollNextBtn').on('click', function () {
+                scrollContainer.animate({
+                    scrollLeft: scrollContainer.scrollLeft() + 250
+                }, 300);
+            });
+
+            $('#scrollPrevBtn').on('click', function () {
+                scrollContainer.animate({
+                    scrollLeft: scrollContainer.scrollLeft() - 250
+                }, 300);
+            });
+        });
+    </script>
+}

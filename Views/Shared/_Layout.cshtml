@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Thư viện Lập trình DevLib</title>
+    @Styles.Render("~/Content/css")
+    
+    <!-- Google Fonts & Vector Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <!-- Script khởi tạo theme ngay lập tức để tránh nhấp nháy giao diện -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- --- HEADER CHUNG --- -->
+    <header class="glass-header">
+        <div class="container py-2">
+            <div class="row align-items-center g-3">
+                <!-- Logo -->
+                <div class="col-6 col-md-3 d-flex align-items-center">
+                    <a href="@Url.Action("Index", "Home")" class="d-flex align-items-center gap-2">
+                        <div class="brand-logo-text d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-book-bookmark fs-3 text-emerald"></i>
+                            <span class="fs-4">Dev<span style="color: var(--text-primary);">Lib</span></span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Thanh tìm kiếm -->
+                <div class="col-12 col-md-6 order-3 order-md-2 d-flex justify-content-center">
+                    <div class="search-box-wrapper">
+                        <input type="text" id="mainSearchInput" class="form-control" placeholder="Tìm kiếm tài liệu, sách lập trình..." aria-label="Tìm kiếm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                </div>
+
+                <!-- Nút Tiện ích & Tài khoản -->
+                <div class="col-6 col-md-3 order-2 order-md-3 d-flex align-items-center justify-content-end gap-2">
+                    <!-- Nút Đổi giao diện -->
+                    <button class="header-action-btn" id="themeToggleBtn" title="Đổi giao diện">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <!-- Nút Danh sách yêu thích -->
+                    <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#favoritesOffcanvas" aria-controls="favoritesOffcanvas" title="Yêu thích">
+                        <i class="fa-regular fa-heart"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="favBadge">0</span>
+                    </button>
+
+                    <!-- Nút Giỏ mượn sách -->
+                    <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Giỏ mượn">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="cartBadge">0</span>
+                    </button>
+
+                    <!-- Tài khoản Dropdown -->
+                    <div class="dropdown">
+                        <button class="account-dropdown-toggle dropdown-toggle" type="button" id="accountMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-circle-user fs-5 text-emerald"></i>
+                            <span class="d-none d-lg-inline" id="userDisplayName">Đăng nhập</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end account-dropdown-menu" aria-labelledby="accountMenuButton">
+                            <li><h6 class="dropdown-header">Tài khoản cá nhân</h6></li>
+                            <li><a class="dropdown-item" href="#" id="menuProfileLink"><i class="fa-regular fa-id-card"></i> Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item" href="#" id="menuHistoryLink"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử mượn trả</a></li>
+                            <li><a class="dropdown-item" href="#" id="menuAdminLink"><i class="fa-solid fa-user-shield"></i> Quản trị Thư viện</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" id="authActionButton"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- --- THANH ĐIỀU HƯỚNG --- -->
+    <nav class="glass-nav py-2">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Dropdown danh mục -->
+                    <div class="dropdown">
+                        <button class="category-dropdown-btn dropdown-toggle" type="button" id="categoryMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-bars"></i> Menu danh mục
+                        </button>
+                        <ul class="dropdown-menu account-dropdown-menu" aria-labelledby="categoryMenuButton">
+                            <li><a class="dropdown-item" href="#"><i class="fa-brands fa-js text-warning"></i> JavaScript / TypeScript</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fa-solid fa-code text-primary"></i> C# / .NET Framework</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fa-brands fa-python text-info"></i> Python & AI / ML</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fa-brands fa-java text-danger"></i> Java Enterprise</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fa-solid fa-database text-success"></i> Database & DevOps</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="fa-solid fa-graduation-cap"></i> Giáo trình & Nghiên cứu</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Các danh mục chính -->
+                    <ul class="nav d-none d-md-flex align-items-center gap-1">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="@Url.Action("Index", "Home")">Trang chủ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Sách mượn nhiều</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Tài liệu mới</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Hướng dẫn mượn trả</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Liên hệ hỗ trợ</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Dành cho hiển thị nhanh trạng thái mở cửa -->
+                <div class="d-flex align-items-center gap-2 text-success fw-semibold small">
+                    <span class="position-relative d-flex h-2 w-2">
+                        <span class="animate-ping position-absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+                    </span>
+                    <i class="fa-regular fa-clock"></i> Mở cửa: 08:00 - 21:00 hàng ngày
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- --- NỘI DUNG CHÍNH --- -->
+    <div class="container body-content">
+        @RenderBody()
+    </div>
+
+    <!-- --- FOOTER --- -->
+    <footer>
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="brand-logo-text d-flex align-items-center gap-2 mb-3">
+                        <i class="fa-solid fa-book-bookmark fs-3 text-emerald"></i>
+                        <span class="fs-4">Dev<span style="color: var(--text-primary);">Lib</span></span>
+                    </div>
+                    <p class="small text-secondary mb-3">
+                        Thư viện lập trình hàng đầu dành cho sinh viên, lập trình viên và nhà nghiên cứu công nghệ thông tin. Cung cấp hàng ngàn giáo trình, tài liệu chuyên sâu chất lượng cao.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="header-action-btn" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" class="header-action-btn" title="Github"><i class="fa-brands fa-github"></i></a>
+                        <a href="#" class="header-action-btn" title="Youtube"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <h5 class="mb-3 text-primary">Liên kết nhanh</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="footer-link small">Trang chủ</a></li>
+                        <li><a href="#" class="footer-link small">Danh mục tài liệu</a></li>
+                        <li><a href="#" class="footer-link small">Chính sách mượn sách</a></li>
+                        <li><a href="#" class="footer-link small">Tin tức sự kiện</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-6">
+                    <h5 class="mb-3 text-primary">Hỗ trợ độc giả</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="footer-link small">Hướng dẫn sử dụng</a></li>
+                        <li><a href="#" class="footer-link small">Câu hỏi thường gặp</a></li>
+                        <li><a href="#" class="footer-link small">Đăng ký thẻ thư viện</a></li>
+                        <li><a href="#" class="footer-link small">Báo cáo thất lạc sách</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="mb-3 text-primary">Liên hệ thư viện</h5>
+                    <ul class="list-unstyled small text-secondary">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot text-emerald me-2"></i> Tòa nhà CNTT, Khu Công nghệ cao, Thủ Đức, TP. Hồ Chí Minh</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone text-emerald me-2"></i> (+84) 123 456 789</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope text-emerald me-2"></i> support@devlib.edu.vn</li>
+                        <li><i class="fa-solid fa-business-time text-emerald me-2"></i> Thứ Hai - Chủ Nhật: 08:00 - 21:00</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                <p class="mb-0 small">&copy; @DateTime.Now.Year - Thư viện Lập trình DevLib. Phát triển trên nền tảng ASP.NET MVC.</p>
+                <div class="d-flex gap-3 small">
+                    <a href="#" class="text-muted">Chính sách bảo mật</a>
+                    <a href="#" class="text-muted">Điều khoản sử dụng</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- --- OFFCANVAS GIỎ MƯỢN --- -->
+    <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="cartOffcanvasLabel">
+                <i class="fa-solid fa-basket-shopping text-emerald"></i> Giỏ sách mượn
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="cartContainer">
+            <!-- Sách trong giỏ mượn sẽ được hiển thị bằng JavaScript ở đây -->
+        </div>
+        <div class="offcanvas-footer">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-semibold">Tổng số sách mượn:</span>
+                <span class="fs-5 fw-bold text-emerald" id="cartTotalCount">0 / 5</span>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-success py-2 fw-semibold" id="confirmBorrowBtn">
+                    <i class="fa-regular fa-square-check me-2"></i> Xác nhận đăng ký mượn
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearCartBtn">
+                    Xóa tất cả
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- OFFCANVAS YÊU THÍCH --- -->
+    <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="favoritesOffcanvas" aria-labelledby="favoritesOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="favoritesOffcanvasLabel">
+                <i class="fa-solid fa-heart text-danger"></i> Danh sách yêu thích
+            </h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body" id="favoritesContainer">
+            <!-- Sách yêu thích sẽ được hiển thị bằng JavaScript ở đây -->
+        </div>
+        <div class="offcanvas-footer">
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary py-2 fw-semibold" id="moveAllToCartBtn">
+                    <i class="fa-solid fa-cart-plus me-2"></i> Thêm tất cả vào giỏ mượn
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFavoritesBtn">
+                    Xóa tất cả
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Thông báo (Dùng để thay thế alert cho chuyên nghiệp) -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div id="appToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px; background-color: var(--bg-surface); border: 1px solid var(--border-color) !important;">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i id="toastIcon" class="fa-solid fa-info-circle text-emerald fs-5"></i>
+                    <span id="toastMessage" class="fw-medium">Thông báo thành công!</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nạp jQuery và Bootstrap JS -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    
+    <!-- --- JAVASCRIPT ĐIỀU KHIỂN GIAO DIỆN --- -->
+    <script>
+        $(document).ready(function () {
+            // ================= 1. XỬ LÝ THEME (SÁNG / TỐI) =================
+            const themeToggleBtn = $('#themeToggleBtn');
+            const themeIcon = themeToggleBtn.find('i');
+            
+            function updateThemeUI(theme) {
+                if (theme === 'dark') {
+                    themeIcon.removeClass('fa-moon').addClass('fa-sun text-warning');
+                    themeToggleBtn.attr('title', 'Chuyển sang giao diện Sáng');
+                } else {
+                    themeIcon.removeClass('fa-sun text-warning').addClass('fa-moon');
+                    themeToggleBtn.attr('title', 'Chuyển sang giao diện Tối');
+                }
+            }
+
+            // Đồng bộ UI nút ban đầu
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            updateThemeUI(currentTheme);
+
+            themeToggleBtn.on('click', function () {
+                const nowTheme = document.documentElement.getAttribute('data-theme');
+                const nextTheme = nowTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', nextTheme);
+                localStorage.setItem('theme', nextTheme);
+                updateThemeUI(nextTheme);
+                showToast(nextTheme === 'dark' ? 'Đã chuyển sang giao diện Tối!' : 'Đã chuyển sang giao diện Sáng!', 'fa-circle-half-stroke');
+            });
+
+            // ================= 2. QUẢN LÝ TÀI KHOẢN MOCK =================
+            let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+
+            function updateAccountUI() {
+                if (currentUser) {
+                    $('#userDisplayName').text(currentUser.name);
+                    $('#menuProfileLink').parent().show();
+                    $('#menuHistoryLink').parent().show();
+                    if (currentUser.role === 'admin') {
+                        $('#menuAdminLink').parent().show();
+                    } else {
+                        $('#menuAdminLink').parent().hide();
+                    }
+                    $('#authActionButton').html('<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất');
+                } else {
+                    $('#userDisplayName').text('Đăng nhập');
+                    $('#menuProfileLink').parent().hide();
+                    $('#menuHistoryLink').parent().hide();
+                    $('#menuAdminLink').parent().hide();
+                    $('#authActionButton').html('<i class="fa-solid fa-arrow-right-to-bracket text-emerald"></i> Đăng nhập / Đăng ký');
+                }
+            }
+
+            // Click sự kiện đăng nhập / đăng xuất giả lập
+            $('#authActionButton').on('click', function (e) {
+                e.preventDefault();
+                if (currentUser) {
+                    // Đăng xuất
+                    currentUser = null;
+                    localStorage.removeItem('currentUser');
+                    showToast('Đã đăng xuất tài khoản!', 'fa-solid fa-door-open');
+                } else {
+                    // Đăng nhập giả lập Admin
+                    currentUser = {
+                        name: 'Nguyễn Văn Admin',
+                        role: 'admin',
+                        email: 'admin@devlib.edu.vn'
+                    };
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    showToast('Chào mừng Nguyễn Văn Admin đã đăng nhập thành công!', 'fa-solid fa-circle-check');
+                }
+                updateAccountUI();
+            });
+
+            updateAccountUI(); // Khởi chạy ban đầu
+
+            // ================= 3. QUẢN LÝ DỮ LIỆU GIỎ MƯỢN & YÊU THÍCH =================
+            // Dữ liệu mẫu ban đầu để demo nếu Storage trống
+            const initialCart = [
+                { id: 101, title: 'Clean Code: A Handbook of Agile Software Craftsmanship', author: 'Robert C. Martin', img: 'https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg' },
+                { id: 102, title: 'Design Patterns: Elements of Reusable Object-Oriented Software', author: 'Erich Gamma, Richard Helm', img: 'https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg' }
+            ];
+            const initialFav = [
+                { id: 103, title: 'Introduction to Algorithms (3rd Edition)', author: 'Thomas H. Cormen', img: 'https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg' }
+            ];
+
+            let cartList = JSON.parse(localStorage.getItem('cartList'));
+            if (!cartList) {
+                cartList = initialCart;
+                localStorage.setItem('cartList', JSON.stringify(cartList));
+            }
+            
+            let favList = JSON.parse(localStorage.getItem('favList'));
+            if (!favList) {
+                favList = initialFav;
+                localStorage.setItem('favList', JSON.stringify(favList));
+            }
+
+            // Hàm Toast hiển thị thông báo
+            window.showToast = function (message, iconClass = 'fa-circle-check') {
+                $('#toastMessage').text(message);
+                $('#toastIcon').attr('class', `fa-solid ${iconClass} text-emerald fs-5`);
+                const toastEl = document.getElementById('appToast');
+                const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+                toast.show();
+            };
+
+            // Render Danh sách Giỏ mượn
+            window.renderCart = function () {
+                const container = $('#cartContainer');
+                container.empty();
+                
+                if (cartList.length === 0) {
+                    container.html(`
+                        <div class="text-center py-5 text-secondary">
+                            <i class="fa-solid fa-basket-shopping fs-1 mb-3 text-muted" style="opacity:0.4;"></i>
+                            <p class="mb-0">Giỏ mượn sách đang trống!</p>
+                            <small class="text-muted">Chọn sách ở Trang chủ và bấm Mượn nhé.</small>
+                        </div>
+                    `);
+                    $('#confirmBorrowBtn').prop('disabled', true);
+                    $('#clearCartBtn').hide();
+                } else {
+                    cartList.forEach(item => {
+                        container.append(`
+                            <div class="drawer-item" data-id="${item.id}">
+                                <img src="${item.img}" class="drawer-item-img" alt="${item.title}" onerror="this.src='https://placehold.co/120x160/0f172a/ffffff?text=Book'">
+                                <div class="drawer-item-info">
+                                    <h6 class="drawer-item-title text-truncate-2">${item.title}</h6>
+                                    <p class="drawer-item-author">${item.author}</p>
+                                </div>
+                                <button class="drawer-item-remove remove-cart-item-btn" data-id="${item.id}" title="Xóa">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        `);
+                    });
+                    $('#confirmBorrowBtn').prop('disabled', false);
+                    $('#clearCartBtn').show();
+                }
+                
+                // Cập nhật Badge số lượng
+                $('#cartBadge').text(cartList.length);
+                $('#cartTotalCount').text(`${cartList.length} / 5`);
+            };
+
+            // Render Danh sách Yêu thích
+            window.renderFavorites = function () {
+                const container = $('#favoritesContainer');
+                container.empty();
+                
+                if (favList.length === 0) {
+                    container.html(`
+                        <div class="text-center py-5 text-secondary">
+                            <i class="fa-solid fa-heart fs-1 mb-3 text-muted" style="opacity:0.4;"></i>
+                            <p class="mb-0">Danh sách yêu thích trống!</p>
+                            <small class="text-muted">Lưu sách tâm đắc của bạn để đọc sau nhé.</small>
+                        </div>
+                    `);
+                    $('#moveAllToCartBtn').prop('disabled', true);
+                    $('#clearFavoritesBtn').hide();
+                } else {
+                    favList.forEach(item => {
+                        container.append(`
+                            <div class="drawer-item" data-id="${item.id}">
+                                <img src="${item.img}" class="drawer-item-img" alt="${item.title}" onerror="this.src='https://placehold.co/120x160/0f172a/ffffff?text=Book'">
+                                <div class="drawer-item-info">
+                                    <h6 class="drawer-item-title text-truncate-2">${item.title}</h6>
+                                    <p class="drawer-item-author">${item.author}</p>
+                                </div>
+                                <button class="drawer-item-remove remove-fav-item-btn" data-id="${item.id}" title="Xóa">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        `);
+                    });
+                    $('#moveAllToCartBtn').prop('disabled', false);
+                    $('#clearFavoritesBtn').show();
+                }
+                
+                // Cập nhật Badge số lượng
+                $('#favBadge').text(favList.length);
+            };
+
+            // === HÀNH ĐỘNG TƯƠNG TÁC (THÊM / XÓA) ===
+            
+            // Xóa item trong Giỏ mượn
+            $(document).on('click', '.remove-cart-item-btn', function () {
+                const id = parseInt($(this).data('id'));
+                cartList = cartList.filter(item => item.id !== id);
+                localStorage.setItem('cartList', JSON.stringify(cartList));
+                renderCart();
+                showToast('Đã xóa sách khỏi giỏ mượn!', 'fa-solid fa-trash');
+            });
+
+            // Xóa item trong Yêu thích
+            $(document).on('click', '.remove-fav-item-btn', function () {
+                const id = parseInt($(this).data('id'));
+                favList = favList.filter(item => item.id !== id);
+                localStorage.setItem('favList', JSON.stringify(favList));
+                renderFavorites();
+                showToast('Đã xóa sách khỏi danh sách yêu thích!', 'fa-solid fa-trash');
+            });
+
+            // Xóa tất cả trong Giỏ mượn
+            $('#clearCartBtn').on('click', function () {
+                if(confirm('Bạn có chắc chắn muốn làm trống giỏ mượn sách?')) {
+                    cartList = [];
+                    localStorage.setItem('cartList', JSON.stringify(cartList));
+                    renderCart();
+                    showToast('Đã dọn sạch giỏ mượn!', 'fa-solid fa-trash-sweep');
+                }
+            });
+
+            // Xóa tất cả trong Yêu thích
+            $('#clearFavoritesBtn').on('click', function () {
+                if(confirm('Bạn muốn làm sạch danh sách yêu thích?')) {
+                    favList = [];
+                    localStorage.setItem('favList', JSON.stringify(favList));
+                    renderFavorites();
+                    showToast('Đã dọn sạch danh sách yêu thích!', 'fa-solid fa-trash-sweep');
+                }
+            });
+
+            // Xác nhận mượn sách
+            $('#confirmBorrowBtn').on('click', function () {
+                if(cartList.length === 0) return;
+                
+                // Giả lập gửi thông tin lên backend
+                const bookTitles = cartList.map(b => `- ${b.title}`).join('\n');
+                alert(`Đăng ký mượn thành công!\n\nSố lượng sách: ${cartList.length} quyển.\n\nDanh mục:\n${bookTitles}\n\nVui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ kể từ thời điểm này.`);
+                
+                // Xóa giỏ sách sau khi mượn thành công
+                cartList = [];
+                localStorage.setItem('cartList', JSON.stringify(cartList));
+                renderCart();
+                
+                // Đóng Offcanvas
+                const myOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
+                if (myOffcanvas) myOffcanvas.hide();
+            });
+
+            // Di chuyển toàn bộ Yêu thích sang Giỏ mượn
+            $('#moveAllToCartBtn').on('click', function () {
+                if(favList.length === 0) return;
+                
+                let addedCount = 0;
+                favList.forEach(favItem => {
+                    const exists = cartList.some(cartItem => cartItem.id === favItem.id);
+                    if (!exists && cartList.length < 5) {
+                        cartList.push(favItem);
+                        addedCount++;
+                    }
+                });
+
+                localStorage.setItem('cartList', JSON.stringify(cartList));
+                renderCart();
+                
+                // Mở offcanvas giỏ mượn và đóng offcanvas yêu thích
+                const favCanvas = bootstrap.Offcanvas.getInstance(document.getElementById('favoritesOffcanvas'));
+                if (favCanvas) favCanvas.hide();
+                
+                const cartCanvas = new bootstrap.Offcanvas(document.getElementById('cartOffcanvas'));
+                cartCanvas.show();
+
+                if (addedCount > 0) {
+                    showToast(`Đã thêm thành công ${addedCount} cuốn sách vào giỏ mượn!`, 'fa-solid fa-cart-plus');
+                } else {
+                    showToast('Sách yêu thích đã có sẵn hoặc giỏ mượn đầy (tối đa 5 cuốn)!', 'fa-solid fa-triangle-exclamation');
+                }
+            });
+
+            // Hàm toàn cục để thêm sách từ Trang chủ (được gọi từ Index.cshtml)
+            window.addToCart = function (id, title, author, img) {
+                if (cartList.length >= 5) {
+                    showToast('Bạn chỉ được phép mượn tối đa 5 cuốn sách cùng một lúc!', 'fa-solid fa-triangle-exclamation');
+                    return;
+                }
+                const exists = cartList.some(item => item.id === id);
+                if (exists) {
+                    showToast('Cuốn sách này đã nằm trong giỏ mượn của bạn!', 'fa-solid fa-info-circle');
+                    return;
+                }
+                
+                cartList.push({ id, title, author, img });
+                localStorage.setItem('cartList', JSON.stringify(cartList));
+                renderCart();
+                showToast('Đã thêm thành công vào giỏ mượn!', 'fa-solid fa-basket-shopping');
+            };
+
+            window.addToFav = function (id, title, author, img) {
+                const exists = favList.some(item => item.id === id);
+                if (exists) {
+                    showToast('Cuốn sách này đã nằm trong danh sách yêu thích của bạn!', 'fa-solid fa-info-circle');
+                    return;
+                }
+                
+                favList.push({ id, title, author, img });
+                localStorage.setItem('favList', JSON.stringify(favList));
+                renderFavorites();
+                showToast('Đã lưu sách vào danh sách yêu thích!', 'fa-solid fa-heart');
+            };
+
+            // Khởi chạy render ban đầu
+            renderCart();
+            renderFavorites();
+        });
+    </script>
+    
+    @RenderSection("scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,29 @@
+## Ignore Visual Studio temp and build folders
+.vs/
+[Db]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+## Ignore NuGet Packages
+packages/
+
+## Ignore user-specific files (IIS configurations, etc.)
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+
+## Ignore Web/App Config secrets if any (recommended)
+# Web.config
+
+## Ignore build log files
+*.log
+
+## Ignore OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
