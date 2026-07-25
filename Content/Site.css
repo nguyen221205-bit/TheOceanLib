@@ -97,6 +97,8 @@ a:hover {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-color);
+    position: relative;
+    z-index: 1010;
     transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
