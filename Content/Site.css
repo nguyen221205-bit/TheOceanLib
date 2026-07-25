@@ -6,48 +6,48 @@
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;
 
-    /* Light Theme Colors (Default) */
-    --bg-app: #f8fafc;
+    /* Light Theme Colors (Default - Ocean Light) */
+    --bg-app: #f0f7ff;
     --bg-surface: #ffffff;
     --bg-surface-glass: rgba(255, 255, 255, 0.85);
-    --border-color: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --border-color: #e0f2fe;
+    --text-primary: #0c1e36;
+    --text-secondary: #334e68;
+    --text-muted: #627d98;
     
-    /* Branding Colors */
-    --primary: #0f172a; /* Deep Navy */
-    --primary-light: #1e293b;
-    --accent: #10b981; /* Emerald Green */
-    --accent-hover: #059669;
-    --accent-glow: rgba(16, 185, 129, 0.2);
+    /* Branding Colors (Ocean Theme) */
+    --primary: #0077b6; /* Ocean Blue */
+    --primary-light: #0096c7;
+    --accent: #00b4d8; /* Aqua/Cyan Accents */
+    --accent-hover: #0077b6;
+    --accent-glow: rgba(0, 180, 216, 0.25);
     
     /* Layout Constants */
     --transition-speed: 0.3s;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.02);
-    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+    --shadow-sm: 0 2px 4px rgba(0, 119, 182, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 119, 182, 0.08);
+    --shadow-lg: 0 10px 25px rgba(0, 119, 182, 0.12);
 }
 
-/* Dark Theme Overrides */
+/* Dark Theme Overrides (Ocean Dark) */
 [data-theme="dark"] {
-    --bg-app: #0b0f19;
-    --bg-surface: #111827;
-    --bg-surface-glass: rgba(17, 24, 39, 0.8);
-    --border-color: #1f2937;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
+    --bg-app: #060b16; /* Deep Abyss Blue */
+    --bg-surface: #0b1528; /* Deep Ocean Floor */
+    --bg-surface-glass: rgba(11, 21, 40, 0.8);
+    --border-color: #1e293b;
+    --text-primary: #f0f7ff;
+    --text-secondary: #90e0ef; /* Sea Foam */
+    --text-muted: #486581;
     
-    --primary: #f8fafc;
-    --primary-light: #cbd5e1;
-    --accent: #10b981;
-    --accent-hover: #34d399;
-    --accent-glow: rgba(16, 185, 129, 0.4);
+    --primary: #00b4d8;
+    --primary-light: #90e0ef;
+    --accent: #00b4d8;
+    --accent-hover: #00f5d4;
+    --accent-glow: rgba(0, 245, 212, 0.3);
     
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.2);
-    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4), 0 4px 6px -2px rgba(0,0,0,0.3);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 180, 216, 0.15);
+    --shadow-lg: 0 10px 30px rgba(0, 180, 216, 0.25);
 }
 
 /* --- BASE STYLES --- */
@@ -122,7 +122,7 @@ a:hover {
     font-family: var(--font-heading);
     font-weight: 800;
     letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, #0077b6 0%, #00f5d4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     display: inline-block;
@@ -631,4 +631,31 @@ footer {
     .offcanvas-custom {
         width: 100% !important; /* Full width drawer on mobile */
     }
+}
+
+/* --- OVERRIDES FOR GREEN ELEMENT CLASSES (EMERALD -> OCEAN ACCENTS) --- */
+.text-emerald {
+    color: var(--accent) !important;
+}
+.bg-emerald {
+    background-color: var(--accent) !important;
+}
+.btn-success {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+.btn-success:hover {
+    background-color: var(--accent-hover) !important;
+    border-color: var(--accent-hover) !important;
+}
+.btn-outline-success {
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+}
+.btn-outline-success:hover {
+    background-color: var(--primary) !important;
+    color: #ffffff !important;
+}
+.text-success {
+    color: var(--accent) !important;
 }
