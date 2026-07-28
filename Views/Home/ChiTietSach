@@ -1,0 +1,96 @@
+@model DoAn_LTWeb.Models.Sach
+
+@{
+    ViewBag.Title = "Chi tiết sách";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="row g-0">
+
+            <!-- Ảnh -->
+            <div class="col-md-4 text-center p-4">
+
+                <img src="@Url.Content("~/Content/HinhAnh/" + Model.AnhBia)"
+                     class="img-fluid rounded shadow"
+                     style="max-height:450px;" />
+
+            </div>
+
+            <!-- Thông tin -->
+            <div class="col-md-8">
+
+                <div class="card-body p-4">
+
+                    <h2 class="text-primary fw-bold">
+                        @Model.TenSach
+                    </h2>
+
+                    <hr />
+
+                    <table class="table table-borderless">
+
+                        <tr>
+                            <th width="180">Mã sách</th>
+                            <td>@Model.MaSach</td>
+                        </tr>
+
+                        <tr>
+                            <th>Tác giả</th>
+                            <td>@ViewBag.TenTacGia</td>
+                        </tr>
+
+                        <tr>
+                            <th>ISBN</th>
+                            <td>@Model.ISBN</td>
+                        </tr>
+
+                        <tr>
+                            <th>Năm xuất bản</th>
+                            <td>@Model.NamXuatBan</td>
+                        </tr>
+
+                        <tr>
+                            <th>Số lượng</th>
+                            <td>
+                                <span class="badge bg-success fs-6">
+                                    @Model.TongSoLuong
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th>Mô tả</th>
+                            <td>@Model.MoTa</td>
+                        </tr>
+
+                    </table>
+
+                    <div class="mt-4">
+
+                        <a href="@Url.Action("ChonSach","Home",new { id = Model.MaSach })"
+                           class="btn btn-success btn-lg me-2">
+
+                            ✔ Chọn sách
+
+                        </a>
+
+                        <a href="@Url.Action("HienThiDSSP","Home")"
+                           class="btn btn-outline-secondary btn-lg">
+
+                            ← Quay lại
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
