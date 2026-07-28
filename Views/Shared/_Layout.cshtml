@@ -57,10 +57,11 @@
                     </button>
 
                     <!-- Nút Giỏ mượn sách -->
-                    <button class="header-action-btn" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Giỏ mượn">
+                    <a href="@Url.Action("XemGioHang", "Home")" class="header-action-btn position-relative text-decoration-none" title="Xem giỏ mượn">
                         <i class="fa-solid fa-basket-shopping"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="cartBadge">0</span>
-                    </button>
+                    </a>
+
 
                     <!-- Tài khoản Dropdown -->
                     <div class="dropdown">
@@ -109,7 +110,10 @@
                             <a class="nav-link active" href="@Url.Action("Index", "Home")">Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Sách mượn nhiều</a>
+                            <a class="nav-link" href="@Url.Action("HienThiDSSP", "Home")"> Danh sách sách</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="">Sách mượn nhiều</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#">Tài liệu mới</a>
