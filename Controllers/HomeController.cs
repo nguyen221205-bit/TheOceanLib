@@ -8,7 +8,7 @@ namespace DoAn_LTWeb.Controllers
 {
     public class HomeController : Controller
     {
-        QuanLyThuVienEntities1 data = new QuanLyThuVienEntities1();
+        QuanLyThuVienEntities data = new QuanLyThuVienEntities();
         public ActionResult Index()
         {
             return View();
@@ -16,15 +16,15 @@ namespace DoAn_LTWeb.Controllers
 
         public ActionResult HienThiDSSP()
         {
-            List<Sach> dssp = data.Saches.ToList();
+            List<Sach> dssp = data.Sach.ToList();
             return View(dssp);
         }
 
         public ActionResult ChiTietSach(int id)
         {
-            var sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
+            var sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
 
-            ViewBag.TenTacGia = data.TacGias
+            ViewBag.TenTacGia = data.TacGia
                                     .Where(t => t.MaTacGia == sach.MaTacGia)
                                     .Select(t => t.TenTacGia)
                                     .FirstOrDefault();
@@ -49,7 +49,7 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult ChonSach(int id)
         {
             // 1. Tìm sách trong Database theo id truyền vào
-            Sach sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
+            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
 
             if (sach == null)
             {
