@@ -16,7 +16,7 @@ namespace DoAn_LTWeb.Controllers
 
         public ActionResult HienThiDSSP()
         {
-            List<Sach> dssp = data.Sach.ToList();
+            List<Sach> dssp = data.Sach.Include("TacGia").ToList();
             return View(dssp);
         }
 

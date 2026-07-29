@@ -661,3 +661,46 @@ footer {
 .text-success {
     color: var(--accent) !important;
 }
+
+/* --- BOOTSTRAP CARD CUSTOMIZATION FOR THEME & HOVER EFFECT --- */
+.card {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease, transform var(--transition-speed) ease !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg) !important;
+}
+
+.card:hover .card-img-top {
+    transform: scale(1.06);
+}
+
+.card-body h5.card-title {
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+    font-size: 1.05rem !important;
+}
+
+.card-footer {
+    background-color: transparent !important;
+    border-top: 1px solid var(--border-color) !important;
+    transition: border-color var(--transition-speed) ease;
+}
+
+/* Hover effects for action links in the footer */
+.card .btn-outline-primary {
+    color: var(--accent) !important;
+    border-color: var(--accent) !important;
+    background-color: transparent !important;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+.card .btn-outline-primary:hover {
+    background-color: var(--accent) !important;
+    color: #ffffff !important;
+}
