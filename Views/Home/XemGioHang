@@ -1,0 +1,94 @@
+@using DoAn_LTWeb.Models
+@model GioHang
+
+@{
+    ViewBag.Title = "Giỏ Hàng Mượn Sách";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-4">
+    <h2 class="mb-4 text-emerald"><i class="fa-solid fa-basket-shopping me-2"></i>Chi Tiết Giỏ Mượn Sách</h2>
+
+    @if (Model == null || Model.lst.Count == 0)
+    {
+        <div class="alert alert-info text-center py-4">
+            <p class="fs-5 mb-3">Giỏ hàng mượn của bạn đang trống!</p>
+            <a href="@Url.Action("HienThiDSSP", "Home")" class="btn btn-primary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách sách
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Hình ảnh</th>
+                        <th scope="col">Tên sách</th>
+                        <th scope="col" class="text-center" style="width: 180px;">Số lượng</th>
+                        <th scope="col" class="text-center" style="width: 150px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (CartItem item in Model.lst)
+                    {
+                        <tr>
+                            <td>
+                                <img src="~/Content/HinhAnh/@item.sAnhBia" alt="@item.sTenSach" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;" />
+                            </td>
+                            <td>
+                                <span class="fw-semibold">@item.sTenSach</span>
+                            </td>
+
+                            <!-- Cột Số lượng có form cập nhật -->
+                            <td class="text-center">
+                                @using (Html.BeginForm("CapNhatGioHang", "Home", FormMethod.Post, new { @class = "d-flex align-items-center justify-content-center gap-2" }))
+                                {
+                                    <input type="hidden" name="id" value="@item.iMaSach" />
+                                    <input type="number"
+                                           name="soLuong"
+                                           value="@item.iSoLuong"
+                                           min="1"
+                                           max="5"
+                                           class="form-control form-control-sm text-center"
+                                           style="width: 65px;" />
+                                    <button type="submit" class="btn btn-outline-primary btn-sm" title="Cập nhật số lượng">
+                                        <i class="fa-solid fa-pen-to-square"></i> Sửa
+                                    </button>
+                                }
+                            </td>
+
+                            <!-- Cột Thao tác chứa nút Xóa -->
+                            <td class="text-center">
+                                <a href="@Url.Action("XoaGioHang", "Home", new { id = item.iMaSach })"
+                                   class="btn btn-outline-danger btn-sm"
+                                   onclick="return confirm('Bạn có chắc muốn xóa cuốn sách này khỏi giỏ mượn?');"
+                                   title="Xóa sách">
+                                    <i class="fa-solid fa-trash-can"></i> Xóa
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="2" class="fw-bold fs-5">Tổng số lượng mượn:</td>
+                        <td class="text-center fw-bold fs-5 text-emerald">@Model.TongSLHang()</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <a href="@Url.Action("HienThiDSSP", "Home")" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Tiếp tục chọn sách
+            </a>
+
+            <a href="@Url.Action("XacNhanMuon", "Home")" class="btn btn-success btn-lg">
+                <i class="fa-regular fa-square-check me-1"></i> Xác nhận mượn sách
+            </a>
+        </div>
+    }
+</div>

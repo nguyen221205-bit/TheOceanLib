@@ -1,0 +1,70 @@
+@using DoAn_LTWeb.Models
+@model List<Sach>
+@{
+    ViewBag.Title = "HienThiDSSP";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    @foreach (Sach item in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <img src="~/Content/HinhAnh/@item.AnhBia"
+                     class="card-img-top"
+                     style="height:250px;object-fit:cover;" />
+
+                <div class="card-body">
+                    <h5>@item.TenSach</h5>
+                    <p>
+                        <b>Số lượng:</b>
+                        @item.TongSoLuong
+                    </p>
+                </div>
+
+                <div class="card-footer text-center">
+                    @Html.ActionLink("Chi tiết",
+                                                         "ChiTietSach",
+                                                         new { id = item.MaSach },
+                                                         new { @class = "btn btn-primary btn-sm" })
+
+                    <!-- Thay đổi nút Chọn thành button có class/data-id để gọi AJAX -->
+                    <button type="button"
+                            class="btn btn-success btn-sm btn-chon-sach"
+                            data-id="@item.MaSach">
+                        Chọn
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(document).on('click', '.btn-chon-sach', function (e) {
+            e.preventDefault();
+
+            var maSach = $(this).data('id');
+
+            $.ajax({
+                url: '/Home/ChonSach', // Viết thẳng đường dẫn để không bị trình biên dịch báo lỗi Razor
+                type: 'POST',
+                data: { id: maSach },
+                success: function (response) {
+                    if (response.success) {
+                        $('#cartBadge').text(response.totalCount);
+                        alert('Đã thêm sách vào giỏ mượn!');
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra!');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi AJAX:", error);
+                    alert('Không thể kết nối đến máy chủ.');
+                }
+            });
+        });
+    });
+</script>
