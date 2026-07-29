@@ -59,7 +59,11 @@
                     <!-- Nút Giỏ mượn sách -->
                     <a href="@Url.Action("XemGioHang", "Home")" class="header-action-btn position-relative text-decoration-none" title="Xem giỏ mượn">
                         <i class="fa-solid fa-basket-shopping"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="cartBadge">0</span>
+                        @{
+                            var gioHangSession = Session["GioHang"] as DoAn_LTWeb.Models.GioHang;
+                            int totalCartItems = gioHangSession != null ? gioHangSession.TongSLHang() : 0;
+                        }
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="cartBadge">@totalCartItems</span>
                     </a>
 
 
@@ -346,13 +350,8 @@
 
             // ================= 3. QUẢN LÝ DỮ LIỆU GIỎ MƯỢN & YÊU THÍCH =================
             // Dữ liệu mẫu ban đầu để demo nếu Storage trống
-            const initialCart = [
-                { id: 101, title: 'Clean Code: A Handbook of Agile Software Craftsmanship', author: 'Robert C. Martin', img: 'https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg' },
-                { id: 102, title: 'Design Patterns: Elements of Reusable Object-Oriented Software', author: 'Erich Gamma, Richard Helm', img: 'https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg' }
-            ];
-            const initialFav = [
-                { id: 103, title: 'Introduction to Algorithms (3rd Edition)', author: 'Thomas H. Cormen', img: 'https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg' }
-            ];
+            const initialCart = [];
+            const initialFav = [];
 
             let cartList = JSON.parse(localStorage.getItem('cartList'));
             if (!cartList) {
@@ -409,8 +408,8 @@
                     $('#clearCartBtn').show();
                 }
                 
-                // Cập nhật Badge số lượng
-                $('#cartBadge').text(cartList.length);
+                // Giữ nguyên số lượng của cartBadge từ Session C# thay vì ghi đè bằng local storage
+                // $('#cartBadge').text(cartList.length);
                 $('#cartTotalCount').text(`${cartList.length} / 5`);
             };
 
