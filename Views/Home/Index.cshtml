@@ -1,3 +1,5 @@
+@using DoAn_LTWeb.Models
+@model List<Sach>
 @{
     ViewBag.Title = "Trang chủ";
 }
@@ -152,121 +154,52 @@
 
     <!-- Grid Sách -->
     <div class="row g-4">
-        <!-- Cuốn sách 1 -->
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-            <div class="glass-card book-card p-3">
-                <div class="book-card-img-wrapper">
-                    <img src="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Clean Code" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Clean+Code'">
-                    <span class="badge bg-danger book-card-badge">HOT</span>
-                    <div class="book-card-actions">
-                        <button class="action-icon-btn addToCartBtn" data-id="101" data-title="Clean Code: A Handbook of Agile Software Craftsmanship" data-author="Robert C. Martin" data-img="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
-                            <i class="fa-solid fa-basket-shopping"></i>
-                        </button>
-                        <button class="action-icon-btn addToFavBtn" data-id="101" data-title="Clean Code: A Handbook of Agile Software Craftsmanship" data-author="Robert C. Martin" data-img="https://images-na.ssl-images-amazon.com/images/I/41xSh45s7iL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
+        @foreach (Sach item in Model)
+        {
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+                <div class="glass-card book-card p-3">
+                    <div class="book-card-img-wrapper">
+                        <img src="~/Content/HinhAnh/@item.AnhBia" class="book-card-img" alt="@item.TenSach" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=@item.TenSach'">
+                        @if (item.TongSoLuong > 5)
+                        {
+                            <span class="badge bg-danger book-card-badge">HOT</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success book-card-badge">MỚI</span>
+                        }
+                        <div class="book-card-actions">
+                            <button class="action-icon-btn addToCartBtn" data-id="@item.MaSach" title="Mượn sách">
+                                <i class="fa-solid fa-basket-shopping"></i>
+                            </button>
+                            <button class="action-icon-btn addToFavBtn" data-id="@item.MaSach" title="Yêu thích">
+                                <i class="fa-regular fa-heart"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="mt-3">
-                    <div class="text-secondary small mb-1">Kiến trúc & Quy trình</div>
-                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Clean Code: Handbook of Agile Software</h5>
-                    <p class="text-muted small text-truncate mb-2">Robert C. Martin</p>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 8 cuốn</span>
-                        <div class="text-warning small">
-                            <i class="fa-solid fa-star"></i> 4.8
+                    <div class="mt-3">
+                        <div class="text-secondary small mb-1">@(item.TheLoai != null ? item.TheLoai.TenTheLoai : "Tài liệu")</div>
+                        <h5 class="card-title fs-6 fw-bold text-truncate mb-2" style="height: 38px; line-height: 1.3; color: var(--primary);">
+                            @item.TenSach
+                        </h5>
+                        <p class="text-muted small text-truncate mb-2">@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            @if (item.TongSoLuong > 0)
+                            {
+                                <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: @item.TongSoLuong cuốn</span>
+                            }
+                            else
+                            {
+                                <span class="small text-danger fw-semibold"><i class="fa-regular fa-circle-xmark"></i> Hết sách (Đặt chỗ)</span>
+                            }
+                            <div class="text-warning small">
+                                <i class="fa-solid fa-star"></i> 4.8
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Cuốn sách 2 -->
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-            <div class="glass-card book-card p-3">
-                <div class="book-card-img-wrapper">
-                    <img src="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Design Patterns" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Design+Patterns'">
-                    <span class="badge bg-danger book-card-badge">HOT</span>
-                    <div class="book-card-actions">
-                        <button class="action-icon-btn addToCartBtn" data-id="102" data-title="Design Patterns: Elements of Reusable Object-Oriented Software" data-author="Erich Gamma, Richard Helm" data-img="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
-                            <i class="fa-solid fa-basket-shopping"></i>
-                        </button>
-                        <button class="action-icon-btn addToFavBtn" data-id="102" data-title="Design Patterns: Elements of Reusable Object-Oriented Software" data-author="Erich Gamma, Richard Helm" data-img="https://images-na.ssl-images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <div class="text-secondary small mb-1">Mẫu thiết kế</div>
-                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Design Patterns: Reusable Software Elements</h5>
-                    <p class="text-muted small text-truncate mb-2">Erich Gamma, Richard Helm</p>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 5 cuốn</span>
-                        <div class="text-warning small">
-                            <i class="fa-solid fa-star"></i> 4.9
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cuốn sách 3 -->
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-            <div class="glass-card book-card p-3">
-                <div class="book-card-img-wrapper">
-                    <img src="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="Introduction to Algorithms" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=Algorithms'">
-                    <span class="badge bg-success book-card-badge">MỚI</span>
-                    <div class="book-card-actions">
-                        <button class="action-icon-btn addToCartBtn" data-id="103" data-title="Introduction to Algorithms (3rd Edition)" data-author="Thomas H. Cormen" data-img="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
-                            <i class="fa-solid fa-basket-shopping"></i>
-                        </button>
-                        <button class="action-icon-btn addToFavBtn" data-id="103" data-title="Introduction to Algorithms (3rd Edition)" data-author="Thomas H. Cormen" data-img="https://images-na.ssl-images-amazon.com/images/I/41v37s7Cj4L._SX385_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <div class="text-secondary small mb-1">Thuật toán & Cơ bản</div>
-                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">Introduction to Algorithms, 3rd Edition</h5>
-                    <p class="text-muted small text-truncate mb-2">Thomas H. Cormen</p>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: 3 cuốn</span>
-                        <div class="text-warning small">
-                            <i class="fa-solid fa-star"></i> 4.7
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cuốn sách 4 -->
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-            <div class="glass-card book-card p-3">
-                <div class="book-card-img-wrapper">
-                    <img src="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" class="book-card-img" alt="C# 10 and .NET 6" onerror="this.src='https://placehold.co/240x320/0f172a/ffffff?text=C%23+10'">
-                    <span class="badge bg-success book-card-badge">MỚI</span>
-                    <div class="book-card-actions">
-                        <button class="action-icon-btn addToCartBtn" data-id="104" data-title="C# 10 and .NET 6 – Modern Cross-Platform Development" data-author="Mark J. Price" data-img="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" title="Mượn sách">
-                            <i class="fa-solid fa-basket-shopping"></i>
-                        </button>
-                        <button class="action-icon-btn addToFavBtn" data-id="104" data-title="C# 10 and .NET 6 – Modern Cross-Platform Development" data-author="Mark J. Price" data-img="https://images-na.ssl-images-amazon.com/images/I/51w+VSt973L._SX379_BO1,204,203,200_QL40_FMwebp_.jpg" title="Yêu thích">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <div class="text-secondary small mb-1">C# & .NET</div>
-                    <h5 class="card-title fs-6 fw-bold text-truncate-2 mb-2" style="height: 38px; line-height: 1.3;">C# 10 and .NET 6 – Modern Cross-Platform</h5>
-                    <p class="text-muted small text-truncate mb-2">Mark J. Price</p>
-                    <div class="d-flex align-items-center justify-content-between">
-                        <span class="small text-danger fw-semibold"><i class="fa-regular fa-circle-xmark"></i> Hết sách (Đặt chỗ)</span>
-                        <div class="text-warning small">
-                            <i class="fa-solid fa-star"></i> 4.6
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </section>
 
@@ -274,31 +207,39 @@
 @section scripts {
     <script>
         $(document).ready(function () {
-            // Nút Thêm vào giỏ sách tại Trang chủ
-            $('.addToCartBtn').on('click', function () {
-                const id = parseInt($(this).data('id'));
-                const title = $(this).data('title');
-                const author = $(this).data('author');
-                const img = $(this).data('img');
+            // Nút Thêm vào giỏ sách tại Trang chủ (Sử dụng AJAX gọi API Server giống như trang danh sách)
+            $('.addToCartBtn').on('click', function (e) {
+                e.preventDefault();
+                var maSach = $(this).data('id');
                 
-                // Gọi hàm toàn cục được định nghĩa trong _Layout.cshtml
-                if (typeof window.addToCart === 'function') {
-                    window.addToCart(id, title, author, img);
-                }
+                $.ajax({
+                    url: '/Home/ChonSach',
+                    type: 'POST',
+                    data: { id: maSach },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#cartBadge').text(response.totalCount);
+                            alert('Đã thêm sách vào giỏ mượn!');
+                        } else {
+                            alert(response.message || 'Có lỗi xảy ra!');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Lỗi AJAX:", error);
+                        alert('Không thể kết nối đến máy chủ.');
+                    }
+                });
             });
 
             // Nút Thêm vào mục Yêu thích tại Trang chủ
             $('.addToFavBtn').on('click', function () {
                 const id = parseInt($(this).data('id'));
-                const title = $(this).data('title');
-                const author = $(this).data('author');
-                const img = $(this).data('img');
-                
                 // Thay đổi icon sang hình tim đỏ
                 $(this).find('i').removeClass('fa-regular').addClass('fa-solid text-danger');
                 
+                // Mở rộng lưu ở phía LocalStorage để hiển thị nhanh
                 if (typeof window.addToFav === 'function') {
-                    window.addToFav(id, title, author, img);
+                    window.addToFav(id, "", "", "");
                 }
             });
 

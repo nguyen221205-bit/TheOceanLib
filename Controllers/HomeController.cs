@@ -11,7 +11,8 @@ namespace DoAn_LTWeb.Controllers
         QuanLyThuVienEntities data = new QuanLyThuVienEntities();
         public ActionResult Index()
         {
-            return View();
+            List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Take(4).ToList();
+            return View(dssp);
         }
 
         public ActionResult HienThiDSSP()

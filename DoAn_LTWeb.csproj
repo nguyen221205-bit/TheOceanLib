@@ -198,13 +198,10 @@
     <Content Include="Content\HinhAnh\canhdongbattan.jpg" />
     <Content Include="Content\HinhAnh\cleancode.jpg" />
     <Content Include="Content\HinhAnh\dacnhantam.jpg" />
-    <Content Include="Content\HinhAnh\dac_nhan_tam.jpg" />
-    <Content Include="Content\HinhAnh\de_men.jpg" />
     <Content Include="Content\HinhAnh\harrypotter1.jpg" />
     <Content Include="Content\HinhAnh\leanstartup.jpg" />
     <Content Include="Content\HinhAnh\luocsuthoigian.jpg" />
     <Content Include="Content\HinhAnh\matbiec.jpg" />
-    <Content Include="Content\HinhAnh\mat_biec.jpg" />
     <Content Include="Content\HinhAnh\nghicanx.jpg" />
     <Content Include="Content\HinhAnh\nghigiaulamgiau.jpg" />
     <Content Include="Content\HinhAnh\nhagiakim.jpg" />
