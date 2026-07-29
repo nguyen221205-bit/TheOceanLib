@@ -123,7 +123,40 @@ namespace DoAn_LTWeb.Controllers
             return RedirectToAction("XemGioHang");
         }
 
+        [HttpPost]
+        public ActionResult CapNhatSoLuongAjax(int id, int change)
+        {
+            GioHang gioHang = Session["GioHang"] as GioHang;
+            int newQty = 0;
+            int totalQty = 0;
+            bool removed = false;
 
+            if (gioHang != null)
+            {
+                var item = gioHang.lst.FirstOrDefault(x => x.iMaSach == id);
+                if (item != null)
+                {
+                    int targetQty = item.iSoLuong + change;
+                    if (targetQty <= 0)
+                    {
+                        gioHang.Xoa(id);
+                        removed = true;
+                    }
+                    else if (targetQty <= 5) // limit max 5
+                    {
+                        gioHang.CapNhat(id, targetQty);
+                        newQty = targetQty;
+                    }
+                    else
+                    {
+                        newQty = item.iSoLuong; // keep current if > 5
+                    }
+                    Session["GioHang"] = gioHang;
+                    totalQty = gioHang.TongSLHang();
+                }
+            }
 
+            return Json(new { success = true, newQty = newQty, totalQty = totalQty, removed = removed });
+        }
     }
 }

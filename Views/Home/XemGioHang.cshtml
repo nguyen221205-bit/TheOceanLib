@@ -41,22 +41,22 @@
                                 <span class="fw-bold" style="color: var(--primary);">@item.sTenSach</span>
                             </td>
 
-                            <!-- Cột Số lượng có form cập nhật -->
+                            <!-- Cột Số lượng có nút + - và AJAX -->
                             <td class="text-center">
-                                @using (Html.BeginForm("CapNhatGioHang", "Home", FormMethod.Post, new { @class = "d-flex align-items-center justify-content-center gap-2" }))
-                                {
-                                    <input type="hidden" name="id" value="@item.iMaSach" />
-                                    <input type="number"
-                                           name="soLuong"
-                                           value="@item.iSoLuong"
-                                           min="1"
-                                           max="5"
-                                           class="form-control form-control-sm text-center"
-                                           style="width: 65px;" />
-                                    <button type="submit" class="btn btn-outline-primary btn-sm" title="Cập nhật số lượng">
-                                        <i class="fa-solid fa-pen-to-square"></i> Sửa
+                                <div class="d-flex align-items-center justify-content-center gap-1">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-change-qty" data-id="@item.iMaSach" data-change="-1" style="width: 30px; height: 30px; border-radius: 4px; padding: 0;">
+                                        <i class="fa-solid fa-minus"></i>
                                     </button>
-                                }
+                                    <input type="text" 
+                                           id="qty-@item.iMaSach"
+                                           value="@item.iSoLuong" 
+                                           class="form-control form-control-sm text-center fw-bold" 
+                                           style="width: 45px; height: 30px;" 
+                                           readonly />
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-change-qty" data-id="@item.iMaSach" data-change="1" style="width: 30px; height: 30px; border-radius: 4px; padding: 0;">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </button>
+                                </div>
                             </td>
 
                             <!-- Cột Thao tác chứa nút Xóa -->
@@ -74,7 +74,7 @@
                 <tfoot>
                     <tr class="table-light">
                         <td colspan="2" class="fw-bold fs-5">Tổng số lượng mượn:</td>
-                        <td class="text-center fw-bold fs-5 text-emerald">@Model.TongSLHang()</td>
+                        <td id="totalCartQty" class="text-center fw-bold fs-5 text-emerald">@Model.TongSLHang()</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -92,3 +92,53 @@
         </div>
     }
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.btn-change-qty').on('click', function (e) {
+            e.preventDefault();
+            var btn = $(this);
+            var id = btn.data('id');
+            var change = parseInt(btn.data('change'));
+            var row = btn.closest('tr');
+            
+            $.ajax({
+                url: '/Home/CapNhatSoLuongAjax',
+                type: 'POST',
+                data: { id: id, change: change },
+                success: function (response) {
+                    if (response.success) {
+                        // Cập nhật Badge trên Header
+                        $('#cartBadge').text(response.totalQty);
+                        
+                        if (response.removed) {
+                            // Xóa dòng tr khỏi bảng
+                            row.fadeOut(300, function () {
+                                $(this).remove();
+                                // Nếu giỏ hàng trống sau khi xóa, reload để hiển thị thông báo giỏ hàng trống
+                                if (response.totalQty === 0) {
+                                    location.reload();
+                                } else {
+                                    // Cập nhật tổng số lượng hiển thị ở tfoot
+                                    $('#totalCartQty').text(response.totalQty);
+                                }
+                            });
+                        } else {
+                            // Cập nhật ô số lượng
+                            $('#qty-' + id).val(response.newQty);
+                            // Cập nhật tổng số lượng hiển thị ở tfoot
+                            $('#totalCartQty').text(response.totalQty);
+                        }
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra!');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi AJAX:", error);
+                    alert('Không thể kết nối đến máy chủ.');
+                }
+            });
+        });
+    });
+</script>
