@@ -16,9 +16,10 @@ namespace DoAn_LTWeb.Models
                 {
                     return 0;
                 }
-                // Đếm các cuốn sách vật lý có trạng thái là "Sẵn sàng"
+                // Đếm các cuốn sách vật lý có trạng thái là "SanSang" hoặc "Sẵn sàng"
                 return this.CuonSach.Count(cs => cs.TrangThai != null && 
-                                                 cs.TrangThai.Trim().Equals("Sẵn sàng", StringComparison.OrdinalIgnoreCase));
+                                                 (cs.TrangThai.Trim().Equals("SanSang", StringComparison.OrdinalIgnoreCase) ||
+                                                  cs.TrangThai.Trim().Equals("Sẵn sàng", StringComparison.OrdinalIgnoreCase)));
             }
         }
     }
