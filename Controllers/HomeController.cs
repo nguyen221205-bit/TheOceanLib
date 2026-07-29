@@ -77,6 +77,23 @@ namespace DoAn_LTWeb.Controllers
             return Json(new { success = true, totalCount = tongSoLuong }, JsonRequestBehavior.AllowGet);
         }
 
+        // GET: ChonSachVaQuayLai
+        public ActionResult ChonSachVaQuayLai(int id)
+        {
+            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            if (sach != null)
+            {
+                GioHang gioHang = Session["GioHang"] as GioHang;
+                if (gioHang == null)
+                {
+                    gioHang = new GioHang();
+                }
+                gioHang.Them(sach);
+                Session["GioHang"] = gioHang;
+            }
+            return RedirectToAction("HienThiDSSP");
+        }
+
 
         // GET: XemGioHang
         public ActionResult XemGioHang()
