@@ -11,19 +11,19 @@ namespace DoAn_LTWeb.Controllers
         QuanLyThuVienEntities data = new QuanLyThuVienEntities();
         public ActionResult Index()
         {
-            List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Take(4).ToList();
+            List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Include("CuonSach").Take(4).ToList();
             return View(dssp);
         }
 
         public ActionResult HienThiDSSP()
         {
-            List<Sach> dssp = data.Sach.Include("TacGia").ToList();
+            List<Sach> dssp = data.Sach.Include("TacGia").Include("CuonSach").ToList();
             return View(dssp);
         }
 
         public ActionResult ChiTietSach(int id)
         {
-            var sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            var sach = data.Sach.Include("CuonSach").FirstOrDefault(s => s.MaSach == id);
 
             ViewBag.TenTacGia = data.TacGia
                                     .Where(t => t.MaTacGia == sach.MaTacGia)

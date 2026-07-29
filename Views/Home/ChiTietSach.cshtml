@@ -56,7 +56,7 @@
                             <th>Số lượng</th>
                             <td>
                                 <span class="badge bg-success fs-6">
-                                    @Model.TongSoLuong
+                                    Sẵn có: @Model.SoLuongChuaMuon / @(Model.TongSoLuong.HasValue ? Model.TongSoLuong.Value.ToString() : "0")
                                 </span>
                             </td>
                         </tr>

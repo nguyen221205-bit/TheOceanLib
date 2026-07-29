@@ -128,6 +128,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\CartItem.cs" />
+    <Compile Include="Models\Sach_Extension.cs" />
     <Compile Include="Models\ChiTietPhieuMuon.cs">
       <DependentUpon>ModelsDuLieu.tt</DependentUpon>
     </Compile>

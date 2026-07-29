@@ -184,9 +184,9 @@
                         </h5>
                         <p class="text-muted small text-truncate mb-2">@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")</p>
                         <div class="d-flex align-items-center justify-content-between">
-                            @if (item.TongSoLuong > 0)
+                            @if (item.SoLuongChuaMuon > 0)
                             {
-                                <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: @item.TongSoLuong cuốn</span>
+                                <span class="small text-success fw-semibold"><i class="fa-regular fa-circle-check"></i> Sẵn có: @item.SoLuongChuaMuon / @(item.TongSoLuong.HasValue ? item.TongSoLuong.Value.ToString() : "0")</span>
                             }
                             else
                             {
