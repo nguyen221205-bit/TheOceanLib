@@ -704,3 +704,27 @@ footer {
     background-color: var(--accent) !important;
     color: #ffffff !important;
 }
+
+/* --- TABLE CUSTOMIZATION FOR DARK MODE --- */
+[data-theme="dark"] .table {
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .table th, 
+[data-theme="dark"] .table td {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .table-light {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="dark"] .table-light th {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="dark"] .table tfoot td {
+    background-color: var(--bg-surface) !important;
+    color: var(--text-primary) !important;
+}
