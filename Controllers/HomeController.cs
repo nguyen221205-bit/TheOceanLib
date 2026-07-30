@@ -15,10 +15,28 @@ namespace DoAn_LTWeb.Controllers
             return View(dssp);
         }
 
-        public ActionResult HienThiDSSP()
+        public ActionResult HienThiDSSP(int? maTheLoai)
         {
-            List<Sach> dssp = data.Sach.Include("TacGia").Include("CuonSach").ToList();
+            List<Sach> dssp;
+            if (maTheLoai.HasValue)
+            {
+                dssp = data.Sach.Include("TacGia").Include("CuonSach")
+                                 .Where(s => s.MaTheLoai == maTheLoai.Value).ToList();
+                var theLoai = data.TheLoai.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
+                ViewBag.TenTheLoai = theLoai != null ? theLoai.TenTheLoai : "";
+            }
+            else
+            {
+                dssp = data.Sach.Include("TacGia").Include("CuonSach").ToList();
+            }
             return View(dssp);
+        }
+
+        [ChildActionOnly]
+        public ActionResult MenuTheLoai()
+        {
+            var listTheLoai = data.TheLoai.ToList();
+            return PartialView("_MenuTheLoai", listTheLoai);
         }
 
         public ActionResult ChiTietSach(int id)

@@ -5,7 +5,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row g-4">
+<div class="container py-4">
+    <h2 class="mb-4 fw-bold" style="color: var(--primary);">
+        <i class="fa-solid fa-book-open text-accent me-2"></i>
+        @(!string.IsNullOrEmpty(ViewBag.TenTheLoai) ? "Danh mục: " + ViewBag.TenTheLoai : "Tất cả sách mượn")
+    </h2>
+
+    <div class="row g-4">
     @foreach (Sach item in Model)
     {
         <div class="col-sm-6 col-md-4 col-lg-3">
@@ -47,6 +53,7 @@
             </div>
         </div>
     }
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
