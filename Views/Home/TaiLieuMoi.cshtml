@@ -1,0 +1,228 @@
+
+@model IEnumerable<DoAn_LTWeb.Models.Sach>
+@{
+    ViewBag.Title = "TaiLieuMoi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<style>
+    .new-book-header {
+        text-align: center;
+        margin: 30px 0;
+    }
+
+        .new-book-header h2 {
+            color: #25d0ff;
+            font-weight: bold;
+            font-size: 38px;
+        }
+
+        .new-book-header p {
+            color: #b8c6db;
+        }
+
+    .search-box {
+        display: flex;
+        gap: 15px;
+        margin: 30px auto;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+        .search-box input {
+            width: 350px;
+            border-radius: 30px;
+            padding: 12px 20px;
+        }
+
+        .search-box select {
+            width: 220px;
+            border-radius: 30px;
+        }
+
+    .btn-search {
+        border: none;
+        background: #1fb6ff;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        transition: .3s;
+    }
+
+        .btn-search:hover {
+            background: #00d2ff;
+        }
+
+    .book-card {
+        background: #111c33;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        transition: .35s;
+        box-shadow: 0 5px 15px rgba(0,0,0,.35);
+    }
+
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 30px rgba(37,208,255,.35);
+        }
+
+    .book-img {
+        position: relative;
+    }
+
+        .book-img img {
+            width: 100%;
+            height: 330px;
+            object-fit: cover;
+        }
+
+    .new-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #ff3d57;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .book-info {
+        padding: 18px;
+        color: white;
+    }
+
+        .book-info h5 {
+            min-height: 55px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+    .stock {
+        color: #26de81;
+        font-weight: bold;
+    }
+
+    .btn-group-book {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 18px;
+    }
+
+    .btn-detail {
+        background: #1fb6ff;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+    }
+
+    .btn-borrow {
+        background: #27ae60;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+    }
+
+        .btn-detail:hover,
+        .btn-borrow:hover {
+            opacity: .9;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="new-book-header">
+    <h2>🆕 Tài liệu mới</h2>
+    <p>Khám phá những tài liệu vừa được cập nhật vào thư viện.</p>
+</div>
+@using (Html.BeginForm("TaiLieuMoi", "Home", FormMethod.Get, new { @class = "search-box" }))
+{
+    <input type="text"
+           name="tuKhoa"
+           class="form-control"
+           placeholder="🔍 Tìm theo tên sách..." />
+
+    <select name="maTheLoai" class="form-select">
+        <option value="">📚 Tất cả thể loại</option>
+
+        @foreach (var tl in ViewBag.DanhSachTheLoai)
+        {
+            <option value="@tl.MaTheLoai">@tl.TenTheLoai</option>
+        }
+
+    </select>
+
+    <button class="btn-search">
+        Tìm kiếm
+    </button>
+}
+<div class="row">
+
+    @foreach (var s in Model)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6">
+
+            <div class="book-card">
+
+                <div class="book-img">
+
+                    <img src="~/Content/HinhAnh/@s.AnhBia" />
+
+                    <span class="new-badge">
+                        🆕 MỚI
+                    </span>
+
+                </div>
+
+                <div class="book-info">
+
+                    <h5>@s.TenSach</h5>
+
+                    <p>
+                        👤 @((s.TacGia!=null)?s.TacGia.TenTacGia:"Đang cập nhật")
+                    </p>
+
+                    <p>
+                        📂 @((s.TheLoai!=null)?s.TheLoai.TenTheLoai:"")
+                    </p>
+
+                    <p class="stock">
+
+                        📚 Còn <strong>@s.SoLuongChuaMuon</strong> quyển
+
+                    </p>
+
+                    <div class="btn-group-book">
+
+                        <a href="@Url.Action("ChiTietSach","Home",new{id=s.MaSach})"
+                           class="btn-detail">
+
+                            Chi tiết
+
+                        </a>
+
+                        <a href="@Url.Action("ChonSachVaQuayLai","Home",new{id=s.MaSach})"
+                           class="btn-borrow">
+
+                            Đặt mượn
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    }
+
+
+</div>
+
