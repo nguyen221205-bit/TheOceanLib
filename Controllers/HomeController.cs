@@ -4,26 +4,27 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using DoAn_LTWeb.Models;
+using System.Data.Entity;
 namespace DoAn_LTWeb.Controllers
 {
     public class HomeController : Controller
     {
-        QuanLyThuVienEntities data = new QuanLyThuVienEntities();
+        QuanLyThuVienEntities1 data = new QuanLyThuVienEntities1();
         public ActionResult Index()
         {
-            List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Include("CuonSach").Take(4).ToList();
-            ViewBag.DanhSachTheLoai = data.TheLoai.ToList(); // Tải danh mục thực tế từ database
+            List<Sach> dssp = data.Saches.Include("TacGia").Include("TheLoai").Include("CuonSaches").Take(4).ToList();
+            ViewBag.DanhSachTheLoai = data.TheLoais.ToList(); // Tải danh mục thực tế từ database
             return View(dssp);
         }
 
         public ActionResult HienThiDSSP(int? maTheLoai, string tuKhoa)
         {
-            var query = data.Sach.Include("TacGia").Include("CuonSach").AsQueryable();
+            var query = data.Saches.Include("TacGia").Include("CuonSaches").AsQueryable();
 
             if (maTheLoai.HasValue)
             {
                 query = query.Where(s => s.MaTheLoai == maTheLoai.Value);
-                var theLoai = data.TheLoai.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
+                var theLoai = data.TheLoais.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
                 ViewBag.TenTheLoai = theLoai != null ? theLoai.TenTheLoai : "";
             }
 
@@ -43,15 +44,15 @@ namespace DoAn_LTWeb.Controllers
         [ChildActionOnly]
         public ActionResult MenuTheLoai()
         {
-            var listTheLoai = data.TheLoai.ToList();
+            var listTheLoai = data.TheLoais.ToList();
             return PartialView("_MenuTheLoai", listTheLoai);
         }
 
         public ActionResult ChiTietSach(int id)
         {
-            var sach = data.Sach.Include("CuonSach").FirstOrDefault(s => s.MaSach == id);
+            var sach = data.Saches.Include("CuonSaches").FirstOrDefault(s => s.MaSach == id);
 
-            ViewBag.TenTacGia = data.TacGia
+            ViewBag.TenTacGia = data.TacGias
                                     .Where(t => t.MaTacGia == sach.MaTacGia)
                                     .Select(t => t.TenTacGia)
                                     .FirstOrDefault();
@@ -76,7 +77,7 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult ChonSach(int id)
         {
             // 1. Tìm sách trong Database theo id truyền vào
-            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            Sach sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
 
             if (sach == null)
             {
@@ -106,7 +107,7 @@ namespace DoAn_LTWeb.Controllers
         // GET: ChonSachVaQuayLai
         public ActionResult ChonSachVaQuayLai(int id)
         {
-            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            Sach sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
             if (sach != null)
             {
                 GioHang gioHang = Session["GioHang"] as GioHang;
@@ -141,7 +142,7 @@ namespace DoAn_LTWeb.Controllers
                 var daCo = gioHang.lst.Any(x => x.iMaSach == id);
                 if (!daCo && gioHang.lst.Count < 5)
                 {
-                    var sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+                    var sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
                     if (sach != null)
                     {
                         gioHang.Them(sach);
@@ -264,23 +265,132 @@ namespace DoAn_LTWeb.Controllers
             string sdt = form["SoDienThoai"];
             string diaChi = form["DiaChi"];
 
-            // TODO: Ở đây bạn có thể thêm code lưu vào bảng PhieuMuon và ChiTietPhieuMuon trong CSDL của bạn:
-            // PhieuMuon pm = new PhieuMuon();
-            // pm.MaDocGia = 1; // ID của độc giả mặc định hoặc độc giả đang đăng nhập
-            // pm.NgayMuon = DateTime.Parse(ngayMuon);
-            // pm.NgayHenTra = DateTime.Parse(ngayTra);
-            // pm.TrangThai = "ChoDuyet";
-            // data.PhieuMuon.Add(pm);
-            // data.SaveChanges();
-            // ... lưu tiếp ChiTietPhieuMuon ...
+            // ====== BƯỚC 1: Lưu Phiếu Mượn =====
+            PhieuMuon pm = new PhieuMuon();
+
+            pm.MaDocGia = 1;
+            pm.MaThuThu = null;
+            pm.NgayMuon = DateTime.Now;
+            pm.NgayHenTra = DateTime.Parse(ngayTra);
+
+            // Lưu ý: Kiểm tra lại constraint trên bảng PhieuMuon nếu dòng này phát sinh lỗi tương tự.
+            // Nếu PhieuMuon cũng dùng "DaMuon" thì đổi "DangMuon" -> "DaMuon"
+            pm.TrangThai = "DangMuon";
+
+            data.PhieuMuons.Add(pm);
+            data.SaveChanges(); // Lưu phiếu mượn để lấy MaPhieuMuon tự tăng
+
+            // ====== BƯỚC 2: Lưu Chi Tiết & Cập Nhật Cuốn Sách =====
+            foreach (var item in gioHang.lst)
+            {
+                // Lặp theo số lượng sách người dùng mượn
+                for (int i = 0; i < item.iSoLuong; i++)
+                {
+                    // Tìm 1 cuốn sách còn sẵn
+                    CuonSach cuonSach = data.CuonSaches.FirstOrDefault(cs =>
+                        cs.MaSach == item.iMaSach &&
+                        cs.TrangThai == "SanSang");
+
+                    if (cuonSach == null)
+                    {
+                        break; // Không còn cuốn nào để mượn
+                    }
+
+                    // Tạo chi tiết phiếu mượn
+                    ChiTietPhieuMuon ct = new ChiTietPhieuMuon();
+                    ct.MaPhieuMuon = pm.MaPhieuMuon;
+                    ct.MaCuonSach = cuonSach.MaCuonSach;
+                    ct.NgayTraThucTe = null;
+                    ct.TinhTrangKhiTra = null;
+
+                    data.ChiTietPhieuMuons.Add(ct);
+
+                    // FIX LỖI TẠI ĐÂY: Đổi "DangMuon" thành "DaMuon" cho đúng CHECK constraint
+                    cuonSach.TrangThai = "DaMuon";
+                }
+            }
+
+            // Lưu tất cả thay đổi của ChiTietPhieuMuon và CuonSach
+            try
+            {
+                data.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                var err = ex;
+
+                while (err.InnerException != null)
+                {
+                    err = err.InnerException;
+                }
+
+                throw new Exception(err.Message);
+            }
 
             // Làm sạch giỏ hàng sau khi đăng ký thành công
             Session["GioHang"] = null;
 
-            // Đặt thông báo TempData để hiển thị thông báo thành công ở trang chủ
             TempData["SuccessMessage"] = "Đăng ký mượn sách thành công! Vui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ.";
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult SachMuonNhieu()
+        {
+            var ds = data.ChiTietPhieuMuons
+                         .GroupBy(x => x.CuonSach.MaSach)
+                         .Select(g => new SachMuonNhieuVM
+                         {
+                             MaSach = g.Key,
+                             TenSach = g.FirstOrDefault().CuonSach.Sach.TenSach,
+                             AnhBia = g.FirstOrDefault().CuonSach.Sach.AnhBia,
+                             SoLanMuon = g.Count()
+                         })
+                         .OrderByDescending(x => x.SoLanMuon)
+                         .Take(10)
+                         .ToList();
+
+            return View(ds);
+        }
+
+        public ActionResult TaiLieuMoi(string tuKhoa, int? maTheLoai)
+        {
+            var query = data.Saches
+                            .Include(s => s.TacGia)
+                            .Include(s => s.TheLoai)
+                            .Include(s => s.CuonSaches)
+                            .AsQueryable();
+
+            if (!string.IsNullOrEmpty(tuKhoa))
+            {
+                query = query.Where(s => s.TenSach.Contains(tuKhoa));
+            }
+
+            if (maTheLoai.HasValue)
+            {
+                query = query.Where(s => s.MaTheLoai == maTheLoai);
+            }
+
+            ViewBag.DanhSachTheLoai = data.TheLoais.ToList();
+
+            return View(query.OrderByDescending(s => s.MaSach).Take(20).ToList());
+        }
+
+        public ActionResult HuongDanMuonTra()
+        {
+            return View();
+        }
+
+        public ActionResult LienHeHoTro()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult LienHeHoTro(FormCollection form)
+        {
+            ViewBag.Message = "Cảm ơn bạn đã gửi phản hồi. Chúng tôi sẽ liên hệ sớm nhất!";
+            return View();
         }
     }
 }
