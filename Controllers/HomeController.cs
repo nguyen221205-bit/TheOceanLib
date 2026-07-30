@@ -4,26 +4,27 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using DoAn_LTWeb.Models;
+using System.Data.Entity;
 namespace DoAn_LTWeb.Controllers
 {
     public class HomeController : Controller
     {
-        QuanLyThuVienEntities data = new QuanLyThuVienEntities();
+        QuanLyThuVienEntities1 data = new QuanLyThuVienEntities1();
         public ActionResult Index()
         {
-            List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Include("CuonSach").Take(4).ToList();
-            ViewBag.DanhSachTheLoai = data.TheLoai.ToList(); // Tải danh mục thực tế từ database
+            List<Sach> dssp = data.Saches.Include("TacGia").Include("TheLoai").Include("CuonSaches").Take(4).ToList();
+            ViewBag.DanhSachTheLoai = data.TheLoais.ToList(); // Tải danh mục thực tế từ database
             return View(dssp);
         }
 
         public ActionResult HienThiDSSP(int? maTheLoai, string tuKhoa)
         {
-            var query = data.Sach.Include("TacGia").Include("CuonSach").AsQueryable();
+            var query = data.Saches.Include("TacGia").Include("CuonSaches").AsQueryable();
 
             if (maTheLoai.HasValue)
             {
                 query = query.Where(s => s.MaTheLoai == maTheLoai.Value);
-                var theLoai = data.TheLoai.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
+                var theLoai = data.TheLoais.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
                 ViewBag.TenTheLoai = theLoai != null ? theLoai.TenTheLoai : "";
             }
 
@@ -43,15 +44,15 @@ namespace DoAn_LTWeb.Controllers
         [ChildActionOnly]
         public ActionResult MenuTheLoai()
         {
-            var listTheLoai = data.TheLoai.ToList();
+            var listTheLoai = data.TheLoais.ToList();
             return PartialView("_MenuTheLoai", listTheLoai);
         }
 
         public ActionResult ChiTietSach(int id)
         {
-            var sach = data.Sach.Include("CuonSach").FirstOrDefault(s => s.MaSach == id);
+            var sach = data.Saches.Include("CuonSaches").FirstOrDefault(s => s.MaSach == id);
 
-            ViewBag.TenTacGia = data.TacGia
+            ViewBag.TenTacGia = data.TacGias
                                     .Where(t => t.MaTacGia == sach.MaTacGia)
                                     .Select(t => t.TenTacGia)
                                     .FirstOrDefault();
@@ -76,7 +77,7 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult ChonSach(int id)
         {
             // 1. Tìm sách trong Database theo id truyền vào
-            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            Sach sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
 
             if (sach == null)
             {
@@ -106,7 +107,7 @@ namespace DoAn_LTWeb.Controllers
         // GET: ChonSachVaQuayLai
         public ActionResult ChonSachVaQuayLai(int id)
         {
-            Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+            Sach sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
             if (sach != null)
             {
                 GioHang gioHang = Session["GioHang"] as GioHang;
@@ -141,7 +142,7 @@ namespace DoAn_LTWeb.Controllers
                 var daCo = gioHang.lst.Any(x => x.iMaSach == id);
                 if (!daCo && gioHang.lst.Count < 5)
                 {
-                    var sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+                    var sach = data.Saches.FirstOrDefault(s => s.MaSach == id);
                     if (sach != null)
                     {
                         gioHang.Them(sach);
@@ -281,6 +282,64 @@ namespace DoAn_LTWeb.Controllers
             TempData["SuccessMessage"] = "Đăng ký mượn sách thành công! Vui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ.";
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult SachMuonNhieu()
+        {
+            var ds = data.ChiTietPhieuMuons
+                         .GroupBy(x => x.CuonSach.MaSach)
+                         .Select(g => new SachMuonNhieuVM
+                         {
+                             MaSach = g.Key,
+                             TenSach = g.FirstOrDefault().CuonSach.Sach.TenSach,
+                             AnhBia = g.FirstOrDefault().CuonSach.Sach.AnhBia,
+                             SoLanMuon = g.Count()
+                         })
+                         .OrderByDescending(x => x.SoLanMuon)
+                         .Take(10)
+                         .ToList();
+
+            return View(ds);
+        }
+
+        public ActionResult TaiLieuMoi(string tuKhoa, int? maTheLoai)
+        {
+            var query = data.Saches
+                            .Include(s => s.TacGia)
+                            .Include(s => s.TheLoai)
+                            .Include(s => s.CuonSaches)
+                            .AsQueryable();
+
+            if (!string.IsNullOrEmpty(tuKhoa))
+            {
+                query = query.Where(s => s.TenSach.Contains(tuKhoa));
+            }
+
+            if (maTheLoai.HasValue)
+            {
+                query = query.Where(s => s.MaTheLoai == maTheLoai);
+            }
+
+            ViewBag.DanhSachTheLoai = data.TheLoais.ToList();
+
+            return View(query.OrderByDescending(s => s.MaSach).Take(20).ToList());
+        }
+
+        public ActionResult HuongDanMuonTra()
+        {
+            return View();
+        }
+
+        public ActionResult LienHeHoTro()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult LienHeHoTro(FormCollection form)
+        {
+            ViewBag.Message = "Cảm ơn bạn đã gửi phản hồi. Chúng tôi sẽ liên hệ sớm nhất!";
+            return View();
         }
     }
 }
