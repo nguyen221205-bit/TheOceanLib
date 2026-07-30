@@ -16,20 +16,27 @@ namespace DoAn_LTWeb.Controllers
             return View(dssp);
         }
 
-        public ActionResult HienThiDSSP(int? maTheLoai)
+        public ActionResult HienThiDSSP(int? maTheLoai, string tuKhoa)
         {
-            List<Sach> dssp;
+            var query = data.Sach.Include("TacGia").Include("CuonSach").AsQueryable();
+
             if (maTheLoai.HasValue)
             {
-                dssp = data.Sach.Include("TacGia").Include("CuonSach")
-                                 .Where(s => s.MaTheLoai == maTheLoai.Value).ToList();
+                query = query.Where(s => s.MaTheLoai == maTheLoai.Value);
                 var theLoai = data.TheLoai.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
                 ViewBag.TenTheLoai = theLoai != null ? theLoai.TenTheLoai : "";
             }
-            else
+
+            if (!string.IsNullOrEmpty(tuKhoa))
             {
-                dssp = data.Sach.Include("TacGia").Include("CuonSach").ToList();
+                tuKhoa = tuKhoa.Trim();
+                query = query.Where(s => s.TenSach.Contains(tuKhoa) || 
+                                         s.MoTa.Contains(tuKhoa) || 
+                                         (s.TacGia != null && s.TacGia.TenTacGia.Contains(tuKhoa)));
+                ViewBag.TuKhoa = tuKhoa;
             }
+
+            List<Sach> dssp = query.ToList();
             return View(dssp);
         }
 

@@ -8,11 +8,26 @@
 <div class="container py-4">
     <h2 class="mb-4 fw-bold" style="color: var(--primary);">
         <i class="fa-solid fa-book-open text-accent me-2"></i>
-        @(!string.IsNullOrEmpty(ViewBag.TenTheLoai) ? "Danh mục: " + ViewBag.TenTheLoai : "Tất cả sách mượn")
+        @if (!string.IsNullOrEmpty(ViewBag.TuKhoa))
+        {
+            <span>Kết quả tìm kiếm cho: "@ViewBag.TuKhoa" (@Model.Count kết quả)</span>
+        }
+        else
+        {
+            @(!string.IsNullOrEmpty(ViewBag.TenTheLoai) ? "Danh mục: " + ViewBag.TenTheLoai : "Tất cả sách mượn")
+        }
     </h2>
 
     <div class="row g-4">
-    @foreach (Sach item in Model)
+        @if (Model.Count == 0)
+        {
+            <div class="col-12 text-center py-5 text-secondary">
+                <i class="fa-solid fa-book-open-reader fs-1 mb-3 text-muted" style="opacity: 0.4;"></i>
+                <h5 class="fw-semibold">Không tìm thấy sách phù hợp!</h5>
+                <p class="small text-muted mb-0">Bạn vui lòng thử tìm kiếm lại bằng từ khóa hoặc thể loại khác nhé.</p>
+            </div>
+        }
+        @foreach (Sach item in Model)
     {
         <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="card h-100 shadow-sm border-0">
