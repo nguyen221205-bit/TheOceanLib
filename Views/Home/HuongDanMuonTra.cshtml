@@ -1,0 +1,140 @@
+
+@{
+    ViewBag.Title = "HuongDanMuonTra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    ViewBag.Title = "Hướng dẫn mượn trả";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .guide-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+        .guide-header h2 {
+            color: #16c4ff;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .guide-header p {
+            color: #bfc8d6;
+        }
+
+    .guide-step {
+        display: flex;
+        background: #101c35;
+        margin-bottom: 25px;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: .3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,.25);
+    }
+
+        .guide-step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,200,255,.3);
+        }
+
+    .step-number {
+        width: 90px;
+        background: #16c4ff;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 34px;
+        font-weight: bold;
+    }
+
+    .step-content {
+        padding: 20px;
+        color: white;
+    }
+
+        .step-content h4 {
+            color: #16c4ff;
+        }
+
+    .note-box {
+        margin-top: 40px;
+        background: #16c4ff;
+        border-left: 6px solid orange;
+        padding: 25px;
+        border-radius: 10px;
+    }
+
+        .note-box h4 {
+            color: #c26d00;
+        }
+
+        .note-box li {
+            margin-bottom: 10px;
+        }
+</style>
+
+<div class="guide-header">
+    <h2>📖 Hướng dẫn mượn và trả sách</h2>
+    <p>Thực hiện theo các bước dưới đây để mượn và trả sách một cách nhanh chóng.</p>
+</div>
+
+<div class="container">
+
+    <div class="guide-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+            <h4>Tìm kiếm tài liệu</h4>
+            <p>Tìm sách theo tên, tác giả hoặc thể loại trên website.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+            <h4>Chọn sách</h4>
+            <p>Nhấn <strong>Đặt mượn</strong> để thêm sách vào giỏ mượn.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+            <h4>Xác nhận mượn</h4>
+            <p>Kiểm tra danh sách sách và điền đầy đủ thông tin người mượn.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+            <h4>Đến thư viện nhận sách</h4>
+            <p>Mang theo thẻ sinh viên hoặc CCCD để nhận sách tại quầy thủ thư.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+            <h4>Trả sách đúng hạn</h4>
+            <p>Trả sách trước hoặc đúng ngày hẹn để tránh bị xử lý theo quy định của thư viện.</p>
+        </div>
+    </div>
+
+</div>
+
+<div class="note-box">
+    <h4>📌 Lưu ý</h4>
+
+    <ul>
+        <li>Mỗi độc giả được mượn tối đa <strong>5 quyển sách</strong>.</li>
+        <li>Thời gian mượn tối đa <strong>14 ngày</strong>.</li>
+        <li>Không làm rách, mất hoặc hư hỏng sách.</li>
+        <li>Nếu trả trễ hoặc làm mất sách sẽ xử lý theo quy định của thư viện.</li>
+    </ul>
+
+</div>
+
