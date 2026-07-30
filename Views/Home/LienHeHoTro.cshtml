@@ -1,0 +1,166 @@
+
+@{
+    ViewBag.Title = "LienHeHoTro";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    ViewBag.Title = "Liên hệ hỗ trợ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .contact-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+        .contact-header h2 {
+            color: #19c7ff;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .contact-header p {
+            color: #c7d1dc;
+        }
+
+    .info-card,
+    .form-card {
+        background: #111c33;
+        border-radius: 18px;
+        padding: 25px;
+        color: white;
+        box-shadow: 0 5px 15px rgba(0,0,0,.35);
+    }
+
+        .info-card h4,
+        .form-card h4 {
+            color: #19c7ff;
+            margin-bottom: 20px;
+        }
+
+        .info-card ul {
+            padding-left: 20px;
+        }
+
+    .form-control {
+        border-radius: 10px;
+    }
+
+    .btn-send {
+        background: #00bcd4;
+        color: white;
+        border: none;
+        padding: 12px 35px;
+        border-radius: 30px;
+        font-weight: bold;
+        transition: .3s;
+    }
+
+        .btn-send:hover {
+            background: #00d7f3;
+        }
+</style>
+
+<div class="contact-header">
+    <h2>📞 Liên hệ hỗ trợ</h2>
+    <p>Nếu bạn gặp khó khăn trong quá trình sử dụng hệ thống, hãy liên hệ với chúng tôi.</p>
+</div>
+
+<div class="row">
+
+    <div class="col-md-5">
+
+        <div class="info-card">
+
+            <h4>🏫 Thư viện TheOceanLib</h4>
+
+            <p><strong>📍 Địa chỉ:</strong> 140 Lê Trọng Tấn, Tây Thạnh, Tân Phú, TP. Hồ Chí Minh</p>
+
+            <p><strong>☎ Điện thoại:</strong> (028) 3816 3319</p>
+
+            <p><strong>📧 Email:</strong> library@theoceanlib.edu.vn</p>
+
+            <p><strong>🕒 Giờ làm việc:</strong></p>
+
+            <ul>
+                <li>Thứ 2 - Thứ 6: 07:30 - 17:00</li>
+                <li>Thứ 7: 07:30 - 11:30</li>
+                <li>Chủ nhật: Nghỉ</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-7">
+
+        <div class="form-card">
+
+            <h4>📝 Gửi phản hồi</h4>
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success">
+                    @ViewBag.Message
+                </div>
+            }
+
+            @using (Html.BeginForm())
+            {
+
+                <div class="mb-3">
+
+                    <label>Họ và tên</label>
+
+                    <input class="form-control"
+                           name="HoTen"
+                           required />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Email</label>
+
+                    <input type="email"
+                           class="form-control"
+                           name="Email"
+                           required />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Tiêu đề</label>
+
+                    <input class="form-control"
+                           name="TieuDe"
+                           required />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Nội dung</label>
+
+                    <textarea class="form-control"
+                              rows="6"
+                              name="NoiDung"
+                              required></textarea>
+
+                </div>
+
+                <button class="btn-send">
+                    Gửi phản hồi
+                </button>
+
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
