@@ -227,5 +227,52 @@ namespace DoAn_LTWeb.Controllers
 
             return Json(new { success = true, newQty = newQty, totalQty = totalQty, removed = removed });
         }
+
+        // GET: XacNhanMuon
+        public ActionResult XacNhanMuon()
+        {
+            GioHang gioHang = Session["GioHang"] as GioHang;
+            if (gioHang == null || gioHang.TongSLHang() == 0)
+            {
+                return RedirectToAction("XemGioHang");
+            }
+            return View(gioHang);
+        }
+
+        // POST: XacNhanMuon
+        [HttpPost]
+        public ActionResult XacNhanMuon(FormCollection form)
+        {
+            GioHang gioHang = Session["GioHang"] as GioHang;
+            if (gioHang == null || gioHang.TongSLHang() == 0)
+            {
+                return RedirectToAction("XemGioHang");
+            }
+
+            // Lấy thông tin từ form
+            string hoTen = form["HoTen"];
+            string ngayMuon = form["NgayMuon"];
+            string ngayTra = form["NgayTra"];
+            string sdt = form["SoDienThoai"];
+            string diaChi = form["DiaChi"];
+
+            // TODO: Ở đây bạn có thể thêm code lưu vào bảng PhieuMuon và ChiTietPhieuMuon trong CSDL của bạn:
+            // PhieuMuon pm = new PhieuMuon();
+            // pm.MaDocGia = 1; // ID của độc giả mặc định hoặc độc giả đang đăng nhập
+            // pm.NgayMuon = DateTime.Parse(ngayMuon);
+            // pm.NgayHenTra = DateTime.Parse(ngayTra);
+            // pm.TrangThai = "ChoDuyet";
+            // data.PhieuMuon.Add(pm);
+            // data.SaveChanges();
+            // ... lưu tiếp ChiTietPhieuMuon ...
+
+            // Làm sạch giỏ hàng sau khi đăng ký thành công
+            Session["GioHang"] = null;
+
+            // Đặt thông báo TempData để hiển thị thông báo thành công ở trang chủ
+            TempData["SuccessMessage"] = "Đăng ký mượn sách thành công! Vui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ.";
+
+            return RedirectToAction("Index");
+        }
     }
 }

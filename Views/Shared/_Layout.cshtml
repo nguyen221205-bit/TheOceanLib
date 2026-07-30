@@ -439,6 +439,17 @@
             renderFavorites();
         });
     </script>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                if (typeof window.showToast === 'function') {
+                    window.showToast("@Html.Raw(TempData["SuccessMessage"])", "fa-circle-check");
+                }
+            });
+        </script>
+    }
     
     @RenderSection("scripts", required: false)
 </body>

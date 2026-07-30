@@ -1,0 +1,144 @@
+@using DoAn_LTWeb.Models
+@model GioHang
+@{
+    ViewBag.Title = "Xác nhận mượn sách";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Đặt ngày mặc định
+    var today = DateTime.Today.ToString("yyyy-MM-dd");
+    var returnDate = DateTime.Today.AddDays(7).ToString("yyyy-MM-dd");
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <h2 class="fw-bold text-gradient d-inline-block" style="color: var(--primary);">
+            <i class="fa-solid fa-file-signature text-accent me-2"></i> Xác nhận mượn sách
+        </h2>
+        <p class="text-secondary">Vui lòng kiểm tra kỹ danh sách sách đã chọn và điền thông tin để hoàn tất đăng ký mượn.</p>
+    </div>
+
+    @using (Html.BeginForm("XacNhanMuon", "Home", FormMethod.Post, new { @class = "row g-4" }))
+    {
+        <!-- Bảng Nhập Thông Tin Độc Giả (Bên trái) -->
+        <div class="col-lg-7 col-md-12">
+            <div class="card border-0 shadow-sm p-4" style="background: var(--bg-surface); border-radius: 12px;">
+                <h5 class="fw-bold mb-4 pb-2 border-bottom text-primary" style="color: var(--primary);">
+                    <i class="fa-regular fa-id-card me-2"></i> Thông tin người mượn
+                </h5>
+
+                <div class="mb-3">
+                    <label for="HoTen" class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                    <input type="text" 
+                           class="form-control bg-transparent" 
+                           id="HoTen" 
+                           name="HoTen" 
+                           placeholder="Nhập họ và tên người mượn" 
+                           required 
+                           style="color: var(--text-primary); border-color: rgba(255, 255, 255, 0.15);" />
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="NgayMuon" class="form-label fw-semibold">Ngày mượn <span class="text-danger">*</span></label>
+                        <input type="date" 
+                               class="form-control bg-transparent" 
+                               id="NgayMuon" 
+                               name="NgayMuon" 
+                               value="@today" 
+                               required 
+                               style="color: var(--text-primary); border-color: rgba(255, 255, 255, 0.15);" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="NgayTra" class="form-label fw-semibold">Ngày hẹn trả <span class="text-danger">*</span></label>
+                        <input type="date" 
+                               class="form-control bg-transparent" 
+                               id="NgayTra" 
+                               name="NgayTra" 
+                               value="@returnDate" 
+                               required 
+                               style="color: var(--text-primary); border-color: rgba(255, 255, 255, 0.15);" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="SoDienThoai" class="form-label fw-semibold">Số điện thoại <span class="text-danger">*</span></label>
+                    <input type="tel" 
+                           class="form-control bg-transparent" 
+                           id="SoDienThoai" 
+                           name="SoDienThoai" 
+                           placeholder="Nhập số điện thoại liên hệ" 
+                           required 
+                           style="color: var(--text-primary); border-color: rgba(255, 255, 255, 0.15);" />
+                </div>
+
+                <div class="mb-4">
+                    <label for="DiaChi" class="form-label fw-semibold">Địa chỉ nhận sách <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-transparent" 
+                              id="DiaChi" 
+                              name="DiaChi" 
+                              rows="3" 
+                              placeholder="Nhập địa chỉ của bạn" 
+                              required 
+                              style="color: var(--text-primary); border-color: rgba(255, 255, 255, 0.15);"></textarea>
+                </div>
+
+                <div class="d-flex gap-3">
+                    <a href="@Url.Action("XemGioHang", "Home")" class="btn btn-outline-secondary py-2 px-4">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Quay lại giỏ hàng
+                    </a>
+                    <button type="submit" class="btn btn-success py-2 px-4 flex-grow-1 fw-bold">
+                        <i class="fa-regular fa-circle-check me-1"></i> Xác nhận đăng ký mượn
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng tóm tắt giỏ sách mượn (Bên phải) -->
+        <div class="col-lg-5 col-md-12">
+            <div class="card border-0 shadow-sm p-4" style="background: var(--bg-surface); border-radius: 12px;">
+                <h5 class="fw-bold mb-4 pb-2 border-bottom text-primary" style="color: var(--primary);">
+                    <i class="fa-solid fa-basket-shopping me-2"></i> Sách đăng ký mượn
+                </h5>
+
+                <div class="table-responsive">
+                    <table class="table align-middle" style="color: var(--text-primary);">
+                        <thead>
+                            <tr style="border-bottom: 2px solid rgba(255, 255, 255, 0.1);">
+                                <th scope="col" style="color: var(--text-secondary);">Hình ảnh</th>
+                                <th scope="col" style="color: var(--text-secondary);">Tên sách</th>
+                                <th scope="col" class="text-center" style="color: var(--text-secondary);">Số lượng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.lst)
+                            {
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                    <td style="width: 80px;">
+                                        <div class="image-container" style="border-radius: 6px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.15); width: 60px; height: 80px;">
+                                            <img src="@Url.Content("~/Content/HinhAnh/" + item.sAnhBia)" 
+                                                 alt="@item.sTenSach" 
+                                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                                 onerror="this.src='https://placehold.co/120x160/0f172a/ffffff?text=Book'" />
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-truncate-2" style="font-size: 0.95rem; color: var(--primary);">@item.sTenSach</span>
+                                    </td>
+                                    <td class="text-center fw-bold fs-6">
+                                        @item.iSoLuong
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="border-top: 2px solid rgba(255, 255, 255, 0.1);">
+                                <td colspan="2" class="fw-bold py-3 fs-6">Tổng số lượng mượn:</td>
+                                <td class="text-center fw-bold py-3 fs-5 text-emerald">@Model.TongSLHang()</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
