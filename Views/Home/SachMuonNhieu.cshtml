@@ -1,0 +1,195 @@
+@model List<DoAn_LTWeb.Models.SachMuonNhieuVM>
+
+@{
+    ViewBag.Title = "Sách được mượn nhiều";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    body {
+        background: #08111f;
+    }
+
+    .top-header {
+        text-align: center;
+        margin: 35px 0;
+    }
+
+        .top-header h2 {
+            color: #1ec8ff;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .top-header p {
+            color: #bfc9d4;
+        }
+
+    .top-book-card {
+        background: #111c33;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 30px;
+        transition: .35s;
+        box-shadow: 0 5px 20px rgba(0,0,0,.35);
+    }
+
+        .top-book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 35px rgba(0,212,255,.35);
+        }
+
+    .book-image {
+        position: relative;
+    }
+
+        .book-image img {
+            width: 100%;
+            height: 340px;
+            object-fit: cover;
+        }
+
+    .rank {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        padding: 8px 15px;
+        border-radius: 30px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .gold {
+        background: #ffb300;
+    }
+
+    .silver {
+        background: #8f9ba8;
+    }
+
+    .bronze {
+        background: #b87333;
+    }
+
+    .normal {
+        background: #00bcd4;
+    }
+
+    .book-info {
+        padding: 20px;
+        color: white;
+    }
+
+        .book-info h5 {
+            height: 55px;
+            font-weight: bold;
+        }
+
+    .borrow-count {
+        color: #2ecc71;
+        font-size: 18px;
+        margin: 20px 0;
+    }
+
+        .borrow-count strong {
+            font-size: 28px;
+        }
+
+    .btn-detail {
+        display: block;
+        text-align: center;
+        background: #00bcd4;
+        color: white;
+        text-decoration: none;
+        padding: 12px;
+        border-radius: 30px;
+        transition: .3s;
+    }
+
+        .btn-detail:hover {
+            background: #00d9ff;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="top-header">
+
+    <h2>🔥 Sách được mượn nhiều</h2>
+
+    <p>
+        Những đầu sách được bạn đọc yêu thích và mượn nhiều nhất.
+    </p>
+
+</div>
+
+<div class="row">
+
+    @{
+        int rank = 1;
+    }
+
+    @foreach (var item in Model)
+    {
+        <div class="col-lg-3 col-md-4 col-sm-6">
+
+            <div class="top-book-card">
+
+                <div class="book-image">
+
+                    <img src="~/Content/HinhAnh/@item.AnhBia" />
+
+                    @if (rank == 1)
+                    {
+                        <span class="rank gold">🥇 TOP 1</span>
+                    }
+                    else if (rank == 2)
+                    {
+                        <span class="rank silver">🥈 TOP 2</span>
+                    }
+                    else if (rank == 3)
+                    {
+                        <span class="rank bronze">🥉 TOP 3</span>
+                    }
+                    else
+                    {
+                        <span class="rank normal">TOP @rank</span>
+                    }
+
+                </div>
+
+                <div class="book-info">
+
+                    <h5>@item.TenSach</h5>
+
+                    <div class="borrow-count">
+
+                        📚 Đã mượn
+
+                        <strong>
+
+                            @item.SoLanMuon
+
+                        </strong>
+
+                        lượt
+
+                    </div>
+
+                    <a href="@Url.Action("ChiTietSach","Home",new{id=item.MaSach})"
+                       class="btn-detail">
+
+                        Xem chi tiết
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        rank++;
+    }
+
+</div>
