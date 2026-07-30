@@ -12,6 +12,7 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult Index()
         {
             List<Sach> dssp = data.Sach.Include("TacGia").Include("TheLoai").Include("CuonSach").Take(4).ToList();
+            ViewBag.DanhSachTheLoai = data.TheLoai.ToList(); // Tải danh mục thực tế từ database
             return View(dssp);
         }
 

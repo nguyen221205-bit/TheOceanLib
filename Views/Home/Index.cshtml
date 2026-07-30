@@ -82,62 +82,46 @@
         </div>
     </div>
 
+    @{
+        var danhSachTheLoai = ViewBag.DanhSachTheLoai as List<DoAn_LTWeb.Models.TheLoai>;
+        string[] icons = { "fa-code", "fa-chart-line", "fa-book-open", "fa-language", "fa-leaf", "fa-brain", "fa-earth-asia", "fa-user-ninja", "fa-rocket", "fa-flask", "fa-baby", "fa-landmark", "fa-masks-theater", "fa-palette" };
+        string[] gradients = {
+            "linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 179, 8, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%)",
+            "linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(236, 72, 153, 0.15) 100%)"
+        };
+        string[] textColors = { "#3b82f6", "#10b981", "#6366f1", "#f59e0b", "#ec4899", "#a855f7" };
+    }
+
     <div class="category-scroll-wrapper">
         <div class="category-scroll-container" id="categoryScroll">
-            <!-- 1. Sách Hot -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(249, 115, 22, 0.15) 100%); color: #ef4444;">
-                    <!-- ĐỂ THÊM ẢNH SAU NÀY: Mở comment dưới và cấu hình đường dẫn ảnh -->
-                    <!-- <img src="~/Content/images/categories/hot_books.png" class="img-fluid rounded" alt="Sách Hot" /> -->
-                    <i class="fa-solid fa-fire-flame-curved"></i>
-                </div>
-                <h4 class="category-title">Sách Hot</h4>
-            </div>
+            @if (danhSachTheLoai != null)
+            {
+                int index = 0;
+                foreach (var tl in danhSachTheLoai)
+                {
+                    var icon = icons[index % icons.Length];
+                    var gradient = gradients[index % gradients.Length];
+                    var textColor = textColors[index % textColors.Length];
+                    index++;
 
-            <!-- 2. Sách Mới Xuất Bản -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%); color: #10b981;">
-                    <!-- <img src="~/Content/images/categories/new_books.png" class="img-fluid rounded" alt="Sách Mới" /> -->
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <a href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = tl.MaTheLoai })" class="category-card text-decoration-none d-flex flex-column align-items-center">
+                        <div class="category-image-box" style="background: @gradient; color: @textColor;">
+                            <i class="fa-solid @icon"></i>
+                        </div>
+                        <h4 class="category-title text-center text-truncate" style="color: var(--text-primary); max-width: 100%;">@tl.TenTheLoai</h4>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="text-center py-4 w-100 text-secondary">
+                    <p>Không có danh mục nào được tìm thấy.</p>
                 </div>
-                <h4 class="category-title">Sách Mới</h4>
-            </div>
-
-            <!-- 3. Sách Hư Cấu -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%); color: #6366f1;">
-                    <!-- <img src="~/Content/images/categories/fiction_books.png" class="img-fluid rounded" alt="Sách Hư Cấu" /> -->
-                    <i class="fa-solid fa-ghost"></i>
-                </div>
-                <h4 class="category-title">Sách Hư Cấu</h4>
-            </div>
-
-            <!-- 4. Sách Phi Hư Cấu -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 179, 8, 0.15) 100%); color: #f59e0b;">
-                    <!-- <img src="~/Content/images/categories/nonfiction_books.png" class="img-fluid rounded" alt="Sách Phi Hư Cấu" /> -->
-                    <i class="fa-solid fa-brain"></i>
-                </div>
-                <h4 class="category-title">Sách Phi Hư Cấu</h4>
-            </div>
-
-            <!-- 5. Sách Thiếu Nhi -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%); color: #ec4899;">
-                    <!-- <img src="~/Content/images/categories/children_books.png" class="img-fluid rounded" alt="Sách Thiếu Nhi" /> -->
-                    <i class="fa-solid fa-child-reaching"></i>
-                </div>
-                <h4 class="category-title">Sách Thiếu Nhi</h4>
-            </div>
-
-            <!-- 6. Sách Nghiên Cứu -->
-            <div class="category-card">
-                <div class="category-image-box" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%); color: #3b82f6;">
-                    <!-- <img src="~/Content/images/categories/research_books.png" class="img-fluid rounded" alt="Sách Nghiên Cứu" /> -->
-                    <i class="fa-solid fa-microscope"></i>
-                </div>
-                <h4 class="category-title">Sách Nghiên Cứu</h4>
-            </div>
+            }
         </div>
     </div>
 </section>
