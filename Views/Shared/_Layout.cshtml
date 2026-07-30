@@ -191,32 +191,7 @@
         </div>
     </footer>
 
-    <!-- --- OFFCANVAS GIỎ MƯỢN --- -->
-    <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="cartOffcanvasLabel">
-                <i class="fa-solid fa-basket-shopping text-emerald"></i> Giỏ sách mượn
-            </h5>
-            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body" id="cartContainer">
-            <!-- Sách trong giỏ mượn sẽ được hiển thị bằng JavaScript ở đây -->
-        </div>
-        <div class="offcanvas-footer">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fw-semibold">Tổng số sách mượn:</span>
-                <span class="fs-5 fw-bold text-emerald" id="cartTotalCount">0 / 5</span>
-            </div>
-            <div class="d-grid gap-2">
-                <button type="button" class="btn btn-success py-2 fw-semibold" id="confirmBorrowBtn">
-                    <i class="fa-regular fa-square-check me-2"></i> Xác nhận đăng ký mượn
-                </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="clearCartBtn">
-                    Xóa tất cả
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- --- OFFCANVAS YÊU THÍCH --- -->
     <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="favoritesOffcanvas" aria-labelledby="favoritesOffcanvasLabel">
@@ -335,16 +310,8 @@
 
             updateAccountUI(); // Khởi chạy ban đầu
 
-            // ================= 3. QUẢN LÝ DỮ LIỆU GIỎ MƯỢN & YÊU THÍCH =================
             // Dữ liệu mẫu ban đầu để demo nếu Storage trống
-            const initialCart = [];
             const initialFav = [];
-
-            let cartList = JSON.parse(localStorage.getItem('cartList'));
-            if (!cartList) {
-                cartList = initialCart;
-                localStorage.setItem('cartList', JSON.stringify(cartList));
-            }
             
             let favList = JSON.parse(localStorage.getItem('favList'));
             if (!favList) {
@@ -361,44 +328,7 @@
                 toast.show();
             };
 
-            // Render Danh sách Giỏ mượn
-            window.renderCart = function () {
-                const container = $('#cartContainer');
-                container.empty();
-                
-                if (cartList.length === 0) {
-                    container.html(`
-                        <div class="text-center py-5 text-secondary">
-                            <i class="fa-solid fa-basket-shopping fs-1 mb-3 text-muted" style="opacity:0.4;"></i>
-                            <p class="mb-0">Giỏ mượn sách đang trống!</p>
-                            <small class="text-muted">Chọn sách ở Trang chủ và bấm Mượn nhé.</small>
-                        </div>
-                    `);
-                    $('#confirmBorrowBtn').prop('disabled', true);
-                    $('#clearCartBtn').hide();
-                } else {
-                    cartList.forEach(item => {
-                        container.append(`
-                            <div class="drawer-item" data-id="${item.id}">
-                                <img src="${item.img}" class="drawer-item-img" alt="${item.title}" onerror="this.src='https://placehold.co/120x160/0f172a/ffffff?text=Book'">
-                                <div class="drawer-item-info">
-                                    <h6 class="drawer-item-title text-truncate-2">${item.title}</h6>
-                                    <p class="drawer-item-author">${item.author}</p>
-                                </div>
-                                <button class="drawer-item-remove remove-cart-item-btn" data-id="${item.id}" title="Xóa">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        `);
-                    });
-                    $('#confirmBorrowBtn').prop('disabled', false);
-                    $('#clearCartBtn').show();
-                }
-                
-                // Giữ nguyên số lượng của cartBadge từ Session C# thay vì ghi đè bằng local storage
-                // $('#cartBadge').text(cartList.length);
-                $('#cartTotalCount').text(`${cartList.length} / 5`);
-            };
+            // Đã chuyển sang quản lý giỏ mượn hoàn toàn ở phía Server-side C#
 
             // Render Danh sách Yêu thích
             window.renderFavorites = function () {
@@ -440,14 +370,7 @@
 
             // === HÀNH ĐỘNG TƯƠNG TÁC (THÊM / XÓA) ===
             
-            // Xóa item trong Giỏ mượn
-            $(document).on('click', '.remove-cart-item-btn', function () {
-                const id = parseInt($(this).data('id'));
-                cartList = cartList.filter(item => item.id !== id);
-                localStorage.setItem('cartList', JSON.stringify(cartList));
-                renderCart();
-                showToast('Đã xóa sách khỏi giỏ mượn!', 'fa-solid fa-trash');
-            });
+            // Đã chuyển sang quản lý giỏ mượn hoàn toàn ở phía Server-side C#
 
             // Xóa item trong Yêu thích
             $(document).on('click', '.remove-fav-item-btn', function () {
@@ -458,15 +381,7 @@
                 showToast('Đã xóa sách khỏi danh sách yêu thích!', 'fa-solid fa-trash');
             });
 
-            // Xóa tất cả trong Giỏ mượn
-            $('#clearCartBtn').on('click', function () {
-                if(confirm('Bạn có chắc chắn muốn làm trống giỏ mượn sách?')) {
-                    cartList = [];
-                    localStorage.setItem('cartList', JSON.stringify(cartList));
-                    renderCart();
-                    showToast('Đã dọn sạch giỏ mượn!', 'fa-solid fa-trash-sweep');
-                }
-            });
+            // Đã chuyển sang quản lý giỏ mượn hoàn toàn ở phía Server-side C#
 
             // Xóa tất cả trong Yêu thích
             $('#clearFavoritesBtn').on('click', function () {
@@ -478,71 +393,34 @@
                 }
             });
 
-            // Xác nhận mượn sách
-            $('#confirmBorrowBtn').on('click', function () {
-                if(cartList.length === 0) return;
-                
-                // Giả lập gửi thông tin lên backend
-                const bookTitles = cartList.map(b => `- ${b.title}`).join('\n');
-                alert(`Đăng ký mượn thành công!\n\nSố lượng sách: ${cartList.length} quyển.\n\nDanh mục:\n${bookTitles}\n\nVui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ kể từ thời điểm này.`);
-                
-                // Xóa giỏ sách sau khi mượn thành công
-                cartList = [];
-                localStorage.setItem('cartList', JSON.stringify(cartList));
-                renderCart();
-                
-                // Đóng Offcanvas
-                const myOffcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
-                if (myOffcanvas) myOffcanvas.hide();
-            });
-
-            // Di chuyển toàn bộ Yêu thích sang Giỏ mượn
+            // Di chuyển toàn bộ Yêu thích sang Giỏ mượn Server-side và chuyển hướng sang XemGiỏHàng
             $('#moveAllToCartBtn').on('click', function () {
-                if(favList.length === 0) return;
+                if (favList.length === 0) return;
                 
-                let addedCount = 0;
-                favList.forEach(favItem => {
-                    const exists = cartList.some(cartItem => cartItem.id === favItem.id);
-                    if (!exists && cartList.length < 5) {
-                        cartList.push(favItem);
-                        addedCount++;
+                const ids = favList.map(item => item.id);
+                
+                $.ajax({
+                    url: '/Home/ThemDanhSachVaoGioAjax',
+                    type: 'POST',
+                    data: { ids: ids },
+                    traditional: true,
+                    success: function (response) {
+                        if (response.success) {
+                            // Đóng Offcanvas Yêu thích
+                            const favCanvas = bootstrap.Offcanvas.getInstance(document.getElementById('favoritesOffcanvas'));
+                            if (favCanvas) favCanvas.hide();
+                            
+                            // Chuyển hướng về trang Xem Giỏ Hàng
+                            window.location.href = '@Url.Action("XemGioHang", "Home")';
+                        } else {
+                            showToast(response.message || 'Có lỗi xảy ra!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
                     }
                 });
-
-                localStorage.setItem('cartList', JSON.stringify(cartList));
-                renderCart();
-                
-                // Mở offcanvas giỏ mượn và đóng offcanvas yêu thích
-                const favCanvas = bootstrap.Offcanvas.getInstance(document.getElementById('favoritesOffcanvas'));
-                if (favCanvas) favCanvas.hide();
-                
-                const cartCanvas = new bootstrap.Offcanvas(document.getElementById('cartOffcanvas'));
-                cartCanvas.show();
-
-                if (addedCount > 0) {
-                    showToast(`Đã thêm thành công ${addedCount} cuốn sách vào giỏ mượn!`, 'fa-solid fa-cart-plus');
-                } else {
-                    showToast('Sách yêu thích đã có sẵn hoặc giỏ mượn đầy (tối đa 5 cuốn)!', 'fa-solid fa-triangle-exclamation');
-                }
             });
-
-            // Hàm toàn cục để thêm sách từ Trang chủ (được gọi từ Index.cshtml)
-            window.addToCart = function (id, title, author, img) {
-                if (cartList.length >= 5) {
-                    showToast('Bạn chỉ được phép mượn tối đa 5 cuốn sách cùng một lúc!', 'fa-solid fa-triangle-exclamation');
-                    return;
-                }
-                const exists = cartList.some(item => item.id === id);
-                if (exists) {
-                    showToast('Cuốn sách này đã nằm trong giỏ mượn của bạn!', 'fa-solid fa-info-circle');
-                    return;
-                }
-                
-                cartList.push({ id, title, author, img });
-                localStorage.setItem('cartList', JSON.stringify(cartList));
-                renderCart();
-                showToast('Đã thêm thành công vào giỏ mượn!', 'fa-solid fa-basket-shopping');
-            };
 
             window.addToFav = function (id, title, author, img) {
                 const exists = favList.some(item => item.id === id);
@@ -558,7 +436,6 @@
             };
 
             // Khởi chạy render ban đầu
-            renderCart();
             renderFavorites();
         });
     </script>

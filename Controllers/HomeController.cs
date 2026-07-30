@@ -112,6 +112,40 @@ namespace DoAn_LTWeb.Controllers
             return RedirectToAction("HienThiDSSP");
         }
 
+        [HttpPost]
+        public ActionResult ThemDanhSachVaoGioAjax(List<int> ids)
+        {
+            if (ids == null || ids.Count == 0)
+            {
+                return Json(new { success = false, message = "Danh sách sách trống!" });
+            }
+
+            GioHang gioHang = Session["GioHang"] as GioHang;
+            if (gioHang == null)
+            {
+                gioHang = new GioHang();
+            }
+
+            int addedCount = 0;
+            foreach (var id in ids)
+            {
+                // Giới hạn tối đa 5 quyển sách khác nhau trong giỏ mượn
+                var daCo = gioHang.lst.Any(x => x.iMaSach == id);
+                if (!daCo && gioHang.lst.Count < 5)
+                {
+                    var sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
+                    if (sach != null)
+                    {
+                        gioHang.Them(sach);
+                        addedCount++;
+                    }
+                }
+            }
+
+            Session["GioHang"] = gioHang;
+            return Json(new { success = true, addedCount = addedCount, totalQty = gioHang.TongSLHang() });
+        }
+
 
         // GET: XemGioHang
         public ActionResult XemGioHang()
