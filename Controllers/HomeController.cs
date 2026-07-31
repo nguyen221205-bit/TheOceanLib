@@ -51,11 +51,37 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult ChiTietSach(int id)
         {
             var sach = data.Sach.Include("CuonSach").FirstOrDefault(s => s.MaSach == id);
+            if (sach == null)
+            {
+                return HttpNotFound();
+            }
 
             ViewBag.TenTacGia = data.TacGia
                                     .Where(t => t.MaTacGia == sach.MaTacGia)
                                     .Select(t => t.TenTacGia)
                                     .FirstOrDefault();
+
+            // Lấy danh sách sản phẩm liên quan
+            // Ưu tiên 1: Cùng tác giả VÀ cùng thể loại (trừ chính nó)
+            var dsLienQuan = data.Sach.Include("TacGia")
+                                 .Where(s => s.MaSach != id && s.MaTacGia == sach.MaTacGia && s.MaTheLoai == sach.MaTheLoai)
+                                 .Take(4)
+                                 .ToList();
+
+            // Ưu tiên 2: Cùng tác giả HOẶC cùng thể loại
+            if (dsLienQuan.Count < 4)
+            {
+                var idsDaLay = dsLienQuan.Select(s => s.MaSach).ToList();
+                idsDaLay.Add(id); // Loại trừ cả sách hiện tại
+
+                var layThem = data.Sach.Include("TacGia")
+                                  .Where(s => !idsDaLay.Contains(s.MaSach) && (s.MaTacGia == sach.MaTacGia || s.MaTheLoai == sach.MaTheLoai))
+                                  .Take(4 - dsLienQuan.Count)
+                                  .ToList();
+                dsLienQuan.AddRange(layThem);
+            }
+
+            ViewBag.DanhSachLienQuan = dsLienQuan;
 
             return View(sach);
         }
