@@ -12,15 +12,12 @@ namespace DoAn_LTWeb.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PhieuPhat
+    public partial class sysdiagrams
     {
-        public int MaPhieuPhat { get; set; }
-        public int MaChiTiet { get; set; }
-        public decimal SoTienPhat { get; set; }
-        public string LyDo { get; set; }
-        public Nullable<System.DateTime> NgayLap { get; set; }
-        public string TrangThaiThanhToan { get; set; }
-    
-        public virtual ChiTietPhieuMuon ChiTietPhieuMuon { get; set; }
+        public string name { get; set; }
+        public int principal_id { get; set; }
+        public int diagram_id { get; set; }
+        public Nullable<int> version { get; set; }
+        public byte[] definition { get; set; }
     }
 }

@@ -14,6 +14,11 @@ namespace DoAn_LTWeb.Models
     
     public partial class ChiTietPhieuMuon
     {
+        public ChiTietPhieuMuon()
+        {
+            this.PhieuPhat = new HashSet<PhieuPhat>();
+        }
+    
         public int MaChiTiet { get; set; }
         public int MaPhieuMuon { get; set; }
         public int MaCuonSach { get; set; }
@@ -22,5 +27,6 @@ namespace DoAn_LTWeb.Models
     
         public virtual CuonSach CuonSach { get; set; }
         public virtual PhieuMuon PhieuMuon { get; set; }
+        public virtual ICollection<PhieuPhat> PhieuPhat { get; set; }
     }
 }

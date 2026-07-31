@@ -1,4 +1,4 @@
-﻿<#@ template language="C#" debug="false" hostspecific="true"#>
+<#@ template language="C#" debug="false" hostspecific="true"#>
 <#@ include file="EF.Utility.CS.ttinclude"#><#@ 
  output extension=".cs"#><#
 
@@ -234,6 +234,10 @@ public void WriteHeader(CodeStringGenerator codeStringGenerator, EntityFramework
 public void BeginNamespace(CodeGenerationTools code)
 {
     var codeNamespace = code.VsNamespaceSuggestion();
+    if (String.IsNullOrEmpty(codeNamespace))
+    {
+        codeNamespace = "DoAn_LTWeb.Models";
+    }
     if (!String.IsNullOrEmpty(codeNamespace))
     {
 #>
@@ -246,7 +250,12 @@ namespace <#=code.EscapeNamespace(codeNamespace)#>
 
 public void EndNamespace(CodeGenerationTools code)
 {
-    if (!String.IsNullOrEmpty(code.VsNamespaceSuggestion()))
+    var codeNamespace = code.VsNamespaceSuggestion();
+    if (String.IsNullOrEmpty(codeNamespace))
+    {
+        codeNamespace = "DoAn_LTWeb.Models";
+    }
+    if (!String.IsNullOrEmpty(codeNamespace))
     {
         PopIndent();
 #>
@@ -415,7 +424,12 @@ public class CodeStringGenerator
 
     public string UsingDirectives(bool inHeader, bool includeCollections = true)
     {
-        return inHeader == string.IsNullOrEmpty(_code.VsNamespaceSuggestion())
+        var codeNamespace = _code.VsNamespaceSuggestion();
+        if (string.IsNullOrEmpty(codeNamespace))
+        {
+            codeNamespace = "DoAn_LTWeb.Models";
+        }
+        return inHeader == string.IsNullOrEmpty(codeNamespace)
             ? string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}using System;{1}" +

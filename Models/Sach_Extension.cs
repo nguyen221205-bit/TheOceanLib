@@ -22,5 +22,16 @@ namespace DoAn_LTWeb.Models
                                                   cs.TrangThai.Trim().Equals("Sẵn sàng", StringComparison.OrdinalIgnoreCase)));
             }
         }
+
+        /// <summary>
+        /// Tổng số lượng sách được đếm động từ các cuốn sách vật lý tương ứng
+        /// </summary>
+        public int TongSoLuong
+        {
+            get
+            {
+                return this.CuonSach == null ? 0 : this.CuonSach.Count;
+            }
+        }
     }
 }

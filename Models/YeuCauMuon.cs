@@ -12,15 +12,19 @@ namespace DoAn_LTWeb.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class PhieuPhat
+    public partial class YeuCauMuon
     {
-        public int MaPhieuPhat { get; set; }
-        public int MaChiTiet { get; set; }
-        public decimal SoTienPhat { get; set; }
-        public string LyDo { get; set; }
-        public Nullable<System.DateTime> NgayLap { get; set; }
-        public string TrangThaiThanhToan { get; set; }
+        public YeuCauMuon()
+        {
+            this.ChiTietYeuCauMuon = new HashSet<ChiTietYeuCauMuon>();
+        }
     
-        public virtual ChiTietPhieuMuon ChiTietPhieuMuon { get; set; }
+        public int MaYeuCau { get; set; }
+        public int MaDocGia { get; set; }
+        public Nullable<System.DateTime> NgayYeuCau { get; set; }
+        public string TrangThai { get; set; }
+    
+        public virtual ICollection<ChiTietYeuCauMuon> ChiTietYeuCauMuon { get; set; }
+        public virtual NguoiDung NguoiDung { get; set; }
     }
 }

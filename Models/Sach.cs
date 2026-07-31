@@ -17,6 +17,7 @@ namespace DoAn_LTWeb.Models
         public Sach()
         {
             this.CuonSach = new HashSet<CuonSach>();
+            this.ChiTietYeuCauMuon = new HashSet<ChiTietYeuCauMuon>();
         }
     
         public int MaSach { get; set; }
@@ -28,9 +29,9 @@ namespace DoAn_LTWeb.Models
         public Nullable<int> NamXuatBan { get; set; }
         public string AnhBia { get; set; }
         public string MoTa { get; set; }
-        public Nullable<int> TongSoLuong { get; set; }
     
         public virtual ICollection<CuonSach> CuonSach { get; set; }
+        public virtual ICollection<ChiTietYeuCauMuon> ChiTietYeuCauMuon { get; set; }
         public virtual NhaXuatBan NhaXuatBan { get; set; }
         public virtual TacGia TacGia { get; set; }
         public virtual TheLoai TheLoai { get; set; }

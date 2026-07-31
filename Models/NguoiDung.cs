@@ -18,6 +18,7 @@ namespace DoAn_LTWeb.Models
         {
             this.PhieuMuon = new HashSet<PhieuMuon>();
             this.PhieuMuon1 = new HashSet<PhieuMuon>();
+            this.YeuCauMuon = new HashSet<YeuCauMuon>();
         }
     
         public int MaNguoiDung { get; set; }
@@ -33,5 +34,6 @@ namespace DoAn_LTWeb.Models
         public virtual VaiTro VaiTro { get; set; }
         public virtual ICollection<PhieuMuon> PhieuMuon { get; set; }
         public virtual ICollection<PhieuMuon> PhieuMuon1 { get; set; }
+        public virtual ICollection<YeuCauMuon> YeuCauMuon { get; set; }
     }
 }

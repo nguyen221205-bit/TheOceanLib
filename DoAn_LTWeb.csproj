@@ -178,6 +178,18 @@
     <Compile Include="Models\VaiTro.cs">
       <DependentUpon>ModelsDuLieu.tt</DependentUpon>
     </Compile>
+    <Compile Include="Models\ChiTietYeuCauMuon.cs">
+      <DependentUpon>ModelsDuLieu.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\V_ThongKeSoLuongSach.cs">
+      <DependentUpon>ModelsDuLieu.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\YeuCauMuon.cs">
+      <DependentUpon>ModelsDuLieu.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Models\sysdiagrams.cs">
+      <DependentUpon>ModelsDuLieu.tt</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

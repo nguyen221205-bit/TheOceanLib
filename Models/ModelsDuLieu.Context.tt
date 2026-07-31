@@ -1,4 +1,4 @@
-﻿<#@ template language="C#" debug="false" hostspecific="true"#>
+<#@ template language="C#" debug="false" hostspecific="true"#>
 <#@ include file="EF.Utility.CS.ttinclude"#><#@
  output extension=".cs"#><#
 
@@ -30,6 +30,10 @@ if (container == null)
 <#
 
 var codeNamespace = code.VsNamespaceSuggestion();
+if (String.IsNullOrEmpty(codeNamespace))
+{
+    codeNamespace = "DoAn_LTWeb.Models";
+}
 if (!String.IsNullOrEmpty(codeNamespace))
 {
 #>
@@ -305,7 +309,12 @@ public class CodeStringGenerator
 
     public string UsingDirectives(bool inHeader, bool includeCollections = true)
     {
-        return inHeader == string.IsNullOrEmpty(_code.VsNamespaceSuggestion())
+        var codeNamespace = _code.VsNamespaceSuggestion();
+        if (string.IsNullOrEmpty(codeNamespace))
+        {
+            codeNamespace = "DoAn_LTWeb.Models";
+        }
+        return inHeader == string.IsNullOrEmpty(codeNamespace)
             ? string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}using System;{1}" +
