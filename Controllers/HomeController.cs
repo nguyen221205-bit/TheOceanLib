@@ -100,8 +100,10 @@ namespace DoAn_LTWeb.Controllers
         }
 
         [HttpPost]
-        public ActionResult ChonSach(int id)
+        public ActionResult ChonSach(int id, int? soLuong)
         {
+            int qty = soLuong ?? 1;
+
             // 1. Tìm sách trong Database theo id truyền vào
             Sach sach = data.Sach.FirstOrDefault(s => s.MaSach == id);
 
@@ -117,13 +119,23 @@ namespace DoAn_LTWeb.Controllers
                 gioHang = new GioHang();
             }
 
-            // 3. Gọi hàm Them(sach) có sẵn trong model GioHang của bạn
-            gioHang.Them(sach);
+            // 3. Thêm sách với số lượng tương ứng
+            CartItem item = gioHang.lst.FirstOrDefault(x => x.iMaSach == id);
+            if (item == null)
+            {
+                CartItem newItem = new CartItem(sach);
+                newItem.iSoLuong = qty;
+                gioHang.lst.Add(newItem);
+            }
+            else
+            {
+                item.iSoLuong += qty;
+            }
 
             // 4. Lưu lại giỏ hàng vào Session
             Session["GioHang"] = gioHang;
 
-            // 5. Lấy tổng số lượng bằng phương thức TongSLHang() có sẵn trong class GioHang
+            // 5. Lấy tổng số lượng bằng phương thức TongSLHang()
             int tongSoLuong = gioHang.TongSLHang();
 
             // 6. Trả về JSON cho AJAX

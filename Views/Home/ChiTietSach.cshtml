@@ -7,98 +7,134 @@
 
 <div class="container mt-5">
 
-    <div class="card shadow-lg border-0 rounded-4">
-        <div class="row g-0">
-
-            <!-- Ảnh -->
-            <div class="col-md-4 text-center p-4">
-
+    <!-- HÀNG 1: Ảnh bìa (Trái) & Thông tin nhanh + Chọn số lượng + Nút mượn (Phải) -->
+    <div class="row g-4 align-items-center">
+        
+        <!-- Cột 1 (bên trái): ảnh sản phẩm -->
+        <div class="col-md-5 text-center">
+            <div class="book-detail-image-wrapper p-3" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: var(--shadow-sm);">
                 <img src="@Url.Content("~/Content/HinhAnh/" + Model.AnhBia)"
-                     class="img-fluid rounded shadow"
-                     style="max-height:450px;" />
-
+                     class="img-fluid rounded shadow-sm"
+                     style="max-height: 480px; object-fit: contain;" 
+                     alt="@Model.TenSach"
+                     onerror="this.src='https://placehold.co/360x480/0f172a/ffffff?text=Book'" />
             </div>
+        </div>
 
-            <!-- Thông tin -->
-            <div class="col-md-8">
-
-                <div class="card-body p-4">
-
-                    <h2 class="text-primary fw-bold">
+        <!-- Cột 2 (bên phải): Tên sách -> Tên tác giả -> Tăng giảm số lượng -> Nút giỏ mượn/Đăng ký mượn -->
+        <div class="col-md-7">
+            <div class="d-flex flex-column gap-3 p-2">
+                <div>
+                    <h1 class="fw-bold text-gradient mb-1" style="color: var(--primary); font-size: 2.2rem; line-height: 1.2;">
                         @Model.TenSach
-                    </h2>
-
-                    <hr />
-
-                    <table class="table table-borderless">
-
-                        <tr>
-                            <th width="180">Mã sách</th>
-                            <td>@Model.MaSach</td>
-                        </tr>
-
-                        <tr>
-                            <th>Tác giả</th>
-                            <td>@ViewBag.TenTacGia</td>
-                        </tr>
-
-                        <tr>
-                            <th>ISBN</th>
-                            <td>@Model.ISBN</td>
-                        </tr>
-
-                        <tr>
-                            <th>Năm xuất bản</th>
-                            <td>@Model.NamXuatBan</td>
-                        </tr>
-
-                        <tr>
-                            <th>Số lượng</th>
-                            <td>
-                                <span class="badge bg-success fs-6">
-                                    Sẵn có: @Model.SoLuongChuaMuon / @(Model.TongSoLuong.HasValue ? Model.TongSoLuong.Value.ToString() : "0")
-                                </span>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <th>Mô tả</th>
-                            <td>@Model.MoTa</td>
-                        </tr>
-
-                    </table>
-
-                    <div class="mt-4">
-
-                        <a href="@Url.Action("ChonSachVaQuayLai","Home",new { id = Model.MaSach })"
-                           class="btn btn-success btn-lg me-2">
-
-                            ✔ Chọn sách
-
-                        </a>
-
-                        <a href="@Url.Action("HienThiDSSP","Home")"
-                           class="btn btn-outline-secondary btn-lg">
-
-                            ← Quay lại
-
-                        </a>
-
-                    </div>
-
+                    </h1>
+                    <p class="fs-5 text-secondary mb-0" style="color: var(--text-secondary);">
+                        <i class="fa-regular fa-user me-2 text-accent"></i> Tác giả: <span class="fw-semibold text-primary">@ViewBag.TenTacGia</span>
+                    </p>
                 </div>
 
-            </div>
+                <hr class="my-1" style="border-color: var(--border-color);" />
 
+                <!-- Bộ tăng giảm số lượng (sử dụng dấu +,- 2 bên) -->
+                <div class="d-flex align-items-center gap-3 my-2">
+                    <span class="fw-bold text-secondary" style="color: var(--text-secondary);">Số lượng mượn:</span>
+                    <div class="input-group" style="width: 140px; border-radius: 30px; overflow: hidden; border: 1px solid var(--border-color); background: var(--bg-app);">
+                        <button type="button" class="btn btn-outline-secondary border-0 px-3 btn-qty-minus" style="color: var(--text-primary); transition: .2s;"><i class="fa-solid fa-minus"></i></button>
+                        <input type="text" class="form-control text-center bg-transparent border-0 fw-bold input-qty" value="1" readonly style="color: var(--text-primary); font-size: 1.1rem; box-shadow: none;" data-max="@(Model.SoLuongChuaMuon < 5 ? Model.SoLuongChuaMuon : 5)" />
+                        <button type="button" class="btn btn-outline-secondary border-0 px-3 btn-qty-plus" style="color: var(--text-primary); transition: .2s;"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <span class="small text-muted" style="color: var(--text-muted);">
+                        (Sẵn có: @Model.SoLuongChuaMuon quyển, giới hạn tối đa 5 quyển)
+                    </span>
+                </div>
+
+                <!-- Thêm vào giỏ mượn và đăng ký mượn (2 nút này cùng 1 hàng) -->
+                <div class="d-flex gap-3 mt-2">
+                    <button type="button" class="btn btn-success py-3 px-4 rounded-pill fw-bold flex-grow-1 btn-add-cart-detail" style="font-size: 1.05rem;">
+                        <i class="fa-solid fa-basket-shopping me-2"></i> Thêm vào giỏ mượn
+                    </button>
+                    <button type="button" class="btn btn-primary py-3 px-4 rounded-pill fw-bold flex-grow-1 btn-register-borrow-detail" style="font-size: 1.05rem; background-color: var(--accent); border-color: var(--accent);">
+                        <i class="fa-solid fa-file-signature me-2"></i> Đăng ký mượn ngay
+                    </button>
+                </div>
+            </div>
         </div>
+
     </div>
 
-    <!-- Phần sản phẩm liên quan -->
+    <!-- HÀNG 2: Bảng mô tả (Trái) & Bảng thông tin chi tiết (Phải) -->
+    <div class="row g-4 mt-5">
+        
+        <!-- Cột 1 (trái): Bảng mô tả sản phẩm -->
+        <div class="col-md-7">
+            <div class="card h-100 border-0 p-4 shadow-sm" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 18px; color: var(--text-primary);">
+                <h5 class="fw-bold mb-3 text-primary" style="color: var(--primary);">
+                    <i class="fa-solid fa-align-left text-accent me-2"></i> Mô tả sách
+                </h5>
+                <div style="line-height: 1.7; color: var(--text-secondary); text-align: justify; font-size: 0.98rem;">
+                    @if (!string.IsNullOrEmpty(Model.MoTa))
+                    {
+                        @Model.MoTa
+                    }
+                    else
+                    {
+                        <span class="text-muted">Không có mô tả cho cuốn sách này.</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột 2 (phải): Bảng thông tin chi tiết -->
+        <div class="col-md-5">
+            <div class="card h-100 border-0 p-4 shadow-sm" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 18px; color: var(--text-primary);">
+                <h5 class="fw-bold mb-3 text-primary" style="color: var(--primary);">
+                    <i class="fa-solid fa-circle-info text-accent me-2"></i> Thông tin chi tiết
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle mb-0" style="color: var(--text-primary); font-size: 0.95rem;">
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-2.5 fw-semibold text-secondary" style="width: 140px; color: var(--text-secondary);">Tác giả:</td>
+                                <td class="py-2.5 text-primary fw-semibold">@ViewBag.TenTacGia</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-2.5 fw-semibold text-secondary" style="color: var(--text-secondary);">Nhà xuất bản:</td>
+                                <td class="py-2.5">@(Model.NhaXuatBan != null ? Model.NhaXuatBan.TenNXB : "Chưa cập nhật")</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-2.5 fw-semibold text-secondary" style="color: var(--text-secondary);">Thể loại:</td>
+                                <td class="py-2.5">@(Model.TheLoai != null ? Model.TheLoai.TenTheLoai : "Chưa cập nhật")</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-2.5 fw-semibold text-secondary" style="color: var(--text-secondary);">Mã ISBN:</td>
+                                <td class="py-2.5 font-monospace">@Model.ISBN</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td class="py-2.5 fw-semibold text-secondary" style="color: var(--text-secondary);">Năm xuất bản:</td>
+                                <td class="py-2.5">@Model.NamXuatBan</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 fw-semibold text-secondary" style="color: var(--text-secondary);">Sẵn có / Tổng:</td>
+                                <td class="py-2.5">
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2.5 py-1.5 rounded-pill fs-7">
+                                        @Model.SoLuongChuaMuon / @(Model.TongSoLuong.HasValue ? Model.TongSoLuong.Value.ToString() : "0")
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- HÀNG CUỐI: Gợi ý dành cho bạn -->
     @if (ViewBag.DanhSachLienQuan != null && ((List<DoAn_LTWeb.Models.Sach>)ViewBag.DanhSachLienQuan).Count > 0)
     {
         <div class="mt-5 pt-4">
             <h3 class="fw-bold mb-4" style="color: var(--primary);">
-                <i class="fa-solid fa-layer-group text-accent me-2"></i> Tài liệu liên quan
+                <i class="fa-solid fa-star text-accent me-2"></i> Gợi ý dành cho bạn
             </h3>
             <div class="row g-4">
                 @foreach (var item in (List<DoAn_LTWeb.Models.Sach>)ViewBag.DanhSachLienQuan)
@@ -162,6 +198,36 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
+        const inputQty = $('.input-qty');
+        const maxVal = parseInt(inputQty.data('max')) || 1;
+
+        // Cập nhật trạng thái disabled của các nút + và -
+        function updateButtonsState() {
+            const currentVal = parseInt(inputQty.val()) || 1;
+            $('.btn-qty-minus').prop('disabled', currentVal <= 1);
+            $('.btn-qty-plus').prop('disabled', currentVal >= maxVal);
+        }
+
+        updateButtonsState();
+
+        // Nút trừ
+        $('.btn-qty-minus').on('click', function () {
+            let currentVal = parseInt(inputQty.val()) || 1;
+            if (currentVal > 1) {
+                inputQty.val(currentVal - 1);
+                updateButtonsState();
+            }
+        });
+
+        // Nút cộng
+        $('.btn-qty-plus').on('click', function () {
+            let currentVal = parseInt(inputQty.val()) || 1;
+            if (currentVal < maxVal) {
+                inputQty.val(currentVal + 1);
+                updateButtonsState();
+            }
+        });
+
         // Đánh dấu các sách đã có trong Danh sách Yêu thích khi tải trang
         const favList = JSON.parse(localStorage.getItem('favList')) || [];
         $('.btn-them-yeu-thich').each(function() {
@@ -172,9 +238,60 @@
             }
         });
 
+        // AJAX Thêm vào giỏ mượn từ trang chi tiết
+        $('.btn-add-cart-detail').on('click', function(e) {
+            e.preventDefault();
+            const qty = parseInt(inputQty.val()) || 1;
+            const id = @Model.MaSach;
+
+            $.ajax({
+                url: '/Home/ChonSach',
+                type: 'POST',
+                data: { id: id, soLuong: qty },
+                success: function(response) {
+                    if (response.success) {
+                        $('#cartBadge').text(response.totalCount);
+                        alert('Đã thêm ' + qty + ' quyển sách vào giỏ mượn!');
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra!');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Lỗi AJAX:", error);
+                    alert('Không thể kết nối đến máy chủ.');
+                }
+            });
+        });
+
+        // AJAX Đăng ký mượn ngay (Thêm giỏ và chuyển hướng)
+        $('.btn-register-borrow-detail').on('click', function(e) {
+            e.preventDefault();
+            const qty = parseInt(inputQty.val()) || 1;
+            const id = @Model.MaSach;
+
+            $.ajax({
+                url: '/Home/ChonSach',
+                type: 'POST',
+                data: { id: id, soLuong: qty },
+                success: function(response) {
+                    if (response.success) {
+                        $('#cartBadge').text(response.totalCount);
+                        // Chuyển hướng ngay đến trang xác nhận mượn
+                        window.location.href = '/Home/XacNhanMuon';
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra!');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Lỗi AJAX:", error);
+                    alert('Không thể kết nối đến máy chủ.');
+                }
+            });
+        });
+
+        // Nút Thêm giỏ của phần Sách liên quan (Gợi ý dành cho bạn)
         $(document).on('click', '.btn-chon-sach', function (e) {
             e.preventDefault();
-
             var maSach = $(this).data('id');
 
             $.ajax({
