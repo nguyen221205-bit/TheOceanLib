@@ -26,11 +26,11 @@ namespace DoAn_LTWeb.Models
         /// <summary>
         /// Tổng số lượng sách được đếm động từ các cuốn sách vật lý tương ứng
         /// </summary>
-        public int TongSoLuong
+        public Nullable<int> TongSoLuong
         {
             get
             {
-                return this.CuonSach == null ? 0 : this.CuonSach.Count;
+                return this.CuonSach == null ? 0 : (int?)this.CuonSach.Count;
             }
         }
     }
