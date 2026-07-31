@@ -1,0 +1,149 @@
+@{
+    ViewBag.Title = "Liên hệ hỗ trợ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .contact-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+        .contact-header h2 {
+            color: var(--primary);
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .contact-header p {
+            color: var(--text-secondary);
+        }
+
+    .info-card,
+    .form-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 25px;
+        color: var(--text-primary);
+        box-shadow: var(--shadow-sm);
+        transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    }
+
+        .info-card h4,
+        .form-card h4 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .info-card ul {
+            padding-left: 20px;
+        }
+</style>
+
+<div class="contact-header">
+    <h2>📞 Liên hệ hỗ trợ</h2>
+    <p>Nếu bạn gặp khó khăn trong quá trình sử dụng hệ thống, hãy liên hệ với chúng tôi.</p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-5">
+
+        <div class="info-card h-100">
+
+            <h4>🏫 Thư viện TheOceanLib</h4>
+
+            <p><strong>📍 Địa chỉ:</strong> 140 Lê Trọng Tấn, Tây Thạnh, Tân Phú, TP. Hồ Chí Minh</p>
+
+            <p><strong>☎ Điện thoại:</strong> (028) 3816 3319</p>
+
+            <p><strong>📧 Email:</strong> library@theoceanlib.edu.vn</p>
+
+            <p><strong>🕒 Giờ làm việc:</strong></p>
+
+            <ul class="mb-0">
+                <li class="mb-2">Thứ 2 - Thứ 6: 07:30 - 17:00</li>
+                <li class="mb-2">Thứ 7: 07:30 - 11:30</li>
+                <li class="mb-0">Chủ nhật: Nghỉ</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-7">
+
+        <div class="form-card">
+
+            <h4>📝 Gửi phản hồi</h4>
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success border-0 shadow-sm mb-4">
+                    <i class="fa-solid fa-circle-check me-2"></i> @ViewBag.Message
+                </div>
+            }
+
+            @using (Html.BeginForm())
+            {
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+
+                    <input class="form-control bg-transparent"
+                           name="HoTen"
+                           required
+                           style="color: var(--text-primary); border-color: var(--border-color);" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+
+                    <input type="email"
+                           class="form-control bg-transparent"
+                           name="Email"
+                           required
+                           style="color: var(--text-primary); border-color: var(--border-color);" />
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+
+                    <input class="form-control bg-transparent"
+                           name="TieuDe"
+                           required
+                           style="color: var(--text-primary); border-color: var(--border-color);" />
+
+                </div>
+
+                <div class="mb-4">
+
+                    <label class="form-label fw-semibold">Nội dung <span class="text-danger">*</span></label>
+
+                    <textarea class="form-control bg-transparent"
+                              rows="6"
+                              name="NoiDung"
+                              required
+                              style="color: var(--text-primary); border-color: var(--border-color);"></textarea>
+
+                </div>
+
+                <button class="btn btn-primary px-4 py-2.5 rounded-pill fw-bold" style="background-color: var(--accent); border-color: var(--accent);">
+                    <i class="fa-regular fa-paper-plane me-1"></i> Gửi phản hồi
+                </button>
+
+            }
+
+        </div>
+
+    </div>
+
+</div>
+

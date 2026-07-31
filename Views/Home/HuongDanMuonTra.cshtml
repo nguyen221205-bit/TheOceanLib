@@ -1,0 +1,118 @@
+@{
+    ViewBag.Title = "Hướng dẫn mượn trả";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .guide-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+        .guide-header h2 {
+            color: var(--primary);
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .guide-header p {
+            color: var(--text-secondary);
+        }
+
+    .guide-step {
+        display: flex;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        margin-bottom: 25px;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease, transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .guide-step:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .step-number {
+        width: 90px;
+        background: var(--accent);
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 34px;
+        font-weight: bold;
+      }
+
+    .step-content {
+        padding: 20px;
+        color: var(--text-primary);
+    }
+
+        .step-content h4 {
+            color: var(--primary);
+            font-weight: bold;
+        }
+</style>
+
+<div class="guide-header">
+    <h2>📖 Hướng dẫn mượn và trả sách</h2>
+    <p>Thực hiện theo các bước dưới đây để mượn và trả sách một cách nhanh chóng.</p>
+</div>
+
+<div class="container px-0">
+
+    <div class="guide-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+            <h4>Tìm kiếm tài liệu</h4>
+            <p class="mb-0 text-secondary" style="color: var(--text-secondary);">Tìm sách theo tên, tác giả hoặc thể loại trên website.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+            <h4>Chọn sách</h4>
+            <p class="mb-0 text-secondary" style="color: var(--text-secondary);">Nhấn <strong>Thêm giỏ</strong> để đưa sách vào giỏ mượn.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+            <h4>Xác nhận mượn</h4>
+            <p class="mb-0 text-secondary" style="color: var(--text-secondary);">Kiểm tra danh sách sách và điền đầy đủ thông tin người mượn.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+            <h4>Đến thư viện nhận sách</h4>
+            <p class="mb-0 text-secondary" style="color: var(--text-secondary);">Mang theo thẻ sinh viên hoặc CCCD để nhận sách tại quầy thủ thư.</p>
+        </div>
+    </div>
+
+    <div class="guide-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+            <h4>Trả sách đúng hạn</h4>
+            <p class="mb-0 text-secondary" style="color: var(--text-secondary);">Trả sách trước hoặc đúng ngày hẹn để tránh bị xử lý theo quy định của thư viện.</p>
+        </div>
+    </div>
+
+    <div class="alert alert-warning border-start border-4 border-warning p-4 mt-5 rounded-4 bg-opacity-10" role="alert">
+        <h4 class="alert-heading fw-bold mb-3"><i class="fa-solid fa-circle-exclamation me-2"></i> Lưu ý quan trọng</h4>
+        <ul class="mb-0" style="color: var(--text-primary); line-height: 1.6;">
+            <li class="mb-2">Mỗi độc giả được mượn tối đa <strong>5 quyển sách</strong>.</li>
+            <li class="mb-2">Thời gian mượn tối đa <strong>14 ngày</strong>.</li>
+            <li class="mb-2">Không làm rách, mất hoặc hư hỏng sách.</li>
+            <li class="mb-0">Nếu trả trễ hoặc làm mất sách sẽ xử lý theo quy định của thư viện.</li>
+        </ul>
+    </div>
+
+</div>
+

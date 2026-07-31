@@ -1,0 +1,161 @@
+@model List<DoAn_LTWeb.Models.SachMuonNhieuVM>
+
+@{
+    ViewBag.Title = "Sách được mượn nhiều";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .top-header {
+        text-align: center;
+        margin: 35px 0;
+    }
+
+        .top-header h2 {
+            color: #1ec8ff;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .top-header p {
+            color: #bfc9d4;
+        }
+</style>
+
+<div class="top-header">
+    <h2>🔥 Sách được mượn nhiều</h2>
+    <p>Những đầu sách được bạn đọc yêu thích và mượn nhiều nhất.</p>
+</div>
+
+<div class="row g-4">
+    @{
+        int rank = 1;
+    }
+
+    @foreach (var item in Model)
+    {
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="book-card-img-wrapper" style="height: 300px; overflow: hidden; background-color: var(--bg-app); position: relative;">
+                    <img src="~/Content/HinhAnh/@item.AnhBia"
+                         class="card-img-top w-100 h-100"
+                         style="object-fit: cover; object-position: center; transition: transform var(--transition-speed) ease;"
+                         alt="@item.TenSach" />
+                    
+                    @if (rank == 1)
+                    {
+                        <span class="rank gold" style="position: absolute; top: 12px; left: 12px; background: #ffb300; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; z-index: 2;">🥇 TOP 1</span>
+                    }
+                    else if (rank == 2)
+                    {
+                        <span class="rank silver" style="position: absolute; top: 12px; left: 12px; background: #8f9ba8; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; z-index: 2;">🥈 TOP 2</span>
+                    }
+                    else if (rank == 3)
+                    {
+                        <span class="rank bronze" style="position: absolute; top: 12px; left: 12px; background: #b87333; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; z-index: 2;">🥉 TOP 3</span>
+                    }
+                    else
+                    {
+                        <span class="rank normal" style="position: absolute; top: 12px; left: 12px; background: #00bcd4; color: white; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; z-index: 2;">TOP @rank</span>
+                    }
+                </div>
+
+                <div class="card-body d-flex flex-column gap-2 p-3">
+                    <h5 class="card-title text-truncate mb-0 fs-6 fw-bold" title="@item.TenSach" style="color: var(--primary);">
+                        @item.TenSach
+                    </h5>
+                    <div class="book-author text-secondary small" style="color: var(--text-secondary);">
+                        <i class="fa-regular fa-user me-1 text-accent"></i>
+                        <span>@(string.IsNullOrEmpty(item.TenTacGia) ? "Chưa cập nhật" : item.TenTacGia)</span>
+                    </div>
+                    <div class="book-quantity text-success small mt-auto" style="color: #2ecc71; font-weight: bold;">
+                        <i class="fa-solid fa-chart-line me-1"></i>
+                        <span>Tổng lượt mượn: <strong>@item.SoLanMuon</strong></span>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center p-3 bg-transparent border-top-0 d-flex gap-2 justify-content-center align-items-center">
+                    @Html.ActionLink("Chi tiết",
+                                     "ChiTietSach",
+                                     new { id = item.MaSach },
+                                     new { @class = "btn btn-outline-primary btn-sm flex-grow-1" })
+
+                    <!-- Nút Thêm giỏ (AJAX) -->
+                    <button type="button"
+                            class="btn btn-success btn-sm btn-chon-sach flex-grow-1"
+                            data-id="@item.MaSach">
+                        Thêm giỏ
+                    </button>
+
+                    <!-- Nút Yêu thích (Client-side) -->
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm btn-them-yeu-thich px-2.5"
+                            data-id="@item.MaSach"
+                            data-title="@item.TenSach"
+                            data-author="@(string.IsNullOrEmpty(item.TenTacGia) ? "Chưa cập nhật" : item.TenTacGia)"
+                            data-img="@Url.Content("~/Content/HinhAnh/" + item.AnhBia)"
+                            title="Thêm yêu thích">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        rank++;
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Đánh dấu các sách đã có trong Danh sách Yêu thích khi tải trang
+        const favList = JSON.parse(localStorage.getItem('favList')) || [];
+        $('.btn-them-yeu-thich').each(function() {
+            const btn = $(this);
+            const id = parseInt(btn.data('id'));
+            if (favList.some(item => item.id === id)) {
+                btn.find('i').removeClass('fa-regular').addClass('fa-solid text-danger');
+            }
+        });
+
+        $(document).on('click', '.btn-chon-sach', function (e) {
+            e.preventDefault();
+
+            var maSach = $(this).data('id');
+
+            $.ajax({
+                url: '/Home/ChonSach',
+                type: 'POST',
+                data: { id: maSach },
+                success: function (response) {
+                    if (response.success) {
+                        $('#cartBadge').text(response.totalCount);
+                        alert('Đã thêm sách vào giỏ mượn!');
+                    } else {
+                        alert(response.message || 'Có lỗi xảy ra!');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi AJAX:", error);
+                    alert('Không thể kết nối đến máy chủ.');
+                }
+            });
+        });
+
+        // Click handler cho nút Yêu thích
+        $(document).on('click', '.btn-them-yeu-thich', function (e) {
+            e.preventDefault();
+            var btn = $(this);
+            var id = parseInt(btn.data('id'));
+            var title = btn.data('title');
+            var author = btn.data('author');
+            var img = btn.data('img');
+            
+            // Thay đổi icon sang hình tim đỏ
+            btn.find('i').removeClass('fa-regular').addClass('fa-solid text-danger');
+            
+            if (typeof window.addToFav === 'function') {
+                window.addToFav(id, title, author, img);
+            }
+        });
+    });
+</script>

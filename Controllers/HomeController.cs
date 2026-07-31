@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using DoAn_LTWeb.Models;
+using System.Data.Entity;
 namespace DoAn_LTWeb.Controllers
 {
     public class HomeController : Controller
@@ -264,23 +265,133 @@ namespace DoAn_LTWeb.Controllers
             string sdt = form["SoDienThoai"];
             string diaChi = form["DiaChi"];
 
-            // TODO: Ở đây bạn có thể thêm code lưu vào bảng PhieuMuon và ChiTietPhieuMuon trong CSDL của bạn:
-            // PhieuMuon pm = new PhieuMuon();
-            // pm.MaDocGia = 1; // ID của độc giả mặc định hoặc độc giả đang đăng nhập
-            // pm.NgayMuon = DateTime.Parse(ngayMuon);
-            // pm.NgayHenTra = DateTime.Parse(ngayTra);
-            // pm.TrangThai = "ChoDuyet";
-            // data.PhieuMuon.Add(pm);
-            // data.SaveChanges();
-            // ... lưu tiếp ChiTietPhieuMuon ...
+            // ====== BƯỚC 1: Lưu Phiếu Mượn =====
+            PhieuMuon pm = new PhieuMuon();
+
+            pm.MaDocGia = 1;
+            pm.MaThuThu = null;
+            pm.NgayMuon = DateTime.Now;
+            pm.NgayHenTra = DateTime.Parse(ngayTra);
+
+            // Lưu ý: Kiểm tra lại constraint trên bảng PhieuMuon nếu dòng này phát sinh lỗi tương tự.
+            // Nếu PhieuMuon cũng dùng "DaMuon" thì đổi "DangMuon" -> "DaMuon"
+            pm.TrangThai = "DangMuon";
+
+            data.PhieuMuon.Add(pm);
+            data.SaveChanges(); // Lưu phiếu mượn để lấy MaPhieuMuon tự tăng
+
+            // ====== BƯỚC 2: Lưu Chi Tiết & Cập Nhật Cuốn Sách =====
+            foreach (var item in gioHang.lst)
+            {
+                // Lấy ra các cuốn sách có sẵn tương ứng với mã sách hiện tại
+                var availableCopies = data.CuonSach
+                    .Where(cs => cs.MaSach == item.iMaSach && cs.TrangThai == "SanSang")
+                    .Take(item.iSoLuong)
+                    .ToList();
+
+                foreach (var cuonSach in availableCopies)
+                {
+                    // Tạo chi tiết phiếu mượn
+                    ChiTietPhieuMuon ct = new ChiTietPhieuMuon();
+                    ct.MaPhieuMuon = pm.MaPhieuMuon;
+                    ct.MaCuonSach = cuonSach.MaCuonSach;
+                    ct.NgayTraThucTe = null;
+                    ct.TinhTrangKhiTra = null;
+
+                    data.ChiTietPhieuMuon.Add(ct);
+
+                    // FIX LỖI TẠI ĐÂY: Đổi "DangMuon" thành "DaMuon" cho đúng CHECK constraint
+                    cuonSach.TrangThai = "DaMuon";
+                }
+            }
+
+            // Lưu tất cả thay đổi của ChiTietPhieuMuon và CuonSach
+            try
+            {
+                data.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                var err = ex;
+
+                while (err.InnerException != null)
+                {
+                    err = err.InnerException;
+                }
+
+                throw new Exception(err.Message);
+            }
 
             // Làm sạch giỏ hàng sau khi đăng ký thành công
             Session["GioHang"] = null;
 
-            // Đặt thông báo TempData để hiển thị thông báo thành công ở trang chủ
             TempData["SuccessMessage"] = "Đăng ký mượn sách thành công! Vui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ.";
 
             return RedirectToAction("Index");
+        }
+
+        public ActionResult SachMuonNhieu()
+        {
+            var ds = data.ChiTietPhieuMuon
+                         .GroupBy(x => new { 
+                             x.CuonSach.Sach.MaSach, 
+                             x.CuonSach.Sach.TenSach, 
+                             x.CuonSach.Sach.AnhBia,
+                             TenTacGia = x.CuonSach.Sach.TacGia != null ? x.CuonSach.Sach.TacGia.TenTacGia : "Chưa cập nhật"
+                         })
+                         .Select(g => new SachMuonNhieuVM
+                         {
+                             MaSach = g.Key.MaSach,
+                             TenSach = g.Key.TenSach,
+                             AnhBia = g.Key.AnhBia,
+                             TenTacGia = g.Key.TenTacGia,
+                             SoLanMuon = g.Count()
+                         })
+                         .OrderByDescending(x => x.SoLanMuon)
+                         .Take(10)
+                         .ToList();
+
+            return View(ds);
+        }
+
+        public ActionResult TaiLieuMoi(string tuKhoa, int? maTheLoai)
+        {
+            var query = data.Sach
+                            .Include(s => s.TacGia)
+                            .Include(s => s.TheLoai)
+                            .Include(s => s.CuonSach)
+                            .AsQueryable();
+
+            if (!string.IsNullOrEmpty(tuKhoa))
+            {
+                query = query.Where(s => s.TenSach.Contains(tuKhoa));
+            }
+
+            if (maTheLoai.HasValue)
+            {
+                query = query.Where(s => s.MaTheLoai == maTheLoai);
+            }
+
+            ViewBag.DanhSachTheLoai = data.TheLoai.ToList();
+
+            return View(query.OrderByDescending(s => s.MaSach).Take(20).ToList());
+        }
+
+        public ActionResult HuongDanMuonTra()
+        {
+            return View();
+        }
+
+        public ActionResult LienHeHoTro()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult LienHeHoTro(FormCollection form)
+        {
+            ViewBag.Message = "Cảm ơn bạn đã gửi phản hồi. Chúng tôi sẽ liên hệ sớm nhất!";
+            return View();
         }
     }
 }

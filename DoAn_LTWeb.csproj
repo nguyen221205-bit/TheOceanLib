@@ -129,6 +129,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Models\CartItem.cs" />
     <Compile Include="Models\Sach_Extension.cs" />
+    <Compile Include="Models\SachMuonNhieuVM.cs" />
     <Compile Include="Models\ChiTietPhieuMuon.cs">
       <DependentUpon>ModelsDuLieu.tt</DependentUpon>
     </Compile>
@@ -263,6 +264,10 @@
     <Content Include="Views\Home\HienThiDSSP.cshtml" />
     <Content Include="Views\Home\XemGioHang.cshtml" />
     <Content Include="Views\Home\XacNhanMuon.cshtml" />
+    <Content Include="Views\Home\HuongDanMuonTra.cshtml" />
+    <Content Include="Views\Home\LienHeHoTro.cshtml" />
+    <Content Include="Views\Home\SachMuonNhieu.cshtml" />
+    <Content Include="Views\Home\TaiLieuMoi.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
