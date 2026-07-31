@@ -311,7 +311,7 @@ namespace DoAn_LTWeb.Controllers
             {
                 // Lấy ra các cuốn sách có sẵn tương ứng với mã sách hiện tại
                 var availableCopies = data.CuonSach
-                    .Where(cs => cs.MaSach == item.iMaSach && cs.TrangThai == "SanSang")
+                    .Where(cs => cs.MaSach == item.iMaSach && cs.TrangThai == "Có sẵn")
                     .Take(item.iSoLuong)
                     .ToList();
 
@@ -326,8 +326,8 @@ namespace DoAn_LTWeb.Controllers
 
                     data.ChiTietPhieuMuon.Add(ct);
 
-                    // FIX LỖI TẠI ĐÂY: Đổi "DangMuon" thành "DaMuon" cho đúng CHECK constraint
-                    cuonSach.TrangThai = "DaMuon";
+                    // Cập nhật trạng thái cuốn sách thành "Đang mượn"
+                    cuonSach.TrangThai = "Đang mượn";
                 }
             }
 
