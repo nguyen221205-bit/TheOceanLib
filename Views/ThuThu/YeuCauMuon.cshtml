@@ -1,0 +1,403 @@
+@model List<DoAn_LTWeb.Controllers.ThuThuController.YeuCauMuonDto>
+
+@{
+    Layout = "~/Views/Shared/_LayoutThuThu.cshtml";
+}
+
+<div class="container-fluid px-0">
+    <!-- --- TIÊU ĐỀ TRANG --- -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 text-primary fw-bold">Yêu Cầu Mượn Sách Trực Tuyến</h2>
+            <p class="text-secondary mb-0">Xem và phê duyệt các yêu cầu đăng ký mượn sách trực tuyến từ độc giả.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload();">
+                <i class="fa-solid fa-rotate me-1"></i> Tải lại danh sách
+            </button>
+        </div>
+    </div>
+
+    <!-- --- BẢNG DANH SÁCH YÊU CẦU MƯỢN --- -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0" id="requestsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 100px; text-align: center;">Mã Yêu Cầu</th>
+                        <th style="width: 120px; text-align: center; white-space: nowrap;">Mã Độc Giả</th>
+                        <th style="text-align: left;">Tên Độc Giả</th>
+                        <th style="width: 180px; text-align: center;">Ngày Gửi Yêu Cầu</th>
+                        <th style="width: 140px; text-align: center;">Số Lượng Sách</th>
+                        <th style="width: 140px; text-align: center;">Trạng Thái</th>
+                        <th style="width: 140px; text-align: center;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-muted" style="opacity: 0.4;"></i>
+                                <p class="mb-0 fw-semibold">Không có yêu cầu mượn nào cần xử lý!</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr id="row-@item.MaYeuCau">
+                                <td class="text-center fw-bold text-primary">#@item.MaYeuCau</td>
+                                <td class="text-center fw-bold">@item.MaDocGia</td>
+                                <td class="text-start">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center text-primary fw-semibold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                            @string.Concat(item.TenDocGia.Split(' ').Last().Take(1))
+                                        </div>
+                                        <span class="fw-semibold">@item.TenDocGia</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.NgayGui</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-soft text-primary px-3 py-1 rounded-pill fw-bold">@item.SoLuongSach cuốn</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="status-badge pending">
+                                        <i class="fa-solid fa-hourglass-half me-1"></i>Chờ duyệt
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3 handle-req-btn" data-id="@item.MaYeuCau">
+                                        <i class="fa-solid fa-gears me-1"></i> Xử lý
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- --- MODAL POPUP CHI TIẾT & XỬ LÝ (GLASSMORPHISM) --- -->
+<div class="modal fade" id="ycDetailModal" tabindex="-1" aria-labelledby="ycDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content glass-card" style="background-color: var(--bg-surface-glass); backdrop-filter: blur(20px); border: 1px solid var(--border-color); overflow: hidden; border-radius: 20px;">
+            <!-- Header Modal -->
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title text-primary fw-bold fs-4" id="ycDetailModalLabel">
+                    <i class="fa-solid fa-circle-info me-2"></i> Chi Tiết & Phê Duyệt Yêu Cầu Mượn <span id="modalReqId">#0</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <!-- Body Modal -->
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <!-- Cột Trái: Thông tin độc giả & Ngày mượn trả -->
+                    <div class="col-12 col-lg-5 border-end-lg" style="border-color: var(--border-color) !important;">
+                        <div class="p-3 rounded-4" style="background-color: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color);">
+                            <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">
+                                <i class="fa-regular fa-user me-2"></i> Thông Tin Độc Giả
+                            </h6>
+                            
+                            <table class="table table-borderless table-sm mb-4 small text-secondary">
+                                <tr>
+                                    <td style="width: 120px;" class="fw-semibold">Mã độc giả:</td>
+                                    <td id="infoMaDocGia" class="fw-bold text-primary">000</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Họ và tên:</td>
+                                    <td id="infoHoTen" class="fw-bold text-primary-light">Họ và Tên</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Số điện thoại:</td>
+                                    <td id="infoSdt">090000000</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Email:</td>
+                                    <td id="infoEmail">email@example.com</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-semibold">Địa chỉ:</td>
+                                    <td id="infoDiaChi">Địa chỉ cư trú</td>
+                                </tr>
+                            </table>
+
+                            <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">
+                                <i class="fa-regular fa-calendar-check me-2"></i> Thiết Lập Phiếu Mượn
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="ngayMuonInput" class="form-label small fw-semibold text-secondary">Ngày bắt đầu mượn</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: var(--border-color);"><i class="fa-regular fa-calendar"></i></span>
+                                    <input type="date" id="ngayMuonInput" class="form-control bg-transparent border-start-0" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="ngayTraInput" class="form-label small fw-semibold text-secondary">Ngày hẹn trả</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: var(--border-color);"><i class="fa-regular fa-calendar-days"></i></span>
+                                    <input type="date" id="ngayTraInput" class="form-control bg-transparent border-start-0" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                </div>
+                                <div class="form-text small text-muted">Mặc định thời hạn mượn là 14 ngày kể từ ngày bắt đầu mượn.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải: Danh sách sách đăng ký mượn & Gợi ý kệ sách -->
+                    <div class="col-12 col-lg-7">
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">
+                            <i class="fa-solid fa-book me-2"></i> Sách Độc Giả Đăng Ký Mượn
+                        </h6>
+                        
+                        <!-- Danh sách sách cuộn dài -->
+                        <div id="modalBooksList" class="d-flex flex-column gap-3" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                            <!-- Sẽ render động qua Javascript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer Modal -->
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-danger rounded-pill px-4" id="modalRejectBtn">
+                        <i class="fa-solid fa-xmark me-1"></i> Từ Chối Yêu Cầu
+                    </button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 bg-gradient" id="modalApproveBtn">
+                        <i class="fa-solid fa-circle-check me-1"></i> Phê Duyệt & Xuất Phiếu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            let currentReqId = 0;
+            let hasOutOfStockBook = false; // Biến kiểm tra nếu có sách hết hàng trên kệ
+
+            // 1. SỰ KIỆN NHẤN XỬ LÝ (MỞ MODAL POPUP & TẢI DỮ LIỆU BẰNG AJAX)
+            $('.handle-req-btn').on('click', function () {
+                const id = $(this).data('id');
+                currentReqId = id;
+                hasOutOfStockBook = false;
+
+                // Tải trước ngày mượn/trả mặc định (mượn: hôm nay, trả: hôm nay + 14 ngày)
+                const today = new Date();
+                const returnDate = new Date();
+                returnDate.setDate(today.getDate() + 14);
+
+                $('#ngayMuonInput').val(today.toISOString().split('T')[0]);
+                $('#ngayTraInput').val(returnDate.toISOString().split('T')[0]);
+
+                // Reset modal content
+                $('#modalReqId').text('#' + id);
+                $('#modalBooksList').html('<div class="text-center py-5 text-secondary"><i class="fa-solid fa-spinner fa-spin fs-1 mb-2"></i><p>Đang tải dữ liệu...</p></div>');
+                $('#modalApproveBtn').prop('disabled', false);
+
+                // Mở Modal Popup
+                const myModal = new bootstrap.Modal(document.getElementById('ycDetailModal'));
+                myModal.show();
+
+                // Gọi Ajax lấy chi tiết yêu cầu mượn
+                $.ajax({
+                    url: '/ThuThu/GetYeuCauMuonDetail',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            const data = response.data;
+                            
+                            // Điền thông tin độc giả
+                            $('#infoMaDocGia').text(data.MaDocGia);
+                            $('#infoHoTen').text(data.TenDocGia);
+                            $('#infoSdt').text(data.SoDienThoai);
+                            $('#infoEmail').text(data.Email);
+                            $('#infoDiaChi').text(data.DiaChi);
+
+                            // Render danh sách sách mượn
+                            const booksContainer = $('#modalBooksList');
+                            booksContainer.empty();
+
+                            data.DanhSachSach.forEach(function (book) {
+                                // Kiểm tra xem kho có đủ sách để duyệt không
+                                const isAvailable = book.SoLuongCoSan >= book.SoLuongMuon;
+                                if (!isAvailable) {
+                                    hasOutOfStockBook = true;
+                                }
+
+                                // Tạo chuỗi hiển thị bản sách gợi ý gán tự động
+                                let suggestText = '';
+                                if (isAvailable && book.BanSachGoiY && book.BanSachGoiY.length > 0) {
+                                    suggestText = '<div class="mt-2 p-2 rounded-3 small" style="background-color: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15);">';
+                                    suggestText += '<strong class="text-success d-block mb-1"><i class="fa-solid fa-tag me-1"></i> Bản sách vật lý tự động gán:</strong>';
+                                    book.BanSachGoiY.forEach(function (copy, index) {
+                                        suggestText += `<span class="badge bg-secondary-soft text-secondary me-2">Mã bản: #${copy.MaCuonSach} (Kệ: ${copy.ViTriKe})</span>`;
+                                    });
+                                    suggestText += '</div>';
+                                } else {
+                                    suggestText = '<div class="mt-2 p-2 rounded-3 small" style="background-color: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15);">';
+                                    suggestText += '<strong class="text-danger"><i class="fa-solid fa-triangle-exclamation me-1"></i> Hết bản sách có sẵn! Cần độc giả trả sách hoặc nhập thêm kho.</strong>';
+                                    suggestText += '</div>';
+                                }
+
+                                const imgUrl = book.AnhBia ? book.AnhBia : 'https://placehold.co/120x160/0f172a/ffffff?text=Book';
+
+                                booksContainer.append(`
+                                    <div class="glass-card p-3 d-flex align-items-center gap-3 w-100" style="transition: none; transform: none; box-shadow: none;">
+                                        <img src="${imgUrl}" class="rounded-2" alt="${book.TenSach}" style="width: 60px; height: 80px; object-fit: cover;" onerror="this.src='https://placehold.co/120x160/0f172a/ffffff?text=Book'">
+                                        <div class="flex-grow-1 min-w-0">
+                                            <h6 class="fw-bold mb-1 text-truncate" title="${book.TenSach}">${book.TenSach}</h6>
+                                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                                <span class="small text-secondary fw-semibold">
+                                                    Số lượng đăng ký: <span class="badge bg-primary text-white rounded-pill px-2 fs-7">${book.SoLuongMuon} cuốn</span>
+                                                </span>
+                                                <span class="small text-secondary">|</span>
+                                                <span class="small text-secondary">
+                                                    Trong kho còn: <strong class="text-primary-light">${book.SoLuongCoSan} bản</strong>
+                                                </span>
+                                            </div>
+                                            
+                                            ${suggestText}
+                                        </div>
+                                        <div class="text-end ps-2">
+                                            ${isAvailable ? 
+                                                '<span class="badge bg-success-soft text-success px-3 py-1 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Có sẵn</span>' : 
+                                                '<span class="badge bg-danger-soft text-danger px-3 py-1 rounded-pill"><i class="fa-solid fa-circle-xmark me-1"></i>Hết sách</span>'
+                                            }
+                                        </div>
+                                    </div>
+                                `);
+                            });
+
+                            // Nếu có cuốn nào hết sách, vô hiệu hóa nút Duyệt và hiển thị cảnh báo
+                            if (hasOutOfStockBook) {
+                                $('#modalApproveBtn').prop('disabled', true).attr('title', 'Không thể duyệt do có đầu sách hết hàng trong kho');
+                            }
+                        } else {
+                            showToast(response.message || 'Lỗi tải chi tiết yêu cầu mượn!', 'fa-solid fa-circle-exclamation');
+                            bootstrap.Modal.getInstance(document.getElementById('ycDetailModal')).hide();
+                        }
+                    },
+                    error: function () {
+                        showToast('Không thể kết nối đến máy chủ để lấy chi tiết.', 'fa-solid fa-triangle-exclamation');
+                        bootstrap.Modal.getInstance(document.getElementById('ycDetailModal')).hide();
+                    }
+                });
+            });
+
+            // Đồng bộ ngày trả tự động tăng thêm 14 ngày khi người dùng thay đổi ngày mượn
+            $('#ngayMuonInput').on('change', function () {
+                const borrowDate = new Date($(this).val());
+                if (!isNaN(borrowDate.getTime())) {
+                    const returnDate = new Date(borrowDate);
+                    returnDate.setDate(borrowDate.getDate() + 14);
+                    $('#ngayTraInput').val(returnDate.toISOString().split('T')[0]);
+                }
+            });
+
+            // 2. SỰ KIỆN XÁC NHẬN DUYỆT YÊU CẦU BẰNG AJAX
+            $('#modalApproveBtn').on('click', function () {
+                if (hasOutOfStockBook) {
+                    showToast('Có sách hết bản vật lý trên kệ, không thể thực hiện phê duyệt mượn!', 'fa-solid fa-triangle-exclamation');
+                    return;
+                }
+
+                const ngayMuon = $('#ngayMuonInput').val();
+                const ngayTra = $('#ngayTraInput').val();
+
+                if (!ngayMuon || !ngayTra) {
+                    showToast('Vui lòng điền đầy đủ Ngày mượn và Ngày hẹn trả!', 'fa-solid fa-circle-exclamation');
+                    return;
+                }
+
+                // Vô hiệu hóa nút để tránh click nhiều lần
+                $(this).prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang duyệt...');
+
+                $.ajax({
+                    url: '/ThuThu/DuyetYeuCau',
+                    type: 'POST',
+                    data: {
+                        id: currentReqId,
+                        ngayMuon: ngayMuon,
+                        ngayHenTra: ngayTra
+                    },
+                    success: function (response) {
+                        // Reset button
+                        $('#modalApproveBtn').prop('disabled', false).html('<i class="fa-solid fa-circle-check me-1"></i> Phê Duyệt & Xuất Phiếu');
+                        
+                        if (response.success) {
+                            showToast(response.message || 'Đã duyệt yêu cầu mượn thành công!', 'fa-solid fa-circle-check');
+                            
+                            // Đóng modal
+                            bootstrap.Modal.getInstance(document.getElementById('ycDetailModal')).hide();
+                            
+                            // Làm mờ và ẩn dòng tương ứng trên bảng
+                            $(`#row-${currentReqId}`).fadeOut(500, function () {
+                                $(this).remove();
+                                
+                                // Nếu không còn yêu cầu nào, tải lại trang để hiển thị bảng trống
+                                if ($('#requestsTable tbody tr').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            showToast(response.message || 'Có lỗi xảy ra khi duyệt mượn!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        $('#modalApproveBtn').prop('disabled', false).html('<i class="fa-solid fa-circle-check me-1"></i> Phê Duyệt & Xuất Phiếu');
+                        showToast('Không thể kết nối đến máy chủ để thực hiện phê duyệt.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
+            });
+
+            // 3. SỰ KIỆN TỪ CHỐI YÊU CẦU BẰNG AJAX
+            $('#modalRejectBtn').on('click', function () {
+                if (confirm(`Bạn chắc chắn muốn từ chối yêu cầu mượn #${currentReqId}?`)) {
+                    $(this).prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang từ chối...');
+
+                    $.ajax({
+                        url: '/ThuThu/TuChoiYeuCau',
+                        type: 'POST',
+                        data: { id: currentReqId },
+                        success: function (response) {
+                            $('#modalRejectBtn').prop('disabled', false).html('<i class="fa-solid fa-xmark me-1"></i> Từ Chối Yêu Cầu');
+                            
+                            if (response.success) {
+                                showToast(response.message || 'Đã từ chối yêu cầu mượn thành công!', 'fa-solid fa-circle-xmark');
+                                
+                                // Đóng modal
+                                bootstrap.Modal.getInstance(document.getElementById('ycDetailModal')).hide();
+                                
+                                // Làm mờ và ẩn dòng tương ứng trên bảng
+                                $(`#row-${currentReqId}`).fadeOut(500, function () {
+                                    $(this).remove();
+                                    
+                                    if ($('#requestsTable tbody tr').length === 0) {
+                                        location.reload();
+                                    }
+                                });
+                            } else {
+                                showToast(response.message || 'Có lỗi xảy ra khi từ chối yêu cầu!', 'fa-solid fa-triangle-exclamation');
+                            }
+                        },
+                        error: function () {
+                            $('#modalRejectBtn').prop('disabled', false).html('<i class="fa-solid fa-xmark me-1"></i> Từ Chối Yêu Cầu');
+                            showToast('Không thể kết nối đến máy chủ để thực hiện từ chối.', 'fa-solid fa-triangle-exclamation');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}

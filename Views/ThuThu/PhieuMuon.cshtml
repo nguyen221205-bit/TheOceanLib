@@ -1,0 +1,302 @@
+@model List<DoAn_LTWeb.Controllers.ThuThuController.PhieuMuonQuanLyDto>
+
+@{
+    Layout = "~/Views/Shared/_LayoutThuThu.cshtml";
+    
+    // Tính toán số lượng phiếu theo trạng thái để hiển thị trên badge của bộ lọc
+    var allCount = Model.Count;
+    var activeCount = 0;
+    var overdueCount = 0;
+    var returnedCount = 0;
+    
+    foreach (var pm in Model)
+    {
+        bool isOverdue = false;
+        DateTime henTraDate;
+        if (DateTime.TryParseExact(pm.NgayHenTra, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out henTraDate))
+        {
+            if (henTraDate < DateTime.Today && pm.TrangThai != "DaTra" && pm.TrangThai != "Đã trả")
+            {
+                isOverdue = true;
+            }
+        }
+        
+        if (pm.TrangThai == "DaTra" || pm.TrangThai == "Đã trả")
+        {
+            returnedCount++;
+        }
+        else if (isOverdue)
+        {
+            overdueCount++;
+        }
+        else
+        {
+            activeCount++;
+        }
+    }
+}
+
+<div class="container-fluid px-0">
+    <!-- --- TIÊU ĐỀ TRANG --- -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 text-primary fw-bold">Quản Lý Phiếu Mượn Sách</h2>
+            <p class="text-secondary mb-0">Theo dõi trạng thái phiếu mượn và thực hiện nhắc nhở độc giả khi trễ hạn.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload();">
+                <i class="fa-solid fa-rotate me-1"></i> Tải lại dữ liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- --- BỘ LỌC TRẠNG THÁI NHANH (TABS) --- -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="btn btn-outline-primary active filter-tab-btn rounded-pill px-3 py-2 fw-semibold" data-filter="all">
+            <i class="fa-solid fa-folder me-1"></i> Tất cả phiếu <span class="badge bg-primary ms-1 text-white">@allCount</span>
+        </button>
+        <button class="btn btn-outline-success filter-tab-btn rounded-pill px-3 py-2 fw-semibold" data-filter="active">
+            <i class="fa-solid fa-book-reader me-1"></i> Đang mượn <span class="badge bg-success ms-1 text-white">@activeCount</span>
+        </button>
+        <button class="btn btn-outline-danger filter-tab-btn rounded-pill px-3 py-2 fw-semibold" data-filter="overdue">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i> Quá hạn <span class="badge bg-danger ms-1 text-white">@overdueCount</span>
+        </button>
+        <button class="btn btn-outline-secondary filter-tab-btn rounded-pill px-3 py-2 fw-semibold" data-filter="returned">
+            <i class="fa-solid fa-circle-check me-1"></i> Đã trả <span class="badge bg-secondary ms-1 text-white">@returnedCount</span>
+        </button>
+    </div>
+
+    <!-- --- BẢNG DANH SÁCH PHIẾU MƯỢN --- -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0" id="ticketsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px; text-align: center;">Mã PM</th>
+                        <th style="width: 120px; text-align: center; white-space: nowrap;">Mã Độc Giả</th>
+                        <th style="text-align: left;">Độc Giả</th>
+                        <th style="width: 140px; text-align: center;">Ngày Mượn</th>
+                        <th style="width: 140px; text-align: center;">Hạn Trả</th>
+                        <th style="width: 140px; text-align: center;">Trạng Thái</th>
+                        <th style="width: 120px; text-align: center;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-muted" style="opacity: 0.4;"></i>
+                                <p class="mb-0 fw-semibold">Không có dữ liệu phiếu mượn nào!</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            // Kiểm tra quá hạn
+                            bool isOverdue = false;
+                            DateTime henTraDate;
+                            if (DateTime.TryParseExact(item.NgayHenTra, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out henTraDate))
+                            {
+                                if (henTraDate < DateTime.Today && item.TrangThai != "DaTra" && item.TrangThai != "Đã trả")
+                                {
+                                    isOverdue = true;
+                                }
+                            }
+
+                            string rowFilterClass = "filter-row ";
+                            if (item.TrangThai == "DaTra" || item.TrangThai == "Đã trả")
+                            {
+                                rowFilterClass += "status-returned";
+                            }
+                            else if (isOverdue)
+                            {
+                                rowFilterClass += "status-overdue";
+                            }
+                            else
+                            {
+                                rowFilterClass += "status-active";
+                            }
+
+                            <tr id="row-@item.MaPhieuMuon" class="@rowFilterClass">
+                                <td class="text-center fw-bold text-primary">#@item.MaPhieuMuon</td>
+                                <td class="text-center fw-bold">@item.MaDocGia</td>
+                                <td class="text-start">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center text-primary fw-semibold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                            @string.Concat(item.TenDocGia.Split(' ').Last().Take(1))
+                                        </div>
+                                        <span class="fw-semibold">@item.TenDocGia</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.NgayMuon</td>
+                                <td class="text-center">
+                                    <span class="@(isOverdue ? "text-danger fw-bold" : "")">@item.NgayHenTra</span>
+                                </td>
+                                <td class="text-center badge-cell">
+                                    @if (item.TrangThai == "DaTra" || item.TrangThai == "Đã trả")
+                                    {
+                                        <span class="status-badge returned"><i class="fa-solid fa-circle-check me-1"></i>Đã trả</span>
+                                    }
+                                    else if (isOverdue)
+                                    {
+                                        <span class="status-badge overdue"><i class="fa-solid fa-triangle-exclamation me-1"></i>Trễ hạn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge borrowed"><i class="fa-solid fa-book-reader me-1"></i>Đang mượn</span>
+                                    }
+                                </td>
+                                <td class="text-center action-buttons-cell">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center detail-btn" data-id="@item.MaPhieuMuon" title="Chi tiết" style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-solid fa-circle-info"></i>
+                                        </button>
+                                        
+                                        @if (isOverdue)
+                                        {
+                                            <button class="btn btn-warning btn-sm rounded-circle d-flex align-items-center justify-content-center remind-btn" data-id="@item.MaPhieuMuon" title="Nhắc nhở quá hạn" style="width: 32px; height: 32px; padding: 0;">
+                                                <i class="fa-solid fa-bell"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- --- MODAL POPUP CHI TIẾT PHIẾU MƯỢN --- -->
+<div class="modal fade" id="pmDetailModal" tabindex="-1" aria-labelledby="pmDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card" style="background-color: var(--bg-surface-glass); backdrop-filter: blur(20px); border: 1px solid var(--border-color); overflow: hidden; border-radius: 20px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title text-primary fw-bold fs-4" id="pmDetailModalLabel">
+                    <i class="fa-solid fa-circle-info me-2"></i> Chi Tiết Phiếu Mượn <span id="detailPmId">#0</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">Mã Bản Sách</th>
+                                <th>Tên Sách</th>
+                                <th style="width: 140px;">Vị Trí Kệ</th>
+                                <th style="width: 150px; text-align: center;">Trạng Thái Trả</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailBooksTableBody">
+                            <!-- Render bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // ================= 1. BỘ LỌC NHANH TRÊN TABS =================
+            $('.filter-tab-btn').on('click', function () {
+                $('.filter-tab-btn').removeClass('active');
+                $(this).addClass('active');
+
+                const filter = $(this).data('filter');
+                if (filter === 'all') {
+                    $('.filter-row').show();
+                } else {
+                    $('.filter-row').hide();
+                    $(`.status-${filter}`).show();
+                }
+            });
+
+            // ================= 2. AJAX XEM CHI TIẾT PHIẾU MƯỢN =================
+            $('.detail-btn').on('click', function () {
+                const id = $(this).data('id');
+                $('#detailPmId').text('#' + id);
+                
+                // Mở Modal
+                const detailModal = new bootstrap.Modal(document.getElementById('pmDetailModal'));
+                detailModal.show();
+
+                $('#detailBooksTableBody').html('<tr><td colspan="4" class="text-center py-4 text-secondary"><i class="fa-solid fa-spinner fa-spin fs-3 mb-2"></i><p>Đang tải chi tiết...</p></td></tr>');
+
+                $.ajax({
+                    url: '/ThuThu/GetPhieuMuonDetail',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            const tbody = $('#detailBooksTableBody');
+                            tbody.empty();
+
+                            response.data.forEach(function (item) {
+                                const isReturned = item.NgayTraThucTe !== "";
+                                tbody.append(`
+                                    <tr>
+                                        <td class="fw-bold text-primary">#${item.MaCuonSach}</td>
+                                        <td class="fw-semibold">${item.TenSach}</td>
+                                        <td><span class="badge bg-secondary-soft text-secondary">${item.ViTriKe}</span></td>
+                                        <td class="text-center">
+                                            ${isReturned ? 
+                                                `<span class="badge bg-success-soft text-success px-2 py-1 rounded-pill small"><i class="fa-solid fa-circle-check me-1"></i>Đã trả (${item.NgayTraThucTe}) - ${item.TinhTrangKhiTra}</span>` : 
+                                                '<span class="badge bg-warning-soft text-warning px-2 py-1 rounded-pill small"><i class="fa-solid fa-hourglass-half me-1"></i>Đang mượn</span>'
+                                            }
+                                        </td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            showToast(response.message || 'Lỗi tải chi tiết phiếu mượn!', 'fa-solid fa-triangle-exclamation');
+                            bootstrap.Modal.getInstance(document.getElementById('pmDetailModal')).hide();
+                        }
+                    },
+                    error: function () {
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
+                        bootstrap.Modal.getInstance(document.getElementById('pmDetailModal')).hide();
+                    }
+                });
+            });
+
+            // ================= 3. GỬI YÊU CẦU AJAX GỬI NHẮC NHỞ QUÁ HẠN =================
+            $('.remind-btn').on('click', function () {
+                const id = $(this).data('id');
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang gửi...');
+
+                $.ajax({
+                    url: '/ThuThu/GuiNhacNhoPhieu',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-bell me-1"></i> Nhắc nhở');
+                        if (response.success) {
+                            showToast(response.message || 'Đã gửi nhắc nhở quá hạn thành công!', 'fa-solid fa-paper-plane');
+                        } else {
+                            showToast('Có lỗi xảy ra khi gửi nhắc nhở!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-bell me-1"></i> Nhắc nhở');
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
+            });
+        });
+    </script>
+}

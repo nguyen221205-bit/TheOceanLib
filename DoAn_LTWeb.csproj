@@ -127,6 +127,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ThuThuController.cs" />
     <Compile Include="Models\CartItem.cs" />
     <Compile Include="Models\Sach_Extension.cs" />
     <Compile Include="Models\SachMuonNhieuVM.cs" />
@@ -270,7 +271,11 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Shared\_LayoutThuThu.cshtml" />
     <Content Include="Views\Shared\_MenuTheLoai.cshtml" />
+    <Content Include="Views\ThuThu\Dashboard.cshtml" />
+    <Content Include="Views\ThuThu\YeuCauMuon.cshtml" />
+    <Content Include="Views\ThuThu\PhieuMuon.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\ChiTietSach.cshtml" />
     <Content Include="Views\Home\HienThiDSSP.cshtml" />
