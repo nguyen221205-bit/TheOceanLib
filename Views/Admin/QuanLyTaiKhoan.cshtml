@@ -1,24 +1,400 @@
+@model IEnumerable<DoAn_LTWeb.Models.NguoiDung>
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     ViewBag.Title = "Quản lý Tài khoản & Phân quyền";
+    var listVaiTro = ViewBag.DanhSachVaiTro as List<DoAn_LTWeb.Models.VaiTro> ?? new List<DoAn_LTWeb.Models.VaiTro>();
+    int selectedVaiTro = ViewBag.SelectedVaiTro ?? 0;
+    string tuKhoa = ViewBag.TuKhoa as string ?? "";
+    var currentUser = Session["User"] as DoAn_LTWeb.Models.NguoiDung;
 }
 
 <div class="container-fluid p-0">
+    <!-- PAGE HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
-                <i class="fa-solid fa-users-viewfinder text-danger me-2"></i>Quản Lý Tài Khoản & Phân Quyền
+                <i class="fa-solid fa-users-gear text-danger me-2"></i>Quản Lý Tài Khoản & Phân Quyền
             </h3>
-            <p class="text-muted small mb-0">Quản lý danh sách tài khoản độc giả, nhân viên thủ thư và phân quyền vai trò.</p>
+            <p class="text-muted small mb-0">Quản lý danh sách tài khoản độc giả, nhân viên thủ thư, nâng/hạ quyền và khóa tài khoản.</p>
         </div>
-        <button class="btn btn-danger rounded-pill px-4 py-2 fw-semibold">
-            <i class="fa-solid fa-user-plus me-1"></i>Tạo Tài Khoản Thủ Thư
+        <button class="btn btn-danger text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="openCreateThuThuModal()">
+            <i class="fa-solid fa-user-plus me-2"></i>Tạo Tài Khoản Thủ Thư
         </button>
     </div>
 
-    <div class="glass-card p-4 rounded-4 border text-center py-5">
-        <i class="fa-solid fa-user-gear fs-1 text-danger mb-3"></i>
-        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Quản Lý Tài Khoản</h4>
-        <p class="text-muted">Danh sách tài khoản toàn bộ người dùng. Hỗ trợ nâng/hạ quyền (Độc giả ↔ Thủ thư), Khóa / Mở khóa tài khoản.</p>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="glass-card p-3 rounded-4 border mb-4">
+        <form method="get" action="@Url.Action("QuanLyTaiKhoan", "Admin")" class="row g-2 align-items-center">
+            <!-- Từ khóa -->
+            <div class="col-12 col-md-6 col-lg-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="tuKhoa" value="@tuKhoa" class="form-control border-start-0 ps-0" placeholder="Tìm theo tên người dùng, email, số điện thoại..." />
+                </div>
+            </div>
+
+            <!-- Lọc theo Vai trò -->
+            <div class="col-6 col-md-3 col-lg-3">
+                <select name="maVaiTro" class="form-select">
+                    <option value="">-- Tất cả vai trò --</option>
+                    @foreach (var vt in listVaiTro)
+                    {
+                        <option value="@vt.MaVaiTro" @(selectedVaiTro == vt.MaVaiTro ? "selected" : "")>@vt.TenVaiTro</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Nút bấm Lọc & Reset -->
+            <div class="col-6 col-md-3 col-lg-4 d-flex gap-2">
+                <button type="submit" class="btn btn-danger flex-fill rounded-3 fw-semibold">
+                    <i class="fa-solid fa-filter me-1"></i>Lọc
+                </button>
+                <a href="@Url.Action("QuanLyTaiKhoan", "Admin")" class="btn btn-outline-secondary rounded-3" title="Đặt lại bộ lọc">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- MAIN DATA TABLE -->
+    <div class="glass-card rounded-4 border overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 60px;">STT</th>
+                        <th class="py-3">Thông tin người dùng</th>
+                        <th class="py-3">Email & SĐT</th>
+                        <th class="py-3 text-center">Vai trò hiện tại</th>
+                        <th class="py-3 text-center">Nâng / Hạ quyền</th>
+                        <th class="py-3 text-center">Trạng thái thẻ</th>
+                        <th class="pe-4 py-3 text-end" style="width: 210px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int stt = 1;
+                        foreach (var item in Model)
+                        {
+                            bool isSelf = currentUser != null && currentUser.MaNguoiDung == item.MaNguoiDung;
+                            bool isBlocked = !string.IsNullOrWhiteSpace(item.TrangThaiThe) &&
+                                             (item.TrangThaiThe.Equals("BiKhoa", StringComparison.OrdinalIgnoreCase) ||
+                                              item.TrangThaiThe.Equals("Khoa", StringComparison.OrdinalIgnoreCase) ||
+                                              item.TrangThaiThe.Equals("Locked", StringComparison.OrdinalIgnoreCase));
+
+                            <tr>
+                                <td class="ps-4 fw-semibold text-muted">@stt</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 42px; height: 42px;">
+                                            <i class="fa-solid fa-user-gear"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">
+                                                @item.HoTen
+                                                @if (isSelf)
+                                                {
+                                                    <span class="badge bg-danger text-white rounded-pill ms-1 fs-7">Bạn</span>
+                                                }
+                                            </h6>
+                                            <small class="text-muted">Mã TK: #USER@(item.MaNguoiDung.ToString("D4"))</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <div class="fw-medium text-primary"><i class="fa-regular fa-envelope me-1"></i>@item.Email</div>
+                                        <div class="text-muted"><i class="fa-solid fa-phone me-1"></i>@(string.IsNullOrWhiteSpace(item.SoDienThoai) ? "Chưa cập nhật" : item.SoDienThoai)</div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.MaVaiTro == 1)
+                                    {
+                                        <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="fa-solid fa-shield-halved me-1"></i>Quản trị viên</span>
+                                    }
+                                    else if (item.MaVaiTro == 2)
+                                    {
+                                        <span class="badge bg-info text-dark px-3 py-2 rounded-pill"><i class="fa-solid fa-user-astronaut me-1"></i>Thủ thư</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-primary px-3 py-2 rounded-pill"><i class="fa-solid fa-graduation-cap me-1"></i>Độc giả</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (isSelf)
+                                    {
+                                        <span class="text-muted small italic">Không thể tự đổi</span>
+                                    }
+                                    else
+                                    {
+                                        <select class="form-select form-select-sm rounded-pill text-center d-inline-block fw-semibold" style="width: 145px;" onchange="changeUserRole(@item.MaNguoiDung, this.value)">
+                                            @foreach (var vt in listVaiTro)
+                                            {
+                                                <option value="@vt.MaVaiTro" @(item.MaVaiTro == vt.MaVaiTro ? "selected" : "")>@vt.TenVaiTro</option>
+                                            }
+                                        </select>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (isBlocked)
+                                    {
+                                        <span class="badge bg-danger bg-opacity-15 text-danger border border-danger rounded-pill px-3 py-1">
+                                            <i class="fa-solid fa-lock me-1"></i>Bị khóa
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success bg-opacity-15 text-success border border-success rounded-pill px-3 py-1">
+                                            <i class="fa-solid fa-circle-check me-1"></i>Hoạt động
+                                        </span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <!-- Nút Khóa / Mở khóa -->
+                                        @if (!isSelf)
+                                        {
+                                            if (isBlocked)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-3" title="Mở khóa tài khoản" onclick="toggleUserStatus(@item.MaNguoiDung, 'HoatDong', '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.HoTen))')">
+                                                    <i class="fa-solid fa-lock-open me-1"></i>Mở
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-warning text-dark rounded-3" title="Khóa tài khoản" onclick="toggleUserStatus(@item.MaNguoiDung, 'BiKhoa', '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.HoTen))')">
+                                                    <i class="fa-solid fa-lock me-1"></i>Khóa
+                                                </button>
+                                            }
+                                        }
+                                        <!-- Nút Reset Mật Khẩu -->
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-3" title="Đặt lại mật khẩu" onclick="openResetPasswordModal(@item.MaNguoiDung, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.HoTen))')">
+                                            <i class="fa-solid fa-key"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-user-slash fs-1 mb-3 text-secondary d-block"></i>
+                                Không tìm thấy tài khoản người dùng nào phù hợp.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- ================= MODAL 1: TẠO TÀI KHOẢN THỦ THƯ ================= -->
+<div class="modal fade" id="modalTaoThuThu" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="fa-solid fa-user-plus me-2"></i>Tạo Tài Khoản Thủ Thư Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formTaoThuThu">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Họ và tên thủ thư <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" id="tt_HoTen" name="hoTen" required placeholder="VD: Nguyễn Văn A..." />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Email đăng nhập <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control rounded-3" id="tt_Email" name="email" required placeholder="VD: thuthu_nguyen@library.edu.vn..." />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control rounded-3" id="tt_MatKhau" name="matKhau" value="123456" required placeholder="Mật khẩu khởi tạo..." />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Số điện thoại</label>
+                            <input type="text" class="form-control rounded-3" id="tt_SoDienThoai" name="soDienThoai" placeholder="VD: 0912345678..." />
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Địa chỉ công tác</label>
+                            <input type="text" class="form-control rounded-3" id="tt_DiaChi" name="diaChi" placeholder="Nhập địa chỉ..." />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold" id="btnSaveThuThu">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Tạo Tài Khoản
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL 2: RESET MẬT KHẨU ================= -->
+<div class="modal fade" id="modalResetPass" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="fa-solid fa-key me-2 text-warning"></i>Reset Mật Khẩu Tài Khoản
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="reset_MaNguoiDung" value="0" />
+                <p class="mb-3">Bạn đang tiến hành reset mật khẩu cho tài khoản: <strong id="reset_TenNguoiDung" class="text-primary">---</strong></p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mật khẩu mới</label>
+                    <input type="text" class="form-control rounded-3" id="reset_MatKhauMoi" value="123456" placeholder="Nhập mật khẩu mới (Mặc định: 123456)..." />
+                </div>
+            </div>
+            <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning text-dark rounded-pill px-4 fw-semibold" onclick="submitResetPassword()">
+                    <i class="fa-solid fa-check me-1"></i>Xác Nhận Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Mở Modal Tạo Thủ Thư Mới
+        function openCreateThuThuModal() {
+            $('#formTaoThuThu')[0].reset();
+            $('#tt_MatKhau').val('123456');
+            const modal = new bootstrap.Modal(document.getElementById('modalTaoThuThu'));
+            modal.show();
+        }
+
+        // Xử lý Submit Tạo Thủ Thư
+        $('#formTaoThuThu').on('submit', function (e) {
+            e.preventDefault();
+
+            const hoTen = $('#tt_HoTen').val().trim();
+            const email = $('#tt_Email').val().trim();
+            const matKhau = $('#tt_MatKhau').val().trim();
+            const soDienThoai = $('#tt_SoDienThoai').val().trim();
+            const diaChi = $('#tt_DiaChi').val().trim();
+
+            if (!hoTen || !email || !matKhau) {
+                alert('Vui lòng điền đầy đủ Họ tên, Email và Mật khẩu!');
+                return;
+            }
+
+            $('#btnSaveThuThu').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("TaoTaiKhoanThuThu", "Admin")',
+                type: 'POST',
+                data: { hoTen: hoTen, email: email, matKhau: matKhau, soDienThoai: soDienThoai, diaChi: diaChi },
+                success: function (res) {
+                    $('#btnSaveThuThu').prop('disabled', false);
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    $('#btnSaveThuThu').prop('disabled', false);
+                    alert('Lỗi máy chủ khi tạo tài khoản Thủ thư!');
+                }
+            });
+        });
+
+        // Nâng / Hạ quyền (Đổi Vai trò)
+        function changeUserRole(maNguoiDung, maVaiTroMoi) {
+            $.ajax({
+                url: '@Url.Action("DoiVaiTro", "Admin")',
+                type: 'POST',
+                data: { maNguoiDung: maNguoiDung, maVaiTroMoi: maVaiTroMoi },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                        location.reload();
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi thay đổi vai trò tài khoản!');
+                }
+            });
+        }
+
+        // Khóa / Mở khóa tài khoản
+        function toggleUserStatus(maNguoiDung, trangThaiMoi, hoTen) {
+            const actionText = (trangThaiMoi === 'HoatDong' || trangThaiMoi === 'Hoạt động') ? 'MỞ KHÓA' : 'KHÓA';
+            if (confirm('Bạn có chắc chắn muốn ' + actionText + ' tài khoản "' + hoTen + '" không?')) {
+                $.ajax({
+                    url: '@Url.Action("DoiTrangThaiTaiKhoan", "Admin")',
+                    type: 'POST',
+                    data: { maNguoiDung: maNguoiDung, trangThaiMoi: trangThaiMoi },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi máy chủ khi thay đổi trạng thái tài khoản!');
+                    }
+                });
+            }
+        }
+
+        // Mở Modal Reset Password
+        function openResetPasswordModal(id, name) {
+            $('#reset_MaNguoiDung').val(id);
+            $('#reset_TenNguoiDung').text(name);
+            $('#reset_MatKhauMoi').val('123456');
+            const modal = new bootstrap.Modal(document.getElementById('modalResetPass'));
+            modal.show();
+        }
+
+        // Submit Reset Password
+        function submitResetPassword() {
+            const maNguoiDung = $('#reset_MaNguoiDung').val();
+            const matKhauMoi = $('#reset_MatKhauMoi').val().trim();
+
+            if (!matKhauMoi) {
+                alert('Vui lòng nhập mật khẩu mới!');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("ResetMatKhau", "Admin")',
+                type: 'POST',
+                data: { maNguoiDung: maNguoiDung, matKhauMoi: matKhauMoi },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalResetPass'));
+                        if (modal) modal.hide();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi máy chủ khi reset mật khẩu!');
+                }
+            });
+        }
+    </script>
+}

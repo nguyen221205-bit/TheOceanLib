@@ -1,24 +1,338 @@
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    ViewBag.Title = "Báo cáo thống kê & doanh thu";
+    ViewBag.Title = "Báo cáo thống kê & doanh thu chuyên sâu";
+
+    decimal totalCollectedFines = ViewBag.TotalCollectedFines ?? 0m;
+    decimal totalPendingFines = ViewBag.TotalPendingFines ?? 0m;
+    int totalBorrowTickets = ViewBag.TotalBorrowTickets ?? 0;
+    int totalUsers = ViewBag.TotalUsers ?? 0;
+
+    string monthLabelsJson = ViewBag.MonthLabels as string ?? "[]";
+    string borrowCountsJson = ViewBag.BorrowCounts as string ?? "[]";
+    string fineRevenueJson = ViewBag.FineRevenue as string ?? "[]";
+
+    string categoryLabelsJson = ViewBag.CategoryLabels as string ?? "[]";
+    string categoryCountsJson = ViewBag.CategoryCounts as string ?? "[]";
 }
 
-<div class="container-fluid p-0">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+<div class="container-fluid p-0 printable-area">
+    <!-- PAGE HEADER -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 no-print">
         <div>
             <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
-                <i class="fa-solid fa-file-chart-column text-purple me-2" style="color: #a855f7;"></i>Báo Cáo Thống Kê & Doanh Thu
+                <i class="fa-solid fa-chart-line text-purple me-2" style="color: #a855f7;"></i>Báo Cáo Thống Kê & Doanh Thu Chuyên Sâu
             </h3>
-            <p class="text-muted small mb-0">Thống kê chi tiết tình hình mượn trả, báo cáo doanh thu phạt và xuất dữ liệu.</p>
+            <p class="text-muted small mb-0">Thống kê tổng hợp số lượt mượn sách 12 tháng, doanh thu phạt thực tế và xuất báo cáo hệ thống.</p>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
-            <i class="fa-solid fa-file-export me-1"></i>Xuất Báo Cáo (Excel/PDF)
-        </button>
+        <div class="d-flex gap-2">
+            <!-- Nút In Báo Cáo -->
+            <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" onclick="window.print()">
+                <i class="fa-solid fa-print me-2"></i>In Báo Cáo
+            </button>
+            <!-- Nút Xuất File Excel/CSV -->
+            <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="exportReportToCSV()">
+                <i class="fa-solid fa-file-excel me-2"></i>Xuất File Excel (CSV)
+            </button>
+        </div>
     </div>
 
-    <div class="glass-card p-4 rounded-4 border text-center py-5">
-        <i class="fa-solid fa-chart-column fs-1 mb-3" style="color: #a855f7;"></i>
-        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Báo Cáo & Thống Kê Chuyên Sâu</h4>
-        <p class="text-muted">Báo cáo doanh thu phạt, tổng hợp xu hướng mượn sách theo từng mốc thời gian.</p>
+    <!-- REPORT HEADER FOR PRINT MODE ONLY -->
+    <div class="d-none d-print-block text-center mb-4 pb-3 border-bottom">
+        <h2 class="fw-bold mb-1">THƯ VIỆN LẬP TRÌNH THEOCEANLIB</h2>
+        <h4 class="text-uppercase text-secondary">BÁO CÁO THỐNG KÊ HOẠT ĐỘNG MƯỢN TRẢ & DOANH THU PHẠT</h4>
+        <p class="small text-muted mb-0">Thời điểm lập báo cáo: @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss") | Người lập: Admin Quản Trị Hệ Thống</p>
+    </div>
+
+    <!-- STATS OVERVIEW CARDS -->
+    <div class="row g-3 mb-4">
+        <!-- Doanh thu phạt đã thu -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Doanh thu phạt thực tế (Đã thu)</span>
+                    <h3 class="fw-bold mb-0 text-success">@totalCollectedFines.ToString("#,##0") <small class="fs-6">VNĐ</small></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tiền phạt chờ thu -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-warning bg-opacity-15 text-warning fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tiền phạt chưa thu (Chờ thu)</span>
+                    <h3 class="fw-bold mb-0 text-warning">@totalPendingFines.ToString("#,##0") <small class="fs-6">VNĐ</small></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số phiếu mượn -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tổng số lượt mượn sách</span>
+                    <h3 class="fw-bold mb-0 text-primary">@totalBorrowTickets <small class="fs-6">lượt</small></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tổng số người dùng -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tổng tài khoản hệ thống</span>
+                    <h3 class="fw-bold mb-0 text-info">@totalUsers <small class="fs-6">tài khoản</small></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="row g-4 mb-4">
+        <!-- Chart 1: Biểu đồ đường - Lượt mượn sách 12 tháng -->
+        <div class="col-12 col-xl-8">
+            <div class="glass-card p-4 rounded-4 border h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-chart-line text-primary me-2"></i>Biểu Đồ Lượt Mượn Sách (12 Tháng Gần Nhất)
+                        </h5>
+                        <small class="text-muted">Tổng hợp lượt mượn thực tế ghi nhận từ bảng Phiếu mượn CSDL.</small>
+                    </div>
+                </div>
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="chartBorrows12Months"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 2: Biểu đồ tròn - Phân bổ lượt mượn theo Thể loại -->
+        <div class="col-12 col-xl-4">
+            <div class="glass-card p-4 rounded-4 border h-100">
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-chart-pie text-info me-2"></i>Top Thể Loại Mượn Nhiều Nhất
+                    </h5>
+                    <small class="text-muted">Tỷ lệ các thể loại sách yêu thích nhất.</small>
+                </div>
+                <div style="position: relative; height: 320px; width: 100%;" class="d-flex align-items-center justify-content-center">
+                    <canvas id="chartCategoryPie"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart 3: Biểu đồ cột - Doanh thu phạt thực tế 12 tháng -->
+        <div class="col-12">
+            <div class="glass-card p-4 rounded-4 border">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-chart-column me-2" style="color: #a855f7;"></i>Biểu Đồ Doanh Thu Tiền Phạt Thực Tế (12 Tháng)
+                        </h5>
+                        <small class="text-muted">Tổng số tiền phạt vi phạm quá hạn / hỏng / mất đã thực thu vào CSDL (VNĐ).</small>
+                    </div>
+                </div>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="chartFineRevenue12Months"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- STYLING PRINT MODE -->
+<style>
+    @@media print {
+        body {
+            background: #fff !important;
+            color: #000 !important;
+        }
+        .no-print, .admin-header, .admin-sidebar, .header-action-btn {
+            display: none !important;
+        }
+        .admin-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .glass-card {
+            background: #fff !important;
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+        canvas {
+            max-width: 100% !important;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Dữ liệu từ Controller truyền qua ViewBag JSON
+        const monthLabels = JSON.parse('@Html.Raw(monthLabelsJson)');
+        const borrowCounts = JSON.parse('@Html.Raw(borrowCountsJson)');
+        const fineRevenue = JSON.parse('@Html.Raw(fineRevenueJson)');
+
+        const categoryLabels = JSON.parse('@Html.Raw(categoryLabelsJson)');
+        const categoryCounts = JSON.parse('@Html.Raw(categoryCountsJson)');
+
+        $(document.ready).ready(function () {
+            initChartBorrows();
+            initChartCategoryPie();
+            initChartFineRevenue();
+        });
+
+        // 1. Biểu đồ đường - Số lượt mượn 12 tháng
+        function initChartBorrows() {
+            const ctx = document.getElementById('chartBorrows12Months').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Lượt mượn sách',
+                        data: borrowCounts,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#2563eb',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return ' Lượt mượn: ' + context.raw + ' lượt';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Biểu đồ tròn - Thể loại mượn nhiều nhất
+        function initChartCategoryPie() {
+            const ctx = document.getElementById('chartCategoryPie').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels.length > 0 ? categoryLabels : ['Chưa có dữ liệu'],
+                    datasets: [{
+                        data: categoryCounts.length > 0 ? categoryCounts : [1],
+                        backgroundColor: [
+                            '#3b82f6',
+                            '#06b6d4',
+                            '#10b981',
+                            '#f59e0b',
+                            '#a855f7'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // 3. Biểu đồ cột - Doanh thu tiền phạt 12 tháng
+        function initChartFineRevenue() {
+            const ctx = document.getElementById('chartFineRevenue12Months').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: monthLabels,
+                    datasets: [{
+                        label: 'Doanh thu phạt (VNĐ)',
+                        data: fineRevenue,
+                        backgroundColor: 'rgba(168, 85, 247, 0.75)',
+                        borderColor: '#a855f7',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return ' Tiền phạt: ' + context.raw.toLocaleString('vi-VN') + ' VNĐ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return value.toLocaleString('vi-VN') + ' đ';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Hàm xuất Báo cáo ra tệp CSV (Excel)
+        function exportReportToCSV() {
+            let csvContent = "\uFEFF"; // BOM UTF-8 để mở Excel không bị lỗi phông chữ Tiếng Việt
+            csvContent += "THƯ VIỆN LẬP TRÌNH THEOCEANLIB - BÁO CÁO THỐNG KÊ DOANH THU & HOẠT ĐỘNG MƯỢN TRẢ\n";
+            csvContent += `Thời điểm lập: "${new Date().toLocaleString('vi-VN')}"\n\n`;
+
+            csvContent += "1. CHỈ SỐ TỔNG QUAN HỆ THỐNG\n";
+            csvContent += `Doanh thu phạt đã thu (VNĐ),${@totalCollectedFines}\n`;
+            csvContent += `Tiền phạt chưa thu (VNĐ),${@totalPendingFines}\n`;
+            csvContent += `Tổng lượt mượn sách,${@totalBorrowTickets}\n`;
+            csvContent += `Tổng số tài khoản,${@totalUsers}\n\n`;
+
+            csvContent += "2. THỐNG KÊ CHI TIẾT THEO 12 THÁNG GẦN NHẤT\n";
+            csvContent += "Tháng,Số lượt mượn (Lượt),Doanh thu phạt thực thu (VNĐ)\n";
+
+            for (let i = 0; i < monthLabels.length; i++) {
+                csvContent += `"${monthLabels[i]}",${borrowCounts[i]},${fineRevenue[i]}\n`;
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `BaoCaoThongKe_TheOceanLib_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+}

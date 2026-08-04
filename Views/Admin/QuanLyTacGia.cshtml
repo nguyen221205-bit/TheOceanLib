@@ -1,24 +1,214 @@
+@model IEnumerable<DoAn_LTWeb.Models.TacGia>
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    ViewBag.Title = "Quản lý Tác giả";
+    ViewBag.Title = "Quản lý danh mục Tác giả";
+    string tuKhoa = ViewBag.TuKhoa as string ?? "";
 }
 
 <div class="container-fluid p-0">
+    <!-- PAGE HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
-                <i class="fa-solid fa-feather-pointed text-warning me-2"></i>Quản Lý Tác Giả
+                <i class="fa-solid fa-feather-pointed text-warning me-2"></i>Quản Lý Danh Mục Tác Giả
             </h3>
-            <p class="text-muted small mb-0">Quản lý hồ sơ tác giả viết sách trong hệ thống.</p>
+            <p class="text-muted small mb-0">Quản lý danh sách tác giả sáng tác và dịch giả tác phẩm trong hệ thống.</p>
         </div>
-        <button class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-semibold">
-            <i class="fa-solid fa-plus me-1"></i>Thêm Tác Giả Mới
+        <button class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="openAddTacGiaModal()">
+            <i class="fa-solid fa-plus me-2"></i>Thêm Tác Giả Mới
         </button>
     </div>
 
-    <div class="glass-card p-4 rounded-4 border text-center py-5">
-        <i class="fa-solid fa-user-pen fs-1 text-warning mb-3"></i>
-        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Quản Lý Tác Giả</h4>
-        <p class="text-muted">Quản lý danh sách tác giả, thông tin tiểu sử và liên kết tác phẩm.</p>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="glass-card p-3 rounded-4 border mb-4">
+        <form method="get" action="@Url.Action("QuanLyTacGia", "Admin")" class="row g-2 align-items-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="tuKhoa" value="@tuKhoa" class="form-control border-start-0 ps-0" placeholder="Nhập tên tác giả cần tìm..." />
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-warning text-dark flex-fill rounded-3 fw-semibold">
+                    <i class="fa-solid fa-filter me-1"></i>Tìm kiếm
+                </button>
+                <a href="@Url.Action("QuanLyTacGia", "Admin")" class="btn btn-outline-secondary rounded-3" title="Đặt lại filter">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- MAIN DATA TABLE -->
+    <div class="glass-card rounded-4 border overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 70px;">STT</th>
+                        <th class="py-3" style="width: 120px;">Mã tác giả</th>
+                        <th class="py-3">Họ và tên tác giả</th>
+                        <th class="py-3 text-center">Số tác phẩm liên kết</th>
+                        <th class="pe-4 py-3 text-end" style="width: 200px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int stt = 1;
+                        foreach (var item in Model)
+                        {
+                            int countSach = item.Sach != null ? item.Sach.Count : 0;
+                            <tr>
+                                <td class="ps-4 fw-semibold text-muted">@stt</td>
+                                <td>
+                                    <span class="badge bg-secondary bg-opacity-15 text-dark fw-bold px-2 py-1">#TG@(item.MaTacGia.ToString("D3"))</span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark fs-6">@item.TenTacGia</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @(countSach > 0 ? "bg-primary" : "bg-light text-muted border") rounded-pill px-3 py-1">
+                                        <i class="fa-solid fa-book-open me-1"></i>@countSach đầu sách
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <!-- Nút Sửa -->
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-3" title="Chỉnh sửa tác giả" onclick="openEditTacGiaModal(@item.MaTacGia, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenTacGia))')">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                        </button>
+                                        <!-- Nút Xóa -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-3" title="Xóa tác giả" onclick="deleteTacGia(@item.MaTacGia, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenTacGia))', @countSach)">
+                                            <i class="fa-solid fa-trash-can me-1"></i>Xóa
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-secondary d-block"></i>
+                                Chưa có tác giả nào được tìm thấy.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- ================= MODAL: THÊM / SỬA TÁC GIẢ ================= -->
+<div class="modal fade" id="modalTacGia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="modalTacGiaTitle">
+                    <i class="fa-solid fa-feather-pointed text-warning me-2"></i>Thêm Tác Giả Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formTacGia">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="tg_MaTacGia" value="0" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên Tác Giả <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3" id="tg_TenTacGia" required placeholder="VD: Robert C. Martin, Nguyễn Nhật Ánh..." />
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 fw-semibold" id="btnSaveTacGia">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu Tác Giả
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openAddTacGiaModal() {
+            $('#tg_MaTacGia').val(0);
+            $('#tg_TenTacGia').val('');
+            $('#modalTacGiaTitle').html('<i class="fa-solid fa-plus-circle text-warning me-2"></i>Thêm Tác Giả Mới');
+            const modal = new bootstrap.Modal(document.getElementById('modalTacGia'));
+            modal.show();
+        }
+
+        function openEditTacGiaModal(id, name) {
+            $('#tg_MaTacGia').val(id);
+            $('#tg_TenTacGia').val(name);
+            $('#modalTacGiaTitle').html('<i class="fa-solid fa-pen-to-square text-warning me-2"></i>Chỉnh Sửa Tác Giả #' + id);
+            const modal = new bootstrap.Modal(document.getElementById('modalTacGia'));
+            modal.show();
+        }
+
+        $('#formTacGia').on('submit', function (e) {
+            e.preventDefault();
+            const id = $('#tg_MaTacGia').val();
+            const name = $('#tg_TenTacGia').val().trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên tác giả!');
+                return;
+            }
+
+            const actionUrl = id == 0 ? '@Url.Action("ThemTacGia", "Admin")' : '@Url.Action("SuaTacGia", "Admin")';
+            const postData = id == 0 ? { tenTacGia: name } : { maTacGia: id, tenTacGia: name };
+
+            $('#btnSaveTacGia').prop('disabled', true);
+
+            $.ajax({
+                url: actionUrl,
+                type: 'POST',
+                data: postData,
+                success: function (res) {
+                    $('#btnSaveTacGia').prop('disabled', false);
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    $('#btnSaveTacGia').prop('disabled', false);
+                    alert('Lỗi máy chủ khi lưu tác giả!');
+                }
+            });
+        });
+
+        function deleteTacGia(id, name, countSach) {
+            if (countSach > 0) {
+                alert('Không thể xóa tác giả "' + name + '" vì đang có ' + countSach + ' đầu sách thuộc tác giả này!');
+                return;
+            }
+
+            if (confirm('Bạn có chắc chắn muốn xóa tác giả "' + name + '" không?')) {
+                $.ajax({
+                    url: '@Url.Action("XoaTacGia", "Admin")',
+                    type: 'POST',
+                    data: { maTacGia: id },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi xóa tác giả!');
+                    }
+                });
+            }
+        }
+    </script>
+}

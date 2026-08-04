@@ -289,7 +289,7 @@
                             $('#btnNormalReturnSubmit').prop('disabled', false);
 
                             currentBooksData.forEach(function (book) {
-                                const coverPath = book.AnhBia ? '/Content/Images/' + book.AnhBia : '';
+                                const coverPath = book.AnhBia ? '/Content/HinhAnh/' + book.AnhBia : '';
                                 const coverHtml = book.AnhBia ? 
                                     `<img src="${coverPath}" class="rounded shadow-sm" style="width: 55px; height: 80px; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-xs text-muted\\'>Book</div>';">` : 
                                     `<div class="rounded bg-secondary-soft text-secondary d-flex align-items-center justify-content-center text-xs" style="width: 55px; height: 80px;">Book</div>`;

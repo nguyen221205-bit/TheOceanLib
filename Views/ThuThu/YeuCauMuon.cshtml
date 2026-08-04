@@ -250,7 +250,7 @@
                                     suggestText += '</div>';
                                 }
 
-                                const imgUrl = book.AnhBia ? book.AnhBia : 'https://placehold.co/120x160/0f172a/ffffff?text=Book';
+                                const imgUrl = book.AnhBia ? (book.AnhBia.startsWith('http') ? book.AnhBia : '/Content/HinhAnh/' + book.AnhBia) : 'https://placehold.co/120x160/0f172a/ffffff?text=Book';
 
                                 booksContainer.append(`
                                     <div class="glass-card p-3 d-flex align-items-center gap-3 w-100" style="transition: none; transform: none; box-shadow: none;">

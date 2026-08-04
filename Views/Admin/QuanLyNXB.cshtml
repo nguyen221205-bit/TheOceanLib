@@ -1,24 +1,219 @@
+@model IEnumerable<DoAn_LTWeb.Models.NhaXuatBan>
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     ViewBag.Title = "Quản lý Nhà xuất bản";
+    string tuKhoa = ViewBag.TuKhoa as string ?? "";
 }
 
 <div class="container-fluid p-0">
+    <!-- PAGE HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
                 <i class="fa-solid fa-building-columns text-success me-2"></i>Quản Lý Nhà Xuất Bản
             </h3>
-            <p class="text-muted small mb-0">Quản lý danh sách nhà xuất bản đối tác.</p>
+            <p class="text-muted small mb-0">Quản lý danh sách các nhà xuất bản đối tác trong hệ thống thư viện.</p>
         </div>
-        <button class="btn btn-success rounded-pill px-4 py-2 fw-semibold">
-            <i class="fa-solid fa-plus me-1"></i>Thêm NXB Mới
+        <button class="btn btn-success text-white rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="openAddNXBModal()">
+            <i class="fa-solid fa-plus me-2"></i>Thêm NXB Mới
         </button>
     </div>
 
-    <div class="glass-card p-4 rounded-4 border text-center py-5">
-        <i class="fa-solid fa-building fs-1 text-success mb-3"></i>
-        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Quản Lý Nhà Xuất Bản</h4>
-        <p class="text-muted">Quản lý thông tin địa chỉ, hotline và danh sách Nhà xuất bản.</p>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="glass-card p-3 rounded-4 border mb-4">
+        <form method="get" action="@Url.Action("QuanLyNXB", "Admin")" class="row g-2 align-items-center">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="tuKhoa" value="@tuKhoa" class="form-control border-start-0 ps-0" placeholder="Nhập tên nhà xuất bản cần tìm..." />
+                </div>
+            </div>
+            <div class="col-12 col-md-4 col-lg-3 d-flex gap-2">
+                <button type="submit" class="btn btn-success text-white flex-fill rounded-3 fw-semibold">
+                    <i class="fa-solid fa-filter me-1"></i>Tìm kiếm
+                </button>
+                <a href="@Url.Action("QuanLyNXB", "Admin")" class="btn btn-outline-secondary rounded-3" title="Đặt lại filter">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- MAIN DATA TABLE -->
+    <div class="glass-card rounded-4 border overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 70px;">STT</th>
+                        <th class="py-3" style="width: 120px;">Mã NXB</th>
+                        <th class="py-3">Tên Nhà xuất bản</th>
+                        <th class="py-3 text-center">Số đầu sách xuất bản</th>
+                        <th class="pe-4 py-3 text-end" style="width: 200px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int stt = 1;
+                        foreach (var item in Model)
+                        {
+                            int countSach = item.Sach != null ? item.Sach.Count : 0;
+                            <tr>
+                                <td class="ps-4 fw-semibold text-muted">@stt</td>
+                                <td>
+                                    <span class="badge bg-secondary bg-opacity-15 text-dark fw-bold px-2 py-1">#NXB@(item.MaNXB.ToString("D3"))</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-success bg-opacity-20 text-success d-flex align-items-center justify-content-center fw-bold" style="width: 38px; height: 38px;">
+                                            <i class="fa-solid fa-building text-success"></i>
+                                        </div>
+                                        <span class="fw-bold text-dark fs-6">@item.TenNXB</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @(countSach > 0 ? "bg-primary" : "bg-light text-muted border") rounded-pill px-3 py-1">
+                                        <i class="fa-solid fa-book-bookmark me-1"></i>@countSach đầu sách
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <!-- Nút Sửa -->
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-3" title="Chỉnh sửa NXB" onclick="openEditNXBModal(@item.MaNXB, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenNXB))')">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                        </button>
+                                        <!-- Nút Xóa -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-3" title="Xóa NXB" onclick="deleteNXB(@item.MaNXB, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenNXB))', @countSach)">
+                                            <i class="fa-solid fa-trash-can me-1"></i>Xóa
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-secondary d-block"></i>
+                                Chưa có nhà xuất bản nào được tìm thấy.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<!-- ================= MODAL: THÊM / SỬA NXB ================= -->
+<div class="modal fade" id="modalNXB" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="modalNXBTitle">
+                    <i class="fa-solid fa-building-columns text-success me-2"></i>Thêm Nhà Xuất Bản Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNXB">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="nxb_MaNXB" value="0" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tên Nhà Xuất Bản <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control rounded-3" id="nxb_TenNXB" required placeholder="VD: NXB Trẻ, NXB Kim Đồng, NXB Lao Động..." />
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success text-white rounded-pill px-4 fw-semibold" id="btnSaveNXB">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu NXB
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openAddNXBModal() {
+            $('#nxb_MaNXB').val(0);
+            $('#nxb_TenNXB').val('');
+            $('#modalNXBTitle').html('<i class="fa-solid fa-plus-circle text-success me-2"></i>Thêm Nhà Xuất Bản Mới');
+            const modal = new bootstrap.Modal(document.getElementById('modalNXB'));
+            modal.show();
+        }
+
+        function openEditNXBModal(id, name) {
+            $('#nxb_MaNXB').val(id);
+            $('#nxb_TenNXB').val(name);
+            $('#modalNXBTitle').html('<i class="fa-solid fa-pen-to-square text-success me-2"></i>Chỉnh Sửa NXB #' + id);
+            const modal = new bootstrap.Modal(document.getElementById('modalNXB'));
+            modal.show();
+        }
+
+        $('#formNXB').on('submit', function (e) {
+            e.preventDefault();
+            const id = $('#nxb_MaNXB').val();
+            const name = $('#nxb_TenNXB').val().trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên nhà xuất bản!');
+                return;
+            }
+
+            const actionUrl = id == 0 ? '@Url.Action("ThemNXB", "Admin")' : '@Url.Action("SuaNXB", "Admin")';
+            const postData = id == 0 ? { tenNXB: name } : { maNXB: id, tenNXB: name };
+
+            $('#btnSaveNXB').prop('disabled', true);
+
+            $.ajax({
+                url: actionUrl,
+                type: 'POST',
+                data: postData,
+                success: function (res) {
+                    $('#btnSaveNXB').prop('disabled', false);
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    $('#btnSaveNXB').prop('disabled', false);
+                    alert('Lỗi máy chủ khi lưu nhà xuất bản!');
+                }
+            });
+        });
+
+        function deleteNXB(id, name, countSach) {
+            if (countSach > 0) {
+                alert('Không thể xóa NXB "' + name + '" vì đang có ' + countSach + ' đầu sách thuộc NXB này!');
+                return;
+            }
+
+            if (confirm('Bạn có chắc chắn muốn xóa nhà xuất bản "' + name + '" không?')) {
+                $.ajax({
+                    url: '@Url.Action("XoaNXB", "Admin")',
+                    type: 'POST',
+                    data: { maNXB: id },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi xóa nhà xuất bản!');
+                    }
+                });
+            }
+        }
+    </script>
+}

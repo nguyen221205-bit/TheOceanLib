@@ -1,30 +1,673 @@
+@model IEnumerable<DoAn_LTWeb.Models.Sach>
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    ViewBag.Title = "Quản lý Sách & Bản sách";
+    ViewBag.Title = "Quản lý Sách & Kho bản sách";
+    var listTheLoai = ViewBag.DanhSachTheLoai as List<DoAn_LTWeb.Models.TheLoai> ?? new List<DoAn_LTWeb.Models.TheLoai>();
+    var listTacGia = ViewBag.DanhSachTacGia as List<DoAn_LTWeb.Models.TacGia> ?? new List<DoAn_LTWeb.Models.TacGia>();
+    var listNXB = ViewBag.DanhSachNXB as List<DoAn_LTWeb.Models.NhaXuatBan> ?? new List<DoAn_LTWeb.Models.NhaXuatBan>();
+    int selectedTheLoai = ViewBag.SelectedTheLoai ?? 0;
+    int selectedTacGia = ViewBag.SelectedTacGia ?? 0;
+    int selectedNXB = ViewBag.SelectedNXB ?? 0;
+    string tuKhoa = ViewBag.TuKhoa as string ?? "";
 }
 
 <div class="container-fluid p-0">
+    <!-- PAGE HEADER -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
-                <i class="fa-solid fa-book text-primary me-2"></i>Quản Lý Sách & Kho Bản Sách
+                <i class="fa-solid fa-book-bookmark text-primary me-2"></i>Quản Lý Sách & Kho Bản Sách
             </h3>
-            <p class="text-muted small mb-0">Xem danh sách đầu sách, thêm mới, sửa, xóa và quản lý vị trí kệ cuốn sách vật lý.</p>
+            <p class="text-muted small mb-0">Quản lý toàn bộ danh mục đầu sách, cập nhật vị trí kệ và các bản sách vật lý trong hệ thống.</p>
         </div>
-        <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
-            <i class="fa-solid fa-plus me-1"></i>Thêm Đầu Sách Mới
+        <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm" onclick="openAddBookModal()">
+            <i class="fa-solid fa-plus me-2"></i>Thêm Đầu Sách Mới
         </button>
     </div>
 
-    <!-- PREVIEW GLASS CARD -->
-    <div class="glass-card p-4 rounded-4 border text-center py-5">
-        <i class="fa-solid fa-book-open-reader fs-1 text-primary mb-3"></i>
-        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Quản Lý Sách</h4>
-        <p class="text-muted max-w-600 mx-auto">Tất cả các nút menu chuyển trang đã được kết nối chuẩn vào Layout Admin. Hãy xác nhận giao diện menu để chúng tôi tiến hành xây dựng toàn bộ logic CRUD cho chức năng này!</p>
-        <div class="d-flex justify-content-center gap-2 mt-3">
-            <span class="badge bg-primary px-3 py-2 fs-7">Thêm / Sửa / Xóa Đầu Sách</span>
-            <span class="badge bg-info text-dark px-3 py-2 fs-7">Quản lý Cuốn Sách Vật Lý</span>
-            <span class="badge bg-success px-3 py-2 fs-7">Vị Trí Kệ Sách</span>
+    <!-- FILTER & SEARCH BAR -->
+    <div class="glass-card p-3 rounded-4 border mb-4">
+        <form method="get" action="@Url.Action("QuanLySach", "Admin")" id="filterForm" class="row g-2 align-items-center">
+            <!-- Tìm kiếm từ khóa -->
+            <div class="col-12 col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="tuKhoa" value="@tuKhoa" class="form-control border-start-0 ps-0" placeholder="Tìm theo tên sách, ISBN, tác giả..." />
+                </div>
+            </div>
+
+            <!-- Lọc theo Thể loại -->
+            <div class="col-6 col-md-2">
+                <select name="maTheLoai" class="form-select">
+                    <option value="">-- Thể loại --</option>
+                    @foreach (var item in listTheLoai)
+                    {
+                        <option value="@item.MaTheLoai" @(selectedTheLoai == item.MaTheLoai ? "selected" : "")>@item.TenTheLoai</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Lọc theo Tác giả -->
+            <div class="col-6 col-md-2">
+                <select name="maTacGia" class="form-select">
+                    <option value="">-- Tác giả --</option>
+                    @foreach (var item in listTacGia)
+                    {
+                        <option value="@item.MaTacGia" @(selectedTacGia == item.MaTacGia ? "selected" : "")>@item.TenTacGia</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Lọc theo NXB -->
+            <div class="col-6 col-md-2">
+                <select name="maNXB" class="form-select">
+                    <option value="">-- Nhà xuất bản --</option>
+                    @foreach (var item in listNXB)
+                    {
+                        <option value="@item.MaNXB" @(selectedNXB == item.MaNXB ? "selected" : "")>@item.TenNXB</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Nút bấm Lọc & Reset -->
+            <div class="col-6 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill rounded-3 fw-semibold">
+                    <i class="fa-solid fa-filter me-1"></i>Lọc
+                </button>
+                <a href="@Url.Action("QuanLySach", "Admin")" class="btn btn-outline-secondary rounded-3" title="Đặt lại bộ lọc">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- MAIN DATA TABLE -->
+    <div class="glass-card rounded-4 border overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableSach">
+                <thead class="bg-light text-uppercase text-muted small fw-bold" style="letter-spacing: 0.5px;">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 60px;">STT</th>
+                        <th class="py-3" style="width: 90px;">Ảnh bìa</th>
+                        <th class="py-3">Thông tin đầu sách</th>
+                        <th class="py-3">Tác giả & Thể loại</th>
+                        <th class="py-3">Nhà xuất bản</th>
+                        <th class="py-3 text-center">Tồn kho</th>
+                        <th class="pe-4 py-3 text-end" style="width: 220px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int stt = 1;
+                        foreach (var item in Model)
+                        {
+                            int tongBan = item.CuonSach != null ? item.CuonSach.Count : 0;
+                            int coSan = item.CuonSach != null ? item.CuonSach.Count(c => c.TrangThai != null && c.TrangThai.Equals("Có sẵn", StringComparison.OrdinalIgnoreCase)) : 0;
+                            int dangMuon = item.CuonSach != null ? item.CuonSach.Count(c => c.TrangThai != null && c.TrangThai.Equals("Đang mượn", StringComparison.OrdinalIgnoreCase)) : 0;
+
+                            string imgPath = Url.Content("~/Content/HinhAnh/" + (string.IsNullOrWhiteSpace(item.AnhBia) ? "cleancode.jpg" : item.AnhBia));
+
+                            <tr>
+                                <td class="ps-4 fw-semibold text-muted">@stt</td>
+                                <td>
+                                    <img src="@imgPath" alt="@item.TenSach" class="rounded-3 shadow-sm object-fit-cover" style="width: 54px; height: 75px;" onerror="this.onerror=null; this.src='@Url.Content("~/Content/HinhAnh/cleancode.jpg")';" />
+                                </td>
+                                <td>
+                                    <h6 class="fw-bold mb-1 text-primary">@item.TenSach</h6>
+                                    <div class="d-flex align-items-center gap-2 text-muted small">
+                                        <span><i class="fa-solid fa-barcode me-1 text-secondary"></i>ISBN: <strong>@(string.IsNullOrWhiteSpace(item.ISBN) ? "N/A" : item.ISBN)</strong></span>
+                                        <span>•</span>
+                                        <span><i class="fa-regular fa-calendar me-1"></i>Năm XB: <strong>@(item.NamXuatBan.HasValue ? item.NamXuatBan.Value.ToString() : "N/A")</strong></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="mb-1">
+                                        <span class="badge bg-warning bg-opacity-20 text-dark border border-warning rounded-pill px-2 py-1 small">
+                                            <i class="fa-solid fa-user-pen me-1 text-dark"></i>@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa có")
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-info bg-opacity-15 text-dark border border-info rounded-pill px-2 py-1 small" style="color:white;">
+                                            <i class="fa-solid fa-tag me-1"></i>@(item.TheLoai != null ? item.TheLoai.TenTheLoai : "Chưa phân loại")
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-medium text-dark">
+                                        <i class="fa-solid fa-building-columns text-secondary me-1"></i>@(item.NhaXuatBan != null ? item.NhaXuatBan.TenNXB : "N/A")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-inline-flex flex-column align-items-center">
+                                        <span class="badge bg-primary fs-6 px-3 py-1 mb-1">
+                                            @tongBan <small class="fw-normal">cuốn</small>
+                                        </span>
+                                        <div class="small">
+                                            <span class="text-success fw-bold" title="Bản sách có sẵn"><i class="fa-solid fa-circle-check me-1"></i>@coSan</span>
+                                            <span class="text-muted mx-1">|</span>
+                                            <span class="text-danger fw-bold" title="Bản sách đang cho mượn"><i class="fa-solid fa-hand-holding-hand me-1"></i>@dangMuon</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <!-- Nút Quản lý bản sách vật lý & Kệ -->
+                                        <button type="button" class="btn btn-sm btn-outline-info rounded-3" title="Quản lý bản sách vật lý & vị trí kệ" onclick="openKhoModal(@item.MaSach, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenSach))')">
+                                            <i class="fa-solid fa-boxes-stacked me-1"></i>Kệ & Kho
+                                        </button>
+                                        <!-- Nút Sửa đầu sách -->
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-3" title="Sửa đầu sách" onclick="openEditBookModal(@item.MaSach)">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <!-- Nút Xóa đầu sách -->
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-3" title="Xóa đầu sách" onclick="deleteBook(@item.MaSach, '@Html.Raw(HttpUtility.JavaScriptStringEncode(item.TenSach))')">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-secondary d-block"></i>
+                                Không tìm thấy đầu sách nào phù hợp với bộ lọc.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+<!-- ================= MODAL 1: THÊM / SỬA ĐẦU SÁCH ================= -->
+<div class="modal fade" id="modalBookForm" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold" id="modalBookTitle">
+                    <i class="fa-solid fa-book text-primary me-2"></i>Thêm Đầu Sách Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formBook" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="book_MaSach" name="MaSach" value="0" />
+
+                    <div class="row g-3">
+                        <!-- Tên sách -->
+                        <div class="col-12 col-md-8">
+                            <label class="form-label fw-semibold">Tên sách <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control rounded-3" id="book_TenSach" name="TenSach" required placeholder="Nhập tên đầu sách đầy đủ..." />
+                        </div>
+
+                        <!-- Mã ISBN -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Mã ISBN</label>
+                            <input type="text" class="form-control rounded-3" id="book_ISBN" name="ISBN" placeholder="VD: 978-604-1-12345-6" />
+                        </div>
+
+                        <!-- Thể loại -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Thể loại sách</label>
+                            <select class="form-select rounded-3" id="book_MaTheLoai" name="MaTheLoai">
+                                <option value="">-- Chọn thể loại --</option>
+                                @foreach (var item in listTheLoai)
+                                {
+                                    <option value="@item.MaTheLoai">@item.TenTheLoai</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Tác giả -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Tác giả</label>
+                            <select class="form-select rounded-3" id="book_MaTacGia" name="MaTacGia">
+                                <option value="">-- Chọn tác giả --</option>
+                                @foreach (var item in listTacGia)
+                                {
+                                    <option value="@item.MaTacGia">@item.TenTacGia</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Nhà xuất bản -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Nhà xuất bản</label>
+                            <select class="form-select rounded-3" id="book_MaNXB" name="MaNXB">
+                                <option value="">-- Chọn NXB --</option>
+                                @foreach (var item in listNXB)
+                                {
+                                    <option value="@item.MaNXB">@item.TenNXB</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Năm xuất bản -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Năm xuất bản</label>
+                            <input type="number" class="form-control rounded-3" id="book_NamXuatBan" name="NamXuatBan" placeholder="VD: 2024" min="1900" max="2099" />
+                        </div>
+
+                        <!-- Upload / Chọn Ảnh bìa -->
+                        <div class="col-12 col-md-8">
+                            <label class="form-label fw-semibold">Ảnh bìa sách</label>
+                            <div class="input-group mb-2">
+                                <input type="file" class="form-control rounded-3" id="fileAnhBia" name="fileAnhBia" accept="image/*" onchange="previewImage(this)" />
+                            </div>
+                            <input type="text" class="form-control rounded-3 form-control-sm text-muted" id="book_AnhBia" name="AnhBia" placeholder="Hoặc nhập tên tệp ảnh (VD: clean_code.jpg)..." />
+                        </div>
+
+                        <!-- Preview Ảnh -->
+                        <div class="col-12 text-center my-2">
+                            <img id="imgPreview" src="@Url.Content("~/Content/HinhAnh/cleancode.jpg")" class="rounded-3 shadow-sm border p-1" style="max-height: 120px; object-fit: contain;" />
+                        </div>
+
+                        <!-- Khung thiết lập bản sách vật lý ban đầu (chỉ hiện khi Thêm mới) -->
+                        <div id="groupKhoBanDau" class="col-12 border-top pt-3">
+                            <h6 class="fw-bold text-primary mb-2">
+                                <i class="fa-solid fa-cubes me-1"></i>Khởi tạo bản sách vật lý & Kệ sách (Tùy chọn)
+                            </h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Số lượng bản sao ban đầu</label>
+                                    <input type="number" class="form-control form-control-sm rounded-3" id="soLuongBanSaoBanDau" name="soLuongBanSaoBanDau" value="1" min="0" placeholder="Nhập số bản sao..." />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold">Vị trí kệ xếp sách</label>
+                                    <input type="text" class="form-control form-control-sm rounded-3" id="viTriKeBanDau" name="viTriKeBanDau" value="Kệ A1" placeholder="VD: Kệ A1-02..." />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mô tả sách -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Mô tả tóm tắt</label>
+                            <textarea class="form-control rounded-3" id="book_MoTa" name="MoTa" rows="3" placeholder="Nhập tóm tắt nội dung cuốn sách..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold" id="btnSaveBook">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu Đầu Sách
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL 2: QUẢN LÝ KHO BẢN SÁCH VẬT LÝ & VỊ TRÍ KỆ ================= -->
+<div class="modal fade" id="modalKhoCuonSach" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom bg-primary bg-opacity-10">
+                <div>
+                    <h5 class="modal-title fw-bold text-primary mb-0" id="kho_Title">
+                        <i class="fa-solid fa-boxes-stacked me-2"></i>Quản Lý Bản Sách Vật Lý
+                    </h5>
+                    <small class="text-muted" id="kho_SubTitle">Mã đầu sách: #0</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Thống kê tổng quan cuốn sách -->
+                <div class="row g-2 mb-4">
+                    <div class="col-4">
+                        <div class="border rounded-3 p-2 text-center bg-primary bg-opacity-10">
+                            <small class="text-muted d-block">Tong bản sao</small>
+                            <strong class="fs-5 text-primary" id="kho_TongSoLuong">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded-3 p-2 text-center bg-success bg-opacity-10">
+                            <small class="text-muted d-block">Có sẵn trên kệ</small>
+                            <strong class="fs-5 text-success" id="kho_CoSan">0</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded-3 p-2 text-center bg-danger bg-opacity-10">
+                            <small class="text-muted d-block">Đang cho mượn</small>
+                            <strong class="fs-5 text-danger" id="kho_DangMuon">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Thêm Cuốn Sách Mới vào Kho -->
+                <div class="glass-card p-3 rounded-3 border mb-4">
+                    <h6 class="fw-bold mb-2 text-dark">
+                        <i class="fa-solid fa-plus-circle text-primary me-1"></i>Bổ sung bản sách mới vào kho
+                    </h6>
+                    <input type="hidden" id="kho_MaSach" value="0" />
+                    <div class="row g-2 align-items-end">
+                        <div class="col-4 col-md-3">
+                            <label class="form-label small fw-semibold">Số lượng bản</label>
+                            <input type="number" id="them_SoLuong" class="form-control form-control-sm rounded-3" value="1" min="1" max="50" />
+                        </div>
+                        <div class="col-4 col-md-4">
+                            <label class="form-label small fw-semibold">Vị trí Kệ sách</label>
+                            <input type="text" id="them_ViTriKe" class="form-control form-control-sm rounded-3" placeholder="VD: Kệ A2-01" value="Kệ A1" />
+                        </div>
+                        <div class="col-4 col-md-3">
+                            <label class="form-label small fw-semibold">Trạng thái ban đầu</label>
+                            <select id="them_TrangThai" class="form-select form-select-sm rounded-3">
+                                <option value="Có sẵn">Có sẵn</option>
+                                <option value="Bảo trì">Bảo trì</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <button type="button" class="btn btn-sm btn-primary w-100 rounded-3 fw-semibold" onclick="submitThemCuonSach()">
+                                <i class="fa-solid fa-plus me-1"></i>Thêm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Danh sách các Cuốn sách vật lý -->
+                <h6 class="fw-bold mb-2 text-dark">
+                    <i class="fa-solid fa-list-check me-1 text-secondary"></i>Danh sách mã bản sách vật lý (#CS)
+                </h6>
+                <div class="table-responsive border rounded-3 overflow-hidden">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="bg-light small fw-bold text-muted">
+                            <tr>
+                                <th class="ps-3 py-2">Mã Bản Sách</th>
+                                <th class="py-2">Vị Trí Kệ Sách</th>
+                                <th class="py-2 text-center">Trạng Thái</th>
+                                <th class="pe-3 py-2 text-end">Cập nhật / Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyCuonSach">
+                            <!-- Dữ liệu AJAX sẽ nạp vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng Kho</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT XỬ LÝ AJAX TOÀN BỘ LOGIC -->
+@section Scripts {
+    <script>
+        const defaultImgPath = '@Url.Content("~/Content/HinhAnh/cleancode.jpg")';
+
+        // Preview ảnh khi chọn file
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Mở Modal Thêm mới đầu sách
+        function openAddBookModal() {
+            $('#formBook')[0].reset();
+            $('#book_MaSach').val(0);
+            $('#modalBookTitle').html('<i class="fa-solid fa-plus-circle text-primary me-2"></i>Thêm Đầu Sách Mới');
+            $('#groupKhoBanDau').removeClass('d-none');
+            $('#imgPreview').attr('src', defaultImgPath);
+            const modal = new bootstrap.Modal(document.getElementById('modalBookForm'));
+            modal.show();
+        }
+
+        // Mở Modal Sửa đầu sách
+        function openEditBookModal(id) {
+            $.ajax({
+                url: '@Url.Action("GetChiTietSach", "Admin")',
+                type: 'GET',
+                data: { id: id },
+                success: function (res) {
+                    if (res.success) {
+                        const s = res.sach;
+                        $('#book_MaSach').val(s.MaSach);
+                        $('#book_TenSach').val(s.TenSach);
+                        $('#book_ISBN').val(s.ISBN);
+                        $('#book_MaTheLoai').val(s.MaTheLoai || '');
+                        $('#book_MaTacGia').val(s.MaTacGia || '');
+                        $('#book_MaNXB').val(s.MaNXB || '');
+                        $('#book_NamXuatBan').val(s.NamXuatBan || '');
+                        $('#book_AnhBia').val(s.AnhBia || '');
+                        $('#book_MoTa').val(s.MoTa || '');
+
+                        $('#modalBookTitle').html('<i class="fa-solid fa-pen-to-square text-primary me-2"></i>Chỉnh Sửa Đầu Sách #' + s.MaSach);
+                        $('#groupKhoBanDau').addClass('d-none'); // Ẩn nhóm tạo bản mới khi chỉnh sửa
+
+                        if (s.AnhBia) {
+                            $('#imgPreview').attr('src', '@Url.Content("~/Content/HinhAnh/")' + s.AnhBia);
+                        } else {
+                            $('#imgPreview').attr('src', defaultImgPath);
+                        }
+
+                        const modal = new bootstrap.Modal(document.getElementById('modalBookForm'));
+                        modal.show();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi kết nối máy chủ!');
+                }
+            });
+        }
+
+        // Xử lý Submit Form Thêm/Sửa Đầu Sách
+        $('#formBook').on('submit', function (e) {
+            e.preventDefault();
+
+            const maSach = $('#book_MaSach').val();
+            const actionUrl = maSach == 0 ? '@Url.Action("ThemSach", "Admin")' : '@Url.Action("SuaSach", "Admin")';
+
+            const formData = new FormData(this);
+
+            $('#btnSaveBook').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i>Đang lưu...');
+
+            $.ajax({
+                url: actionUrl,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (res) {
+                    $('#btnSaveBook').prop('disabled', false).html('<i class="fa-solid fa-floppy-disk me-1"></i>Lưu Đầu Sách');
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    $('#btnSaveBook').prop('disabled', false).html('<i class="fa-solid fa-floppy-disk me-1"></i>Lưu Đầu Sách');
+                    alert('Lỗi kết nối máy chủ khi lưu sách!');
+                }
+            });
+        });
+
+        // Xóa Đầu sách
+        function deleteBook(id, title) {
+            if (confirm('Bạn có chắc chắn muốn xóa đầu sách "' + title + '" không?\nHành động này cũng sẽ xóa tất cả bản sách vật lý liên quan.')) {
+                $.ajax({
+                    url: '@Url.Action("XoaSach", "Admin")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi máy chủ khi xóa sách!');
+                    }
+                });
+            }
+        }
+
+        // ================= XỬ LÝ QUẢN LÝ KHO CUỐN SÁCH VẬT LÝ =================
+
+        function openKhoModal(maSach, tenSach) {
+            $('#kho_MaSach').val(maSach);
+            $('#kho_Title').html('<i class="fa-solid fa-boxes-stacked me-2"></i>Kho Bản Sách: ' + tenSach);
+            $('#kho_SubTitle').text('Mã đầu sách: #' + maSach);
+
+            loadDanhSachCuonSach(maSach);
+
+            const modal = new bootstrap.Modal(document.getElementById('modalKhoCuonSach'));
+            modal.show();
+        }
+
+        // Nạp danh sách bản sách vật lý qua AJAX
+        function loadDanhSachCuonSach(maSach) {
+            $('#tbodyCuonSach').html('<tr><td colspan="4" class="text-center py-3 text-muted"><i class="fa-solid fa-spinner fa-spin me-1"></i>Đang nạp kho...</td></tr>');
+
+            $.ajax({
+                url: '@Url.Action("GetDanhSachCuonSach", "Admin")',
+                type: 'GET',
+                data: { maSach: maSach },
+                success: function (res) {
+                    if (res.success) {
+                        $('#kho_TongSoLuong').text(res.tongSoLuong);
+                        $('#kho_CoSan').text(res.coSan);
+                        $('#kho_DangMuon').text(res.dangMuon);
+
+                        let html = '';
+                        if (res.list && res.list.length > 0) {
+                            $.each(res.list, function (i, item) {
+                                let badgeColor = 'bg-success';
+                                if (item.TrangThai === 'Đang mượn') badgeColor = 'bg-danger';
+                                else if (item.TrangThai === 'Hỏng' || item.TrangThai === 'Mất') badgeColor = 'bg-dark';
+                                else if (item.TrangThai === 'Bảo trì') badgeColor = 'bg-warning text-dark';
+
+                                html += `
+                                    <tr>
+                                        <td class="ps-3 fw-bold text-primary">${item.MaCuonSachFormatted}</td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm rounded-2" id="ke_${item.MaCuonSach}" value="${item.ViTriKe}" style="max-width: 140px;" />
+                                        </td>
+                                        <td class="text-center">
+                                            <select class="form-select form-select-sm rounded-2 text-center" id="status_${item.MaCuonSach}" style="max-width: 130px; margin: 0 auto;">
+                                                <option value="Có sẵn" ${item.TrangThai === 'Có sẵn' ? 'selected' : ''}>Có sẵn</option>
+                                                <option value="Đang mượn" ${item.TrangThai === 'Đang mượn' ? 'selected' : ''} disabled>Đang mượn</option>
+                                                <option value="Bảo trì" ${item.TrangThai === 'Bảo trì' ? 'selected' : ''}>Bảo trì</option>
+                                                <option value="Hỏng" ${item.TrangThai === 'Hỏng' ? 'selected' : ''}>Hỏng</option>
+                                                <option value="Mất" ${item.TrangThai === 'Mất' ? 'selected' : ''}>Mất</option>
+                                            </select>
+                                        </td>
+                                        <td class="pe-3 text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-primary rounded-2 me-1" title="Lưu vị trí kệ & trạng thái" onclick="updateCuonSach(${item.MaCuonSach})">
+                                                <i class="fa-solid fa-floppy-disk"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger rounded-2" title="Xóa bản sách này" onclick="deleteCuonSach(${item.MaCuonSach})" ${item.TrangThai === 'Đang mượn' ? 'disabled' : ''}>
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                        } else {
+                            html = '<tr><td colspan="4" class="text-center py-4 text-muted">Chưa có bản sách vật lý nào trong kho. Hãy thêm bản sách mới ở trên.</td></tr>';
+                        }
+                        $('#tbodyCuonSach').html(html);
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi nạp danh sách bản sách vật lý!');
+                }
+            });
+        }
+
+        // Bổ sung bản sách mới vào kho
+        function submitThemCuonSach() {
+            const maSach = $('#kho_MaSach').val();
+            const soLuong = $('#them_SoLuong').val();
+            const viTriKe = $('#them_ViTriKe').val();
+            const trangThai = $('#them_TrangThai').val();
+
+            if (!soLuong || soLuong <= 0) {
+                alert('Vui lòng nhập số lượng bản sách cần thêm!');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("ThemCuonSach", "Admin")',
+                type: 'POST',
+                data: { maSach: maSach, soLuong: soLuong, viTriKe: viTriKe, trangThai: trangThai },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        loadDanhSachCuonSach(maSach);
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi máy chủ khi thêm bản sách!');
+                }
+            });
+        }
+
+        // Cập nhật Vị trí Kệ & Trạng thái của 1 bản sách
+        function updateCuonSach(maCuonSach) {
+            const viTriKe = $('#ke_' + maCuonSach).val();
+            const trangThai = $('#status_' + maCuonSach).val();
+
+            $.ajax({
+                url: '@Url.Action("CapNhatCuonSach", "Admin")',
+                type: 'POST',
+                data: { maCuonSach: maCuonSach, viTriKe: viTriKe, trangThai: trangThai },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        const maSach = $('#kho_MaSach').val();
+                        loadDanhSachCuonSach(maSach);
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert('Lỗi khi cập nhật bản sách!');
+                }
+            });
+        }
+
+        // Xóa 1 bản sách vật lý
+        function deleteCuonSach(maCuonSach) {
+            if (confirm('Bạn có chắc chắn muốn xóa bản sách vật lý #CS' + maCuonSach + ' khỏi kho?')) {
+                $.ajax({
+                    url: '@Url.Action("XoaCuonSach", "Admin")',
+                    type: 'POST',
+                    data: { maCuonSach: maCuonSach },
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            const maSach = $('#kho_MaSach').val();
+                            loadDanhSachCuonSach(maSach);
+                        } else {
+                            alert(res.message);
+                        }
+                    },
+                    error: function () {
+                        alert('Lỗi khi xóa bản sách!');
+                    }
+                });
+            }
+        }
+    </script>
+}
