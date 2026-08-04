@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
-namespace DoAn_LTWeb.Models
+namespace DoAn_LTWeb.Models.DTOs
 {
     public class SachMuonNhieuVM
     {

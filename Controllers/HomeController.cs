@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using DoAn_LTWeb.Models;
+using DoAn_LTWeb.Models.DTOs;
 using System.Data.Entity;
 namespace DoAn_LTWeb.Controllers
 {
@@ -278,11 +279,18 @@ namespace DoAn_LTWeb.Controllers
         // GET: XacNhanMuon
         public ActionResult XacNhanMuon()
         {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return RedirectToAction("DangNhap", "Home", new { returnUrl = Url.Action("XacNhanMuon") });
+            }
+
             GioHang gioHang = Session["GioHang"] as GioHang;
             if (gioHang == null || gioHang.TongSLHang() == 0)
             {
                 return RedirectToAction("XemGioHang");
             }
+            ViewBag.User = user;
             return View(gioHang);
         }
 
@@ -290,6 +298,12 @@ namespace DoAn_LTWeb.Controllers
         [HttpPost]
         public ActionResult XacNhanMuon(FormCollection form)
         {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return RedirectToAction("DangNhap", "Home");
+            }
+
             GioHang gioHang = Session["GioHang"] as GioHang;
             if (gioHang == null || gioHang.TongSLHang() == 0)
             {
@@ -303,67 +317,57 @@ namespace DoAn_LTWeb.Controllers
             string sdt = form["SoDienThoai"];
             string diaChi = form["DiaChi"];
 
-            // ====== BƯỚC 1: Lưu Phiếu Mượn =====
-            PhieuMuon pm = new PhieuMuon();
+            // ====== BƯỚC 1: Lưu Yêu Cầu Mượn =====
+            YeuCauMuon yc = new YeuCauMuon();
+            yc.MaDocGia = user.MaNguoiDung;
+            yc.NgayYeuCau = DateTime.Now;
+            yc.TrangThai = "Chờ duyệt";
 
-            pm.MaDocGia = 1;
-            pm.MaThuThu = null;
-            pm.NgayMuon = DateTime.Now;
-            pm.NgayHenTra = DateTime.Parse(ngayTra);
+            data.YeuCauMuon.Add(yc);
+            data.SaveChanges(); // Lưu để lấy MaYeuCau tự tăng
 
-            // Lưu ý: Kiểm tra lại constraint trên bảng PhieuMuon nếu dòng này phát sinh lỗi tương tự.
-            // Nếu PhieuMuon cũng dùng "DaMuon" thì đổi "DangMuon" -> "DaMuon"
-            pm.TrangThai = "DangMuon";
-
-            data.PhieuMuon.Add(pm);
-            data.SaveChanges(); // Lưu phiếu mượn để lấy MaPhieuMuon tự tăng
-
-            // ====== BƯỚC 2: Lưu Chi Tiết & Cập Nhật Cuốn Sách =====
+            // ====== BƯỚC 2: Lưu Chi Tiết Yêu Cầu Mượn =====
             foreach (var item in gioHang.lst)
             {
-                // Lấy ra các cuốn sách có sẵn tương ứng với mã sách hiện tại
-                var availableCopies = data.CuonSach
-                    .Where(cs => cs.MaSach == item.iMaSach && cs.TrangThai == "Có sẵn")
-                    .Take(item.iSoLuong)
-                    .ToList();
-
-                foreach (var cuonSach in availableCopies)
+                // Thêm số lượng bản ghi tương ứng với số lượng sách độc giả đăng ký mượn
+                for (int i = 0; i < item.iSoLuong; i++)
                 {
-                    // Tạo chi tiết phiếu mượn
-                    ChiTietPhieuMuon ct = new ChiTietPhieuMuon();
-                    ct.MaPhieuMuon = pm.MaPhieuMuon;
-                    ct.MaCuonSach = cuonSach.MaCuonSach;
-                    ct.NgayTraThucTe = null;
-                    ct.TinhTrangKhiTra = null;
+                    ChiTietYeuCauMuon ct = new ChiTietYeuCauMuon();
+                    ct.MaYeuCau = yc.MaYeuCau;
+                    ct.MaSach = item.iMaSach;
 
-                    data.ChiTietPhieuMuon.Add(ct);
-
-                    // Cập nhật trạng thái cuốn sách thành "Đang mượn"
-                    cuonSach.TrangThai = "Đang mượn";
+                    data.ChiTietYeuCauMuon.Add(ct);
                 }
             }
 
-            // Lưu tất cả thay đổi của ChiTietPhieuMuon và CuonSach
+            // ====== BƯỚC 3: Cập nhật lại thông tin độc giả nếu có thay đổi =====
+            var currentUserDb = data.NguoiDung.Find(user.MaNguoiDung);
+            if (currentUserDb != null)
+            {
+                if (!string.IsNullOrEmpty(sdt)) currentUserDb.SoDienThoai = sdt;
+                if (!string.IsNullOrEmpty(diaChi)) currentUserDb.DiaChi = diaChi;
+                if (!string.IsNullOrEmpty(hoTen)) currentUserDb.HoTen = hoTen;
+            }
+
             try
             {
                 data.SaveChanges();
+                if (currentUserDb != null) Session["User"] = currentUserDb;
             }
             catch (Exception ex)
             {
                 var err = ex;
-
                 while (err.InnerException != null)
                 {
                     err = err.InnerException;
                 }
-
                 throw new Exception(err.Message);
             }
 
-            // Làm sạch giỏ hàng sau khi đăng ký thành công
+            // Làm sạch giỏ hàng sau khi gửi yêu cầu mượn thành công
             Session["GioHang"] = null;
 
-            TempData["SuccessMessage"] = "Đăng ký mượn sách thành công! Vui lòng nhận sách tại Quầy thủ thư trong vòng 24 giờ.";
+            TempData["SuccessMessage"] = "Gửi yêu cầu mượn sách thành công! Yêu cầu của bạn đã được chuyển đến mục Yêu Cầu Mượn phía Thủ thư để chờ duyệt.";
 
             return RedirectToAction("Index");
         }
@@ -430,6 +434,155 @@ namespace DoAn_LTWeb.Controllers
         {
             ViewBag.Message = "Cảm ơn bạn đã gửi phản hồi. Chúng tôi sẽ liên hệ sớm nhất!";
             return View();
+        }
+
+        // ================= ĐĂNG NHẬP & ĐĂNG KÝ (REAL SESSION AUTH + BCRYPT) =================
+
+        // GET: Home/DangNhap
+        public ActionResult DangNhap(string returnUrl)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        // POST: Home/DangNhap
+        [HttpPost]
+        public ActionResult DangNhap(string Email, string MatKhau, string returnUrl)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(MatKhau))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập đầy đủ Email và Mật khẩu!" });
+                }
+
+                Email = Email.Trim();
+                MatKhau = MatKhau.Trim();
+
+                // Tìm người dùng trong database
+                var user = data.NguoiDung.Include(n => n.VaiTro).FirstOrDefault(u => u.Email == Email);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy tài khoản với Email này trong hệ thống!" });
+                }
+
+                if (user.TrangThaiThe == "Khoa")
+                {
+                    return Json(new { success = false, message = "Tài khoản của bạn đã bị khóa! Vui lòng liên hệ thủ thư." });
+                }
+
+                // Kiểm tra mật khẩu (BCrypt mã hóa)
+                bool isValid = false;
+                string debugMsg = "";
+                string storedHash = (user.MatKhau ?? "").Trim();
+
+                try
+                {
+                    isValid = BCrypt.Net.BCrypt.Verify(MatKhau, storedHash);
+                }
+                catch (Exception ex)
+                {
+                    debugMsg = $" [Lỗi giải mã: {ex.Message}]";
+                }
+
+                if (!isValid)
+                {
+                    // Fallback trong trường hợp mật khẩu trong CSDL trùng khớp trực tiếp hoặc là plain-text
+                    if (MatKhau == storedHash)
+                    {
+                        isValid = true;
+                    }
+                }
+
+                if (!isValid)
+                {
+                    return Json(new { success = false, message = "Mật khẩu nhập vào không chính xác!" + debugMsg });
+                }
+
+                // Lưu thông tin vào Session
+                Session["User"] = user;
+
+                // Điều hướng dựa vào vai trò
+                string redirectUrl = Url.Action("Index", "Home");
+                if (user.MaVaiTro == 1 || user.MaVaiTro == 2)
+                {
+                    redirectUrl = Url.Action("Dashboard", "ThuThu");
+                }
+                else if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    redirectUrl = returnUrl;
+                }
+
+                return Json(new { success = true, message = $"Chào mừng {user.HoTen} đã đăng nhập thành công!", redirectUrl = redirectUrl });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+        }
+
+        // POST: Home/DangKy
+        [HttpPost]
+        public ActionResult DangKy(NguoiDung model, string ConfirmPassword)
+        {
+            try
+            {
+                if (model == null || string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.MatKhau) || string.IsNullOrEmpty(model.HoTen) || string.IsNullOrEmpty(model.SoDienThoai))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập đầy đủ các trường thông tin bắt buộc!" });
+                }
+
+                if (model.MatKhau.Length < 6)
+                {
+                    return Json(new { success = false, message = "Mật khẩu phải chứa ít nhất 6 ký tự!" });
+                }
+
+                if (model.MatKhau != ConfirmPassword)
+                {
+                    return Json(new { success = false, message = "Xác nhận mật khẩu không khớp!" });
+                }
+
+                // Kiểm tra email trùng
+                var existEmail = data.NguoiDung.Any(u => u.Email == model.Email);
+                if (existEmail)
+                {
+                    return Json(new { success = false, message = "Email này đã được đăng ký tài khoản khác!" });
+                }
+
+                // Băm mật khẩu bằng BCrypt
+                string hashed = BCrypt.Net.BCrypt.HashPassword(model.MatKhau, 12);
+
+                NguoiDung newUser = new NguoiDung
+                {
+                    HoTen = model.HoTen,
+                    Email = model.Email,
+                    MatKhau = hashed,
+                    SoDienThoai = model.SoDienThoai,
+                    DiaChi = model.DiaChi ?? "",
+                    MaVaiTro = 3, // Mặc định là Độc giả (DocGia)
+                    TrangThaiThe = "HoatDong", // Mặc định hoạt động
+                    NgayTao = DateTime.Now
+                };
+
+                data.NguoiDung.Add(newUser);
+                data.SaveChanges();
+
+                // Đăng nhập tự động sau khi đăng ký
+                Session["User"] = newUser;
+
+                return Json(new { success = true, message = "Đăng ký tài khoản thành công!", redirectUrl = Url.Action("Index", "Home") });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi xử lý đăng ký: " + ex.Message });
+            }
+        }
+
+        // GET: Home/DangXuat
+        public ActionResult DangXuat()
+        {
+            Session["User"] = null;
+            return RedirectToAction("Index", "Home");
         }
     }
 }

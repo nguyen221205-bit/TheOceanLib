@@ -1,4 +1,4 @@
-@model List<DoAn_LTWeb.Controllers.ThuThuController.PhieuMuonQuanLyDto>
+@model List<DoAn_LTWeb.Models.DTOs.PhieuMuonQuanLyDto>
 
 @{
     Layout = "~/Views/Shared/_LayoutThuThu.cshtml";
@@ -155,7 +155,13 @@
                                             <i class="fa-solid fa-circle-info"></i>
                                         </button>
                                         
-                                        @if (isOverdue)
+                                        @if (item.TrangThai == "DaTra" || item.TrangThai == "Đã trả")
+                                        {
+                                            <button class="btn btn-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center remind-btn" data-id="@item.MaPhieuMuon" title="Không thể nhắc nhở (Đã trả)" disabled style="width: 32px; height: 32px; padding: 0; opacity: 0.5;">
+                                                <i class="fa-solid fa-bell"></i>
+                                            </button>
+                                        }
+                                        else
                                         {
                                             <button class="btn btn-warning btn-sm rounded-circle d-flex align-items-center justify-content-center remind-btn" data-id="@item.MaPhieuMuon" title="Nhắc nhở quá hạn" style="width: 32px; height: 32px; padding: 0;">
                                                 <i class="fa-solid fa-bell"></i>

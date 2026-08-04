@@ -1,0 +1,144 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewBag.Title = "Bảng điều khiển Admin";
+}
+
+<div class="container-fluid p-0">
+    <!-- PAGE HEADER -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
+                <i class="fa-solid fa-chart-pie text-danger me-2"></i>Bảng Điều Khiển Quản Trị Hệ Thống
+            </h3>
+            <p class="text-muted small mb-0">Tổng quan toàn bộ thư viện, số liệu tài khoản và danh mục quản trị.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("QuanLySach", "Admin")" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold">
+                <i class="fa-solid fa-plus me-1"></i>Thêm Sách Mới
+            </a>
+            <a href="@Url.Action("QuanLyTaiKhoan", "Admin")" class="btn btn-outline-danger rounded-pill px-3 py-2 fw-semibold">
+                <i class="fa-solid fa-user-plus me-1"></i>Tạo Thủ Thư
+            </a>
+        </div>
+    </div>
+
+    <!-- STATS OVERVIEW CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-book"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tổng số đầu sách</span>
+                    <h3 class="fw-bold mb-0 text-primary">@(ViewBag.TotalBooks ?? 0) <small class="fs-6">đầu sách</small></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-info bg-opacity-10 text-info fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tổng số bản sách vật lý</span>
+                    <h3 class="fw-bold mb-0 text-info">@(ViewBag.TotalCopies ?? 0) <small class="fs-6">cuốn</small></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Tổng số người dùng</span>
+                    <h3 class="fw-bold mb-0 text-success">@(ViewBag.TotalUsers ?? 0) <small class="fs-6">tài khoản</small></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="glass-card p-3 rounded-4 border d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 d-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger fs-3" style="width: 58px; height: 58px;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div>
+                    <span class="text-muted small fw-medium d-block">Doanh thu tiền phạt</span>
+                    <h3 class="fw-bold mb-0 text-danger">@(((decimal)(ViewBag.TotalFines ?? 0)).ToString("#,##0")) <small class="fs-6">đ</small></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN MODULES QUICK NAVIGATION -->
+    <h5 class="fw-bold mb-3" style="color: var(--text-primary);">
+        <i class="fa-solid fa-grid-2 me-2 text-primary"></i>Phân Hệ Quản Trị Hệ Thống
+    </h5>
+
+    <div class="row g-3 mb-4">
+        <!-- Module 1: Quản lý Sách -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="glass-card p-4 rounded-4 border h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="p-3 rounded-3 bg-primary bg-opacity-10 text-primary fs-4">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-primary">Quản Lý Sách & Kho</h5>
+                            <small class="text-muted">Quản lý đầu sách, bản sách vật lý & vị trí kệ</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Thêm mới đầu sách, cập nhật thông tin tác giả, NXB, vị trí kệ sách và số lượng bản sách có sẵn trong kho.</p>
+                </div>
+                <a href="@Url.Action("QuanLySach", "Admin")" class="btn btn-outline-primary rounded-pill w-100 fw-semibold mt-2">
+                    Vào Quản Lý Sách <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Module 2: Quản lý Danh mục -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="glass-card p-4 rounded-4 border h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="p-3 rounded-3 bg-info bg-opacity-10 text-info fs-4">
+                            <i class="fa-solid fa-tags"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-info">Quản Lý Danh Mục</h5>
+                            <small class="text-muted">Thể loại, Tác giả, Nhà xuất bản</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Thêm mới và chỉnh sửa danh mục Thể loại sách, hồ sơ Tác giả và danh sách Nhà xuất bản trong hệ thống.</p>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <a href="@Url.Action("QuanLyTheLoai", "Admin")" class="btn btn-sm btn-outline-info rounded-pill flex-fill">Thể Loại</a>
+                    <a href="@Url.Action("QuanLyTacGia", "Admin")" class="btn btn-sm btn-outline-info rounded-pill flex-fill">Tác Giả</a>
+                    <a href="@Url.Action("QuanLyNXB", "Admin")" class="btn btn-sm btn-outline-info rounded-pill flex-fill">NXB</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Module 3: Quản lý Tài khoản & Phân quyền -->
+        <div class="col-12 col-md-6 col-xl-4">
+            <div class="glass-card p-4 rounded-4 border h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="p-3 rounded-3 bg-success bg-opacity-10 text-success fs-4">
+                            <i class="fa-solid fa-users-gear"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0 text-success">Quản Lý Tài Khoản</h5>
+                            <small class="text-muted">Độc giả, Thủ thư, Phân quyền hệ thống</small>
+                        </div>
+                    </div>
+                    <p class="text-muted small">Danh sách tài khoản độc giả và nhân viên. Cho phép phân quyền vai trò, kích hoạt hoặc khóa tài khoản vi phạm.</p>
+                </div>
+                <a href="@Url.Action("QuanLyTaiKhoan", "Admin")" class="btn btn-outline-success rounded-pill w-100 fw-semibold mt-2">
+                    Vào Quản Lý Tài Khoản <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

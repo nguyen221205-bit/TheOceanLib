@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using DoAn_LTWeb.Models;
+using DoAn_LTWeb.Models.DTOs;
 using System.Data.Entity;
 using Newtonsoft.Json;
 
@@ -13,61 +14,25 @@ namespace DoAn_LTWeb.Controllers
     {
         private QuanLyThuVienEntities data = new QuanLyThuVienEntities();
 
-        // DTO for Statistics
-        public class TheLoaiThongKeDto
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            public string TenTheLoai { get; set; }
-            public int SoLuong { get; set; }
-        }
-
-        public class RecentPhieuMuonDto
-        {
-            public int MaPhieuMuon { get; set; }
-            public string TenDocGia { get; set; }
-            public string NgayMuon { get; set; }
-            public string NgayHenTra { get; set; }
-            public string TenSach { get; set; }
-            public string TrangThai { get; set; }
-        }
-
-        // DTO for YeuCauMuon List
-        public class YeuCauMuonDto
-        {
-            public int MaYeuCau { get; set; }
-            public int MaDocGia { get; set; }
-            public string TenDocGia { get; set; }
-            public string NgayGui { get; set; }
-            public string TrangThai { get; set; }
-            public int SoLuongSach { get; set; }
-        }
-
-        // DTOs for YeuCauMuon Detail modal
-        public class YeuCauDetailDto
-        {
-            public int MaYeuCau { get; set; }
-            public int MaDocGia { get; set; }
-            public string TenDocGia { get; set; }
-            public string SoDienThoai { get; set; }
-            public string Email { get; set; }
-            public string DiaChi { get; set; }
-            public List<SachYeuCauDto> DanhSachSach { get; set; }
-        }
-
-        public class SachYeuCauDto
-        {
-            public int MaSach { get; set; }
-            public string TenSach { get; set; }
-            public string AnhBia { get; set; }
-            public int SoLuongMuon { get; set; }
-            public int SoLuongCoSan { get; set; }
-            public List<CuonSachGoiYDto> BanSachGoiY { get; set; }
-            public string TrangThaiKho { get; set; }
-        }
-
-        public class CuonSachGoiYDto
-        {
-            public int MaCuonSach { get; set; }
-            public string ViTriKe { get; set; }
+            var user = Session["User"] as NguoiDung;
+            if (user == null || (user.MaVaiTro != 1 && user.MaVaiTro != 2))
+            {
+                if (filterContext.HttpContext.Request.IsAjaxRequest())
+                {
+                    filterContext.Result = new JsonResult
+                    {
+                        Data = new { success = false, message = "Phiên làm việc hết hạn hoặc bạn không có quyền truy cập!" },
+                        JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                    };
+                }
+                else
+                {
+                    filterContext.Result = RedirectToAction("DangNhap", "Home", new { returnUrl = filterContext.HttpContext.Request.Url.PathAndQuery });
+                }
+            }
+            base.OnActionExecuting(filterContext);
         }
 
         // GET: ThuThu/Dashboard
@@ -83,23 +48,15 @@ namespace DoAn_LTWeb.Controllers
                 int totalCopies = data.CuonSach.Count();
                 int borrowedCopies = data.CuonSach.Count(cs => cs.TrangThai == "Đang mượn");
                 
-                // Chờ duyệt: lấy từ phiếu mượn có trạng thái "ChoDuyet" hoặc "Pending" hoặc tương tự
-                int pendingRequests = data.PhieuMuon.Count(pm => pm.TrangThai == "ChoDuyet" || pm.TrangThai == "Pending" || pm.TrangThai == "Chờ duyệt");
-                if (pendingRequests == 0)
-                {
-                    // Dự phòng nếu không có phiếu mượn chờ duyệt thì đếm số phiếu mượn mới tạo trong ngày chưa được gán thủ thư duyệt
-                    pendingRequests = data.PhieuMuon.Count(pm => pm.MaThuThu == null && pm.TrangThai == "DangMuon");
-                }
-
-                // Quá hạn: ngày hẹn trả đã qua và chưa trả
+                int pendingRequests = data.YeuCauMuon.Count(yc => yc.TrangThai == "ChoDuyet" || yc.TrangThai == "Pending" || yc.TrangThai == "Chờ duyệt");
                 DateTime today = DateTime.Now;
-                int overdueTickets = data.PhieuMuon.Count(pm => pm.NgayHenTra < today && (pm.TrangThai == "DangMuon"));
+                int overdueTickets = data.PhieuMuon.Count(pm => pm.NgayHenTra < today && (pm.TrangThai == "Đang mượn"));
 
-                ViewBag.TotalBooks = totalBooks > 0 ? totalBooks : 120;
-                ViewBag.TotalCopies = totalCopies > 0 ? totalCopies : 350;
-                ViewBag.BorrowedCopies = borrowedCopies > 0 ? borrowedCopies : 45;
-                ViewBag.PendingRequests = pendingRequests > 0 ? pendingRequests : 12;
-                ViewBag.OverdueTickets = overdueTickets > 0 ? overdueTickets : 3;
+                ViewBag.TotalBooks = totalBooks;
+                ViewBag.TotalCopies = totalCopies;
+                ViewBag.BorrowedCopies = borrowedCopies;
+                ViewBag.PendingRequests = pendingRequests;
+                ViewBag.OverdueTickets = overdueTickets;
 
                 // 2. Thống kê thể loại cho biểu đồ (Chart 1)
                 var categoryBorrowStats = data.ChiTietPhieuMuon
@@ -112,29 +69,28 @@ namespace DoAn_LTWeb.Controllers
                     .OrderByDescending(x => x.SoLuong)
                     .ToList();
 
-                if (categoryBorrowStats.Count == 0)
-                {
-                    // Mock data thể loại nếu CSDL trống
-                    categoryBorrowStats = new List<TheLoaiThongKeDto>
-                    {
-                        new TheLoaiThongKeDto { TenTheLoai = "Lập trình Web", SoLuong = 38 },
-                        new TheLoaiThongKeDto { TenTheLoai = "Cơ sở dữ liệu", SoLuong = 24 },
-                        new TheLoaiThongKeDto { TenTheLoai = "Trí tuệ nhân tạo", SoLuong = 19 },
-                        new TheLoaiThongKeDto { TenTheLoai = "Lập trình Di động", SoLuong = 15 },
-                        new TheLoaiThongKeDto { TenTheLoai = "Kỹ thuật phần mềm", SoLuong = 11 }
-                    };
-                }
-                
                 ViewBag.GenreLabels = JsonConvert.SerializeObject(categoryBorrowStats.Select(x => x.TenTheLoai).ToArray());
                 ViewBag.GenreCounts = JsonConvert.SerializeObject(categoryBorrowStats.Select(x => x.SoLuong).ToArray());
 
-                // Biểu đồ mượn sách theo tháng (Chart 2) - Mock dữ liệu mượt mà
-                var months = new string[] { "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7" };
-                var borrowCounts = new int[] { 45, 68, 52, 85, 110, 95 };
-                ViewBag.MonthLabels = JsonConvert.SerializeObject(months);
-                ViewBag.MonthCounts = JsonConvert.SerializeObject(borrowCounts);
+                // 3. Biểu đồ mượn sách theo 6 tháng gần nhất (Chart 2 - Thật 100% từ CSDL)
+                List<string> monthLabels = new List<string>();
+                List<int> monthCounts = new List<int>();
 
-                // 3. Danh sách phiếu mượn mới nhất
+                for (int i = 5; i >= 0; i--)
+                {
+                    var mDate = DateTime.Now.AddMonths(-i);
+                    monthLabels.Add($"Tháng {mDate.Month}");
+
+                    int count = data.PhieuMuon.Count(p => p.NgayMuon.HasValue && 
+                                                          p.NgayMuon.Value.Month == mDate.Month && 
+                                                          p.NgayMuon.Value.Year == mDate.Year);
+                    monthCounts.Add(count);
+                }
+
+                ViewBag.MonthLabels = JsonConvert.SerializeObject(monthLabels.ToArray());
+                ViewBag.MonthCounts = JsonConvert.SerializeObject(monthCounts.ToArray());
+
+                // 4. Danh sách 5 phiếu mượn mới nhất thực tế từ CSDL
                 var dbTickets = data.PhieuMuon
                     .Include(pm => pm.NguoiDung)
                     .OrderByDescending(pm => pm.MaPhieuMuon)
@@ -143,71 +99,49 @@ namespace DoAn_LTWeb.Controllers
 
                 List<RecentPhieuMuonDto> recentTickets = new List<RecentPhieuMuonDto>();
 
-                if (dbTickets.Count > 0)
+                foreach (var pm in dbTickets)
                 {
-                    foreach (var pm in dbTickets)
+                    string bookTitle = "Nhiều sách mượn";
+                    var firstDetail = data.ChiTietPhieuMuon.Include(ct => ct.CuonSach.Sach).FirstOrDefault(ct => ct.MaPhieuMuon == pm.MaPhieuMuon);
+                    if (firstDetail != null && firstDetail.CuonSach != null && firstDetail.CuonSach.Sach != null)
                     {
-                        string bookTitle = "Nhiều sách lập trình";
-                        var firstDetail = data.ChiTietPhieuMuon.Include(ct => ct.CuonSach.Sach).FirstOrDefault(ct => ct.MaPhieuMuon == pm.MaPhieuMuon);
-                        if (firstDetail != null && firstDetail.CuonSach != null && firstDetail.CuonSach.Sach != null)
+                        bookTitle = firstDetail.CuonSach.Sach.TenSach;
+                        int totalItems = data.ChiTietPhieuMuon.Count(ct => ct.MaPhieuMuon == pm.MaPhieuMuon);
+                        if (totalItems > 1)
                         {
-                            bookTitle = firstDetail.CuonSach.Sach.TenSach;
-                            int totalItems = data.ChiTietPhieuMuon.Count(ct => ct.MaPhieuMuon == pm.MaPhieuMuon);
-                            if (totalItems > 1)
-                            {
-                                bookTitle += $" (+{totalItems - 1} cuốn)";
-                            }
+                            bookTitle += $" (+{totalItems - 1} cuốn)";
                         }
-
-                        recentTickets.Add(new RecentPhieuMuonDto
-                        {
-                            MaPhieuMuon = pm.MaPhieuMuon,
-                            TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
-                            NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa mượn",
-                            NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
-                            TenSach = bookTitle,
-                            TrangThai = pm.TrangThai
-                        });
                     }
-                }
-                else
-                {
-                    recentTickets = new List<RecentPhieuMuonDto>
+
+                    recentTickets.Add(new RecentPhieuMuonDto
                     {
-                        new RecentPhieuMuonDto { MaPhieuMuon = 1005, TenDocGia = "Lê Hoàng Long", NgayMuon = DateTime.Now.ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(14).ToString("dd/MM/yyyy"), TenSach = "Clean Code: A Handbook of Agile Software Craftsmanship", TrangThai = "ChoDuyet" },
-                        new RecentPhieuMuonDto { MaPhieuMuon = 1004, TenDocGia = "Trần Thị Mai", NgayMuon = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(13).ToString("dd/MM/yyyy"), TenSach = "Introduction to Algorithms (+1 cuốn)", TrangThai = "ChoDuyet" },
-                        new RecentPhieuMuonDto { MaPhieuMuon = 1003, TenDocGia = "Nguyễn Văn Hùng", NgayMuon = DateTime.Now.AddDays(-3).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(11).ToString("dd/MM/yyyy"), TenSach = "Design Patterns: Elements of Reusable Object-Oriented Software", TrangThai = "DangMuon" },
-                        new RecentPhieuMuonDto { MaPhieuMuon = 1002, TenDocGia = "Phạm Minh Tài", NgayMuon = DateTime.Now.AddDays(-4).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(10).ToString("dd/MM/yyyy"), TenSach = "Refactoring: Improving the Design of Existing Code", TrangThai = "DangMuon" },
-                        new RecentPhieuMuonDto { MaPhieuMuon = 1001, TenDocGia = "Đỗ Tuấn Kiệt", NgayMuon = DateTime.Now.AddDays(-20).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(-6).ToString("dd/MM/yyyy"), TenSach = "Pragmatic Programmer, The", TrangThai = "DangMuon" }
-                    };
+                        MaPhieuMuon = pm.MaPhieuMuon,
+                        MaDocGia = pm.MaDocGia,
+                        TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
+                        NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa mượn",
+                        NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
+                        TenSach = bookTitle,
+                        TrangThai = pm.TrangThai
+                    });
                 }
 
                 return View(recentTickets);
             }
             catch (Exception)
             {
-                ViewBag.TotalBooks = 120;
-                ViewBag.TotalCopies = 350;
-                ViewBag.BorrowedCopies = 45;
-                ViewBag.PendingRequests = 12;
-                ViewBag.OverdueTickets = 3;
+                ViewBag.TotalBooks = 0;
+                ViewBag.TotalCopies = 0;
+                ViewBag.BorrowedCopies = 0;
+                ViewBag.PendingRequests = 0;
+                ViewBag.OverdueTickets = 0;
 
-                ViewBag.GenreLabels = JsonConvert.SerializeObject(new string[] { "Lập trình Web", "Cơ sở dữ liệu", "Trí tuệ nhân tạo", "Lập trình Di động", "Kỹ thuật phần mềm" });
-                ViewBag.GenreCounts = JsonConvert.SerializeObject(new int[] { 38, 24, 19, 15, 11 });
+                ViewBag.GenreLabels = JsonConvert.SerializeObject(new string[0]);
+                ViewBag.GenreCounts = JsonConvert.SerializeObject(new int[0]);
 
-                ViewBag.MonthLabels = JsonConvert.SerializeObject(new string[] { "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7" });
-                ViewBag.MonthCounts = JsonConvert.SerializeObject(new int[] { 45, 68, 52, 85, 110, 95 });
+                ViewBag.MonthLabels = JsonConvert.SerializeObject(new string[0]);
+                ViewBag.MonthCounts = JsonConvert.SerializeObject(new int[0]);
 
-                var mockTickets = new List<RecentPhieuMuonDto>
-                {
-                    new RecentPhieuMuonDto { MaPhieuMuon = 1005, TenDocGia = "Lê Hoàng Long", NgayMuon = DateTime.Now.ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(14).ToString("dd/MM/yyyy"), TenSach = "Clean Code: A Handbook of Agile Software Craftsmanship", TrangThai = "ChoDuyet" },
-                    new RecentPhieuMuonDto { MaPhieuMuon = 1004, TenDocGia = "Trần Thị Mai", NgayMuon = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(13).ToString("dd/MM/yyyy"), TenSach = "Introduction to Algorithms (+1 cuốn)", TrangThai = "ChoDuyet" },
-                    new RecentPhieuMuonDto { MaPhieuMuon = 1003, TenDocGia = "Nguyễn Văn Hùng", NgayMuon = DateTime.Now.AddDays(-3).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(11).ToString("dd/MM/yyyy"), TenSach = "Design Patterns: Elements of Reusable Object-Oriented Software", TrangThai = "DangMuon" },
-                    new RecentPhieuMuonDto { MaPhieuMuon = 1002, TenDocGia = "Phạm Minh Tài", NgayMuon = DateTime.Now.AddDays(-4).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(10).ToString("dd/MM/yyyy"), TenSach = "Refactoring: Improving the Design of Existing Code", TrangThai = "DangMuon" },
-                    new RecentPhieuMuonDto { MaPhieuMuon = 1001, TenDocGia = "Đỗ Tuấn Kiệt", NgayMuon = DateTime.Now.AddDays(-20).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(-6).ToString("dd/MM/yyyy"), TenSach = "Pragmatic Programmer, The", TrangThai = "DangMuon" }
-                };
-
-                return View(mockTickets);
+                return View(new List<RecentPhieuMuonDto>());
             }
         }
 
@@ -228,42 +162,24 @@ namespace DoAn_LTWeb.Controllers
 
                 List<YeuCauMuonDto> list = new List<YeuCauMuonDto>();
 
-                if (dbList.Count > 0)
+                foreach (var yc in dbList)
                 {
-                    foreach (var yc in dbList)
+                    list.Add(new YeuCauMuonDto
                     {
-                        list.Add(new YeuCauMuonDto
-                        {
-                            MaYeuCau = yc.MaYeuCau,
-                            MaDocGia = yc.MaDocGia,
-                            TenDocGia = yc.NguoiDung != null ? yc.NguoiDung.HoTen : "Độc giả ẩn danh",
-                            NgayGui = yc.NgayYeuCau.HasValue ? yc.NgayYeuCau.Value.ToString("dd/MM/yyyy HH:mm") : "Không rõ",
-                            TrangThai = yc.TrangThai,
-                            SoLuongSach = data.ChiTietYeuCauMuon.Count(ct => ct.MaYeuCau == yc.MaYeuCau)
-                        });
-                    }
-                }
-                else
-                {
-                    // Fallback Mock data nếu CSDL trống
-                    list = new List<YeuCauMuonDto>
-                    {
-                        new YeuCauMuonDto { MaYeuCau = 2001, MaDocGia = 101, TenDocGia = "Lê Hoàng Long", NgayGui = DateTime.Now.AddHours(-2).ToString("dd/MM/yyyy HH:mm"), TrangThai = "Chờ duyệt", SoLuongSach = 3 },
-                        new YeuCauMuonDto { MaYeuCau = 2002, MaDocGia = 102, TenDocGia = "Trần Thị Mai", NgayGui = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy HH:mm"), TrangThai = "Chờ duyệt", SoLuongSach = 1 }
-                    };
+                        MaYeuCau = yc.MaYeuCau,
+                        MaDocGia = yc.MaDocGia,
+                        TenDocGia = yc.NguoiDung != null ? yc.NguoiDung.HoTen : "Độc giả ẩn danh",
+                        NgayGui = yc.NgayYeuCau.HasValue ? yc.NgayYeuCau.Value.ToString("dd/MM/yyyy HH:mm") : "Không rõ",
+                        TrangThai = yc.TrangThai,
+                        SoLuongSach = data.ChiTietYeuCauMuon.Count(ct => ct.MaYeuCau == yc.MaYeuCau)
+                    });
                 }
 
                 return View(list);
             }
             catch (Exception)
             {
-                // Fallback Mock data trong trường hợp gặp lỗi kết nối
-                var mockList = new List<YeuCauMuonDto>
-                {
-                    new YeuCauMuonDto { MaYeuCau = 2001, MaDocGia = 101, TenDocGia = "Lê Hoàng Long", NgayGui = DateTime.Now.AddHours(-2).ToString("dd/MM/yyyy HH:mm"), TrangThai = "Chờ duyệt", SoLuongSach = 3 },
-                    new YeuCauMuonDto { MaYeuCau = 2002, MaDocGia = 102, TenDocGia = "Trần Thị Mai", NgayGui = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy HH:mm"), TrangThai = "Chờ duyệt", SoLuongSach = 1 }
-                };
-                return View(mockList);
+                return View(new List<YeuCauMuonDto>());
             }
         }
 
@@ -273,95 +189,6 @@ namespace DoAn_LTWeb.Controllers
         {
             try
             {
-                if (id >= 2000)
-                {
-                    // Trả về Mock detail
-                    var mockDetail = new YeuCauDetailDto();
-                    mockDetail.MaYeuCau = id;
-                    
-                    if (id == 2001)
-                    {
-                        mockDetail.MaDocGia = 101;
-                        mockDetail.TenDocGia = "Lê Hoàng Long";
-                        mockDetail.SoDienThoai = "0912345678";
-                        mockDetail.Email = "longlh@gmail.com";
-                        mockDetail.DiaChi = "75/12 Tô Hiệu, Tân Phú, TP. HCM";
-                    }
-                    else
-                    {
-                        mockDetail.MaDocGia = 102;
-                        mockDetail.TenDocGia = "Trần Thị Mai";
-                        mockDetail.SoDienThoai = "0987654321";
-                        mockDetail.Email = "maitt@gmail.com";
-                        mockDetail.DiaChi = "120/4 Lê Trọng Tấn, Tân Phú, TP. HCM";
-                    }
-
-                    mockDetail.DanhSachSach = new List<SachYeuCauDto>();
-
-                    // Cố gắng lấy sách từ database để hiển thị thật trực quan
-                    var dbBooks = data.Sach.Take(2).ToList();
-                    if (dbBooks.Count >= 2)
-                    {
-                        // Sách 1: Lập trình Clean Code (Mượn 2 cuốn)
-                        var s1 = dbBooks[0];
-                        var availableCopies1 = data.CuonSach.Where(cs => cs.MaSach == s1.MaSach && cs.TrangThai == "Có sẵn").ToList();
-                        mockDetail.DanhSachSach.Add(new SachYeuCauDto
-                        {
-                            MaSach = s1.MaSach,
-                            TenSach = s1.TenSach,
-                            AnhBia = s1.AnhBia,
-                            SoLuongMuon = 2,
-                            SoLuongCoSan = availableCopies1.Count,
-                            BanSachGoiY = availableCopies1.Take(2).Select(cs => new CuonSachGoiYDto { MaCuonSach = cs.MaCuonSach, ViTriKe = cs.ViTriKe ?? "Kệ A-1-2" }).ToList(),
-                            TrangThaiKho = availableCopies1.Count >= 2 ? "Có sẵn" : "Không đủ sách"
-                        });
-
-                        // Sách 2: Một cuốn sách khác (Mượn 1 cuốn)
-                        var s2 = dbBooks[1];
-                        var availableCopies2 = data.CuonSach.Where(cs => cs.MaSach == s2.MaSach && cs.TrangThai == "Có sẵn").ToList();
-                        mockDetail.DanhSachSach.Add(new SachYeuCauDto
-                        {
-                            MaSach = s2.MaSach,
-                            TenSach = s2.TenSach,
-                            AnhBia = s2.AnhBia,
-                            SoLuongMuon = 1,
-                            SoLuongCoSan = availableCopies2.Count,
-                            BanSachGoiY = availableCopies2.Take(1).Select(cs => new CuonSachGoiYDto { MaCuonSach = cs.MaCuonSach, ViTriKe = cs.ViTriKe ?? "Kệ B-2-1" }).ToList(),
-                            TrangThaiKho = availableCopies2.Count >= 1 ? "Có sẵn" : "Không đủ sách"
-                        });
-                    }
-                    else
-                    {
-                        // Mock 100% khi Database trống hoàn toàn
-                        mockDetail.DanhSachSach.Add(new SachYeuCauDto
-                        {
-                            MaSach = 9991,
-                            TenSach = "Clean Code: A Handbook of Agile Software Craftsmanship",
-                            AnhBia = "",
-                            SoLuongMuon = 2,
-                            SoLuongCoSan = 3,
-                            BanSachGoiY = new List<CuonSachGoiYDto> {
-                                new CuonSachGoiYDto { MaCuonSach = 501, ViTriKe = "Kệ A-1-2" },
-                                new CuonSachGoiYDto { MaCuonSach = 502, ViTriKe = "Kệ A-1-3" }
-                            },
-                            TrangThaiKho = "Có sẵn"
-                        });
-                        mockDetail.DanhSachSach.Add(new SachYeuCauDto
-                        {
-                            MaSach = 9992,
-                            TenSach = "Introduction to Algorithms",
-                            AnhBia = "",
-                            SoLuongMuon = 1,
-                            SoLuongCoSan = 1,
-                            BanSachGoiY = new List<CuonSachGoiYDto> {
-                                new CuonSachGoiYDto { MaCuonSach = 601, ViTriKe = "Kệ C-3-1" }
-                            },
-                            TrangThaiKho = "Có sẵn"
-                        });
-                    }
-
-                    return Json(new { success = true, data = mockDetail }, JsonRequestBehavior.AllowGet);
-                }
 
                 // Thực tế lấy từ database
                 var yc = data.YeuCauMuon.Include(y => y.NguoiDung).FirstOrDefault(y => y.MaYeuCau == id);
@@ -421,12 +248,6 @@ namespace DoAn_LTWeb.Controllers
                 DateTime parsedNgayMuon = DateTime.Parse(ngayMuon);
                 DateTime parsedNgayHenTra = DateTime.Parse(ngayHenTra);
 
-                if (id >= 2000)
-                {
-                    // Simulating approval for mock requests
-                    return Json(new { success = true, message = $"[MOCK] Đã phê duyệt yêu cầu mượn #{id}! Hệ thống đã gán bản sách vật lý cho độc giả, ngày mượn {ngayMuon} đến {ngayHenTra}." });
-                }
-
                 var yc = data.YeuCauMuon.FirstOrDefault(y => y.MaYeuCau == id);
                 if (yc == null)
                 {
@@ -434,12 +255,13 @@ namespace DoAn_LTWeb.Controllers
                 }
 
                 // 1. Tạo mới phiếu mượn chính thức
+                var currentLibrarian = Session["User"] as NguoiDung;
                 PhieuMuon pm = new PhieuMuon();
                 pm.MaDocGia = yc.MaDocGia;
-                pm.MaThuThu = null; // Sẽ được cập nhật khi có cơ chế Login thật
+                pm.MaThuThu = currentLibrarian != null ? currentLibrarian.MaNguoiDung : (int?)null;
                 pm.NgayMuon = parsedNgayMuon;
                 pm.NgayHenTra = parsedNgayHenTra;
-                pm.TrangThai = "DangMuon";
+                pm.TrangThai = "Đang mượn";
 
                 data.PhieuMuon.Add(pm);
                 data.SaveChanges(); // Lưu để lấy MaPhieuMuon tự tăng
@@ -495,12 +317,6 @@ namespace DoAn_LTWeb.Controllers
         {
             try
             {
-                if (id >= 2000)
-                {
-                    // Simulating rejection for mock requests
-                    return Json(new { success = true, message = $"[MOCK] Đã từ chối yêu cầu mượn #{id} thành công!" });
-                }
-
                 var yc = data.YeuCauMuon.FirstOrDefault(y => y.MaYeuCau == id);
                 if (yc == null)
                 {
@@ -521,36 +337,6 @@ namespace DoAn_LTWeb.Controllers
 
         // ================= TASK 3: QUẢN LÝ PHIẾU MƯỢN =================
 
-        // DTO for PhieuMuon list
-        public class PhieuMuonQuanLyDto
-        {
-            public int MaPhieuMuon { get; set; }
-            public int MaDocGia { get; set; }
-            public string TenDocGia { get; set; }
-            public string NgayMuon { get; set; }
-            public string NgayHenTra { get; set; }
-            public string TrangThai { get; set; }
-            public int SoLuongSach { get; set; }
-            public string DanhSachTenSach { get; set; }
-        }
-
-        public class PhieuMuonDetailQuanLyDto
-        {
-            public int MaChiTiet { get; set; }
-            public int MaCuonSach { get; set; }
-            public string TenSach { get; set; }
-            public string ViTriKe { get; set; }
-            public string NgayTraThucTe { get; set; }
-            public string TinhTrangKhiTra { get; set; }
-        }
-
-        public class TraSachInput
-        {
-            public int MaChiTiet { get; set; }
-            public int MaCuonSach { get; set; }
-            public string TinhTrang { get; set; } // "Bình thường", "Hỏng", "Mất"
-        }
-
         // GET: ThuThu/PhieuMuon
         public ActionResult PhieuMuon()
         {
@@ -567,57 +353,38 @@ namespace DoAn_LTWeb.Controllers
 
                 List<PhieuMuonQuanLyDto> list = new List<PhieuMuonQuanLyDto>();
 
-                if (dbList.Count > 0)
+                foreach (var pm in dbList)
                 {
-                    foreach (var pm in dbList)
+                    // Lấy danh sách tên sách mượn
+                    List<string> sachNames = new List<string>();
+                    foreach (var ct in pm.ChiTietPhieuMuon)
                     {
-                        // Lấy danh sách tên sách mượn
-                        List<string> sachNames = new List<string>();
-                        foreach (var ct in pm.ChiTietPhieuMuon)
+                        var cs = data.CuonSach.Include(c => c.Sach).FirstOrDefault(c => c.MaCuonSach == ct.MaCuonSach);
+                        if (cs != null && cs.Sach != null)
                         {
-                            var cs = data.CuonSach.Include(c => c.Sach).FirstOrDefault(c => c.MaCuonSach == ct.MaCuonSach);
-                            if (cs != null && cs.Sach != null)
-                            {
-                                sachNames.Add(cs.Sach.TenSach);
-                            }
+                            sachNames.Add(cs.Sach.TenSach);
                         }
-
-                        list.Add(new PhieuMuonQuanLyDto
-                        {
-                            MaPhieuMuon = pm.MaPhieuMuon,
-                            MaDocGia = pm.MaDocGia,
-                            TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
-                            NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa nhận",
-                            NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
-                            TrangThai = pm.TrangThai,
-                            SoLuongSach = pm.ChiTietPhieuMuon.Count,
-                            DanhSachTenSach = string.Join(", ", sachNames)
-                        });
                     }
-                }
-                else
-                {
-                    // Fallback Mock data
-                    list = GetMockPhieuMuonList();
+
+                    list.Add(new PhieuMuonQuanLyDto
+                    {
+                        MaPhieuMuon = pm.MaPhieuMuon,
+                        MaDocGia = pm.MaDocGia,
+                        TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
+                        NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa nhận",
+                        NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
+                        TrangThai = pm.TrangThai,
+                        SoLuongSach = pm.ChiTietPhieuMuon.Count,
+                        DanhSachTenSach = string.Join(", ", sachNames)
+                    });
                 }
 
                 return View(list);
             }
             catch (Exception)
             {
-                return View(GetMockPhieuMuonList());
+                return View(new List<PhieuMuonQuanLyDto>());
             }
-        }
-
-        private List<PhieuMuonQuanLyDto> GetMockPhieuMuonList()
-        {
-            return new List<PhieuMuonQuanLyDto>
-            {
-                new PhieuMuonQuanLyDto { MaPhieuMuon = 1005, MaDocGia = 101, TenDocGia = "Lê Hoàng Long", NgayMuon = DateTime.Now.ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(14).ToString("dd/MM/yyyy"), TrangThai = "DangMuon", SoLuongSach = 2, DanhSachTenSach = "Clean Code, Refactoring" },
-                new PhieuMuonQuanLyDto { MaPhieuMuon = 1004, MaDocGia = 102, TenDocGia = "Trần Thị Mai", NgayMuon = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(13).ToString("dd/MM/yyyy"), TrangThai = "DangMuon", SoLuongSach = 1, DanhSachTenSach = "Introduction to Algorithms" },
-                new PhieuMuonQuanLyDto { MaPhieuMuon = 1003, MaDocGia = 103, TenDocGia = "Nguyễn Văn Hùng", NgayMuon = DateTime.Now.AddDays(-20).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(-6).ToString("dd/MM/yyyy"), TrangThai = "DangMuon", SoLuongSach = 1, DanhSachTenSach = "Design Patterns" }, // Quá hạn
-                new PhieuMuonQuanLyDto { MaPhieuMuon = 1002, MaDocGia = 104, TenDocGia = "Phạm Minh Tài", NgayMuon = DateTime.Now.AddDays(-15).ToString("dd/MM/yyyy"), NgayHenTra = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy"), TrangThai = "DaTra", SoLuongSach = 1, DanhSachTenSach = "Pragmatic Programmer" }
-            };
         }
 
         // GET: ThuThu/GetPhieuMuonDetail/{id}
@@ -626,29 +393,6 @@ namespace DoAn_LTWeb.Controllers
         {
             try
             {
-                if (id >= 2000 || id <= 1005) // Handle mock tickets
-                {
-                    List<PhieuMuonDetailQuanLyDto> mockDetails = new List<PhieuMuonDetailQuanLyDto>();
-                    if (id == 1005)
-                    {
-                        mockDetails.Add(new PhieuMuonDetailQuanLyDto { MaChiTiet = 901, MaCuonSach = 501, TenSach = "Clean Code: A Handbook of Agile Software Craftsmanship", ViTriKe = "Kệ A-1-2", NgayTraThucTe = "", TinhTrangKhiTra = "" });
-                        mockDetails.Add(new PhieuMuonDetailQuanLyDto { MaChiTiet = 902, MaCuonSach = 502, TenSach = "Refactoring: Improving the Design of Existing Code", ViTriKe = "Kệ A-1-3", NgayTraThucTe = "", TinhTrangKhiTra = "" });
-                    }
-                    else if (id == 1004)
-                    {
-                        mockDetails.Add(new PhieuMuonDetailQuanLyDto { MaChiTiet = 903, MaCuonSach = 601, TenSach = "Introduction to Algorithms", ViTriKe = "Kệ C-3-1", NgayTraThucTe = "", TinhTrangKhiTra = "" });
-                    }
-                    else if (id == 1003)
-                    {
-                        mockDetails.Add(new PhieuMuonDetailQuanLyDto { MaChiTiet = 904, MaCuonSach = 701, TenSach = "Design Patterns: Elements of Reusable Object-Oriented Software", ViTriKe = "Kệ B-2-1", NgayTraThucTe = "", TinhTrangKhiTra = "" });
-                    }
-                    else
-                    {
-                        mockDetails.Add(new PhieuMuonDetailQuanLyDto { MaChiTiet = 905, MaCuonSach = 801, TenSach = "Pragmatic Programmer, The", ViTriKe = "Kệ B-2-3", NgayTraThucTe = DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy"), TinhTrangKhiTra = "Bình thường" });
-                    }
-                    return Json(new { success = true, data = mockDetails }, JsonRequestBehavior.AllowGet);
-                }
-
                 // Database query
                 var details = data.ChiTietPhieuMuon
                     .Where(ct => ct.MaPhieuMuon == id)
@@ -682,12 +426,6 @@ namespace DoAn_LTWeb.Controllers
                 if (dsTra == null || dsTra.Count == 0)
                 {
                     return Json(new { success = false, message = "Danh sách trả trống!" });
-                }
-
-                if (id >= 2000 || id <= 1005) // Handle mock tickets
-                {
-                    string returnedDetails = string.Join(", ", dsTra.Select(t => $"Mã bản #{t.MaCuonSach} ({t.TinhTrang})"));
-                    return Json(new { success = true, message = $"[MOCK] Nhận trả thành công cho phiếu mượn #{id}! Tình trạng: {returnedDetails}." });
                 }
 
                 var pm = data.PhieuMuon.FirstOrDefault(p => p.MaPhieuMuon == id);
@@ -730,7 +468,7 @@ namespace DoAn_LTWeb.Controllers
                 bool allReturned = allDetails.All(c => c.NgayTraThucTe != null);
                 if (allReturned)
                 {
-                    pm.TrangThai = "DaTra";
+                    pm.TrangThai = "Đã trả";
                 }
 
                 data.SaveChanges();
@@ -748,6 +486,324 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult GuiNhacNhoPhieu(int id)
         {
             return Json(new { success = true, message = $"Đã gửi email nhắc nhở trả sách trễ hạn cho phiếu mượn #{id} thành công!" });
+        }
+
+        // ================= TASK 4: QUẢN LÝ TRẢ SÁCH & LẬP PHIẾU PHẠT =================
+
+        // GET: ThuThu/TraSach
+        public ActionResult TraSach()
+        {
+            ViewBag.ActiveMenu = "TraSach";
+            ViewBag.Title = "Xử lý trả sách và vi phạm";
+
+            try
+            {
+                // Chỉ lấy các phiếu mượn chưa hoàn thành (DangMuon hoặc có sách chưa trả thực tế)
+                var dbList = data.PhieuMuon
+                    .Include(p => p.NguoiDung)
+                    .Include(p => p.ChiTietPhieuMuon)
+                    .Where(p => p.TrangThai != "DaTra" && p.TrangThai != "Đã trả")
+                    .OrderByDescending(p => p.MaPhieuMuon)
+                    .ToList();
+
+                List<PhieuMuonQuanLyDto> list = new List<PhieuMuonQuanLyDto>();
+
+                foreach (var pm in dbList)
+                {
+                    List<string> sachNames = new List<string>();
+                    foreach (var ct in pm.ChiTietPhieuMuon)
+                    {
+                        var cs = data.CuonSach.Include(c => c.Sach).FirstOrDefault(c => c.MaCuonSach == ct.MaCuonSach);
+                        if (cs != null && cs.Sach != null)
+                        {
+                            sachNames.Add(cs.Sach.TenSach);
+                        }
+                    }
+
+                    list.Add(new PhieuMuonQuanLyDto
+                    {
+                        MaPhieuMuon = pm.MaPhieuMuon,
+                        MaDocGia = pm.MaDocGia,
+                        TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
+                        NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa nhận",
+                        NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
+                        TrangThai = pm.TrangThai,
+                        SoLuongSach = pm.ChiTietPhieuMuon.Count,
+                        DanhSachTenSach = string.Join(", ", sachNames)
+                    });
+                }
+
+                return View(list);
+            }
+            catch (Exception)
+            {
+                return View(new List<PhieuMuonQuanLyDto>());
+            }
+        }
+
+        // GET: ThuThu/GetTraSachDetail/{id}
+        [HttpGet]
+        public ActionResult GetTraSachDetail(int id)
+        {
+            try
+            {
+                // Database query
+                var pm = data.PhieuMuon.Include(p => p.NguoiDung).FirstOrDefault(p => p.MaPhieuMuon == id);
+                if (pm == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phiếu mượn!" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var details = data.ChiTietPhieuMuon
+                    .Where(ct => ct.MaPhieuMuon == id)
+                    .Include(ct => ct.CuonSach.Sach)
+                    .ToList();
+
+                var bookDtos = details.Select(ct => new TraSachBookDto
+                {
+                    MaChiTiet = ct.MaChiTiet,
+                    MaCuonSach = ct.MaCuonSach,
+                    TenSach = ct.CuonSach.Sach != null ? ct.CuonSach.Sach.TenSach : "Sách không rõ",
+                    AnhBia = ct.CuonSach.Sach != null ? ct.CuonSach.Sach.AnhBia : "",
+                    ViTriKe = ct.CuonSach.ViTriKe ?? "Kệ mặc định",
+                    GiaSach = 150000,
+                    NgayTraThucTe = ct.NgayTraThucTe.HasValue ? ct.NgayTraThucTe.Value.ToString("dd/MM/yyyy") : "",
+                    TinhTrangKhiTra = ct.TinhTrangKhiTra
+                }).ToList();
+
+                var detailDto = new TraSachDetailDto
+                {
+                    MaDocGia = pm.MaDocGia,
+                    TenDocGia = pm.NguoiDung != null ? pm.NguoiDung.HoTen : "Độc giả ẩn danh",
+                    SoDienThoai = pm.NguoiDung != null ? pm.NguoiDung.SoDienThoai : "Chưa cập nhật",
+                    Email = pm.NguoiDung != null ? pm.NguoiDung.Email : "Chưa cập nhật",
+                    DiaChi = pm.NguoiDung != null ? pm.NguoiDung.DiaChi : "Chưa cập nhật",
+                    NgayMuon = pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "Chưa nhận",
+                    NgayHenTra = pm.NgayHenTra.ToString("dd/MM/yyyy"),
+                    Books = bookDtos
+                };
+
+                return Json(new { success = true, data = detailDto }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: ThuThu/XacNhanTraSach
+        [HttpPost]
+        public ActionResult XacNhanTraSach(TraSachSubmitInput input)
+        {
+            try
+            {
+                if (input == null || input.Items == null || input.Items.Count == 0)
+                {
+                    return Json(new { success = false, message = "Không có cuốn sách nào được chọn để trả!" });
+                }
+
+                int id = input.MaPhieuMuon;
+
+                var pm = data.PhieuMuon.FirstOrDefault(p => p.MaPhieuMuon == id);
+                if (pm == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phiếu mượn!" });
+                }
+
+                int createdPhatId = 0;
+
+                foreach (var item in input.Items)
+                {
+                    if (item.TraSach)
+                    {
+                        var ct = data.ChiTietPhieuMuon.FirstOrDefault(c => c.MaChiTiet == item.MaChiTiet);
+                        if (ct != null)
+                        {
+                            ct.NgayTraThucTe = DateTime.Now;
+                            ct.TinhTrangKhiTra = item.TinhTrang;
+
+                            // Cập nhật trạng thái cuốn sách
+                            var copy = data.CuonSach.FirstOrDefault(cs => cs.MaCuonSach == item.MaCuonSach);
+                            if (copy != null)
+                            {
+                                if (item.TinhTrang == "Bình thường")
+                                {
+                                    copy.TrangThai = "Có sẵn";
+                                }
+                                else if (item.TinhTrang == "Hỏng")
+                                {
+                                    copy.TrangThai = "Hỏng";
+                                }
+                                else if (item.TinhTrang == "Mất")
+                                {
+                                    copy.TrangThai = "Mất";
+                                }
+                            }
+
+                            // Tạo phiếu phạt nếu có
+                            if (item.TienPhatRieng > 0)
+                            {
+                                string statusStr = (input.TrangThaiThanhToan == "Đã thanh toán" || input.TrangThaiThanhToan == "DaThanhToan") ? "DaThanhToan" : "ChuaThanhToan";
+                                var phat = new PhieuPhat
+                                {
+                                    MaChiTiet = item.MaChiTiet,
+                                    SoTienPhat = item.TienPhatRieng,
+                                    LyDo = item.LyDoPhatRieng ?? "Vi phạm trả sách",
+                                    NgayLap = DateTime.Now,
+                                    TrangThaiThanhToan = statusStr
+                                };
+                                data.PhieuPhat.Add(phat);
+                            }
+                        }
+                    }
+                }
+
+                // Kiểm tra xem tất cả sách đã được trả chưa
+                var allDetails = data.ChiTietPhieuMuon.Where(c => c.MaPhieuMuon == id).ToList();
+                bool allReturned = allDetails.All(c => c.NgayTraThucTe != null);
+                if (allReturned)
+                {
+                    pm.TrangThai = "Đã trả";
+                }
+
+                data.SaveChanges();
+
+                // Lấy ra mã phiếu phạt mới nhất vừa tạo nếu có
+                var latestPhat = data.PhieuPhat.Where(p => p.ChiTietPhieuMuon.MaPhieuMuon == id).OrderByDescending(p => p.MaPhieuPhat).FirstOrDefault();
+                if (latestPhat != null)
+                {
+                    createdPhatId = latestPhat.MaPhieuPhat;
+                }
+
+                return Json(new { 
+                    success = true, 
+                    message = $"Đã xác nhận trả sách cho phiếu #{id} thành công!",
+                    hasFine = (createdPhatId > 0),
+                    maPhieuPhat = createdPhatId
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + ex.Message });
+            }
+        }
+
+        // ================= TASK 4: QUẢN LÝ PHIẾU PHẠT =================
+
+        // GET: ThuThu/PhieuPhat
+        public ActionResult PhieuPhat()
+        {
+            ViewBag.ActiveMenu = "PhieuPhat";
+            ViewBag.Title = "Quản lý phiếu phạt";
+
+            try
+            {
+                var listDb = data.PhieuPhat
+                    .Include(p => p.ChiTietPhieuMuon)
+                    .Include(p => p.ChiTietPhieuMuon.PhieuMuon)
+                    .Include(p => p.ChiTietPhieuMuon.PhieuMuon.NguoiDung)
+                    .Include(p => p.ChiTietPhieuMuon.CuonSach.Sach)
+                    .OrderByDescending(p => p.MaPhieuPhat)
+                    .ToList();
+
+                var list = listDb.Select(p => new PhieuPhatQuanLyDto
+                {
+                    MaPhieuPhat = p.MaPhieuPhat,
+                    MaChiTiet = p.MaChiTiet,
+                    MaPhieuMuon = p.ChiTietPhieuMuon != null ? p.ChiTietPhieuMuon.MaPhieuMuon : 0,
+                    MaDocGia = (p.ChiTietPhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon != null) ? p.ChiTietPhieuMuon.PhieuMuon.MaDocGia : 0,
+                    TenDocGia = (p.ChiTietPhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon.NguoiDung != null) ? p.ChiTietPhieuMuon.PhieuMuon.NguoiDung.HoTen : "Độc giả ẩn danh",
+                    SoDienThoai = (p.ChiTietPhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon.NguoiDung != null) ? p.ChiTietPhieuMuon.PhieuMuon.NguoiDung.SoDienThoai : "Chưa có",
+                    Email = (p.ChiTietPhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon != null && p.ChiTietPhieuMuon.PhieuMuon.NguoiDung != null) ? p.ChiTietPhieuMuon.PhieuMuon.NguoiDung.Email : "Chưa có",
+                    SoTienPhat = p.SoTienPhat,
+                    LyDo = p.LyDo,
+                    NgayLap = p.NgayLap.HasValue ? p.NgayLap.Value.ToString("dd/MM/yyyy HH:mm") : "Không rõ",
+                    TrangThaiThanhToan = p.TrangThaiThanhToan ?? "ChuaThanhToan",
+                    TenSach = (p.ChiTietPhieuMuon != null && p.ChiTietPhieuMuon.CuonSach != null && p.ChiTietPhieuMuon.CuonSach.Sach != null) ? p.ChiTietPhieuMuon.CuonSach.Sach.TenSach : "Sách không rõ"
+                }).ToList();
+
+                return View(list);
+            }
+            catch (Exception)
+            {
+                return View(new List<PhieuPhatQuanLyDto>());
+            }
+        }
+
+        // GET: ThuThu/GetPhieuPhatDetail/{id}
+        [HttpGet]
+        public ActionResult GetPhieuPhatDetail(int id)
+        {
+            try
+            {
+                var p = data.PhieuPhat
+                    .Include(x => x.ChiTietPhieuMuon)
+                    .Include(x => x.ChiTietPhieuMuon.PhieuMuon)
+                    .Include(x => x.ChiTietPhieuMuon.PhieuMuon.NguoiDung)
+                    .Include(x => x.ChiTietPhieuMuon.CuonSach.Sach)
+                    .FirstOrDefault(x => x.MaPhieuPhat == id);
+
+                if (p == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phiếu phạt!" }, JsonRequestBehavior.AllowGet);
+                }
+
+                var user = p.ChiTietPhieuMuon?.PhieuMuon?.NguoiDung;
+                var sach = p.ChiTietPhieuMuon?.CuonSach?.Sach;
+
+                var detail = new PhieuPhatDetailDto
+                {
+                    MaPhieuPhat = p.MaPhieuPhat,
+                    MaPhieuMuon = p.ChiTietPhieuMuon?.MaPhieuMuon ?? 0,
+                    MaDocGia = p.ChiTietPhieuMuon?.PhieuMuon?.MaDocGia ?? 0,
+                    TenDocGia = user?.HoTen ?? "Độc giả ẩn danh",
+                    SoDienThoai = user?.SoDienThoai ?? "Chưa cập nhật",
+                    Email = user?.Email ?? "Chưa cập nhật",
+                    DiaChi = user?.DiaChi ?? "Chưa cập nhật",
+                    SoTienPhat = p.SoTienPhat,
+                    LyDo = p.LyDo,
+                    NgayLap = p.NgayLap.HasValue ? p.NgayLap.Value.ToString("dd/MM/yyyy HH:mm") : "",
+                    TrangThaiThanhToan = p.TrangThaiThanhToan ?? "ChuaThanhToan",
+                    MaCuonSach = p.ChiTietPhieuMuon?.MaCuonSach ?? 0,
+                    TenSach = sach?.TenSach ?? "Sách không rõ",
+                    TinhTrangKhiTra = p.ChiTietPhieuMuon?.TinhTrangKhiTra ?? "Hỏng / Mất"
+                };
+
+                return Json(new { success = true, data = detail }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: ThuThu/ThanhToanPhieuPhat
+        [HttpPost]
+        public ActionResult ThanhToanPhieuPhat(ThanhToanPhieuPhatInput input)
+        {
+            try
+            {
+                if (input == null || input.MaPhieuPhat <= 0)
+                {
+                    return Json(new { success = false, message = "Dữ liệu phiếu phạt không hợp lệ!" });
+                }
+
+                var p = data.PhieuPhat.FirstOrDefault(x => x.MaPhieuPhat == input.MaPhieuPhat);
+                if (p == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phiếu phạt trong CSDL!" });
+                }
+
+                // Cập nhật trạng thái thanh toán theo Check Constraint CSDL ('DaThanhToan')
+                p.TrangThaiThanhToan = "DaThanhToan";
+                data.SaveChanges();
+
+                return Json(new { success = true, message = $"Xác nhận thanh toán thành công cho Phiếu Phạt #{p.MaPhieuPhat}!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + ex.Message });
+            }
         }
     }
 }

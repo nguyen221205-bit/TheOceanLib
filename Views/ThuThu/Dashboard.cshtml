@@ -1,4 +1,4 @@
-@model List<DoAn_LTWeb.Controllers.ThuThuController.RecentPhieuMuonDto>
+@model List<DoAn_LTWeb.Models.DTOs.RecentPhieuMuonDto>
 
 @{
     Layout = "~/Views/Shared/_LayoutThuThu.cshtml";
@@ -123,13 +123,13 @@
             <table class="table align-middle table-hover mb-0">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Mã Phiếu</th>
-                        <th>Độc Giả</th>
-                        <th>Sách Yêu Cầu</th>
-                        <th style="width: 140px;">Ngày Mượn</th>
-                        <th style="width: 140px;">Hạn Hẹn Trả</th>
+                        <th style="width: 80px; text-align: center;">Mã Phiếu</th>
+                        <th style="width: 120px; text-align: center; white-space: nowrap;">Mã Độc Giả</th>
+                        <th style="text-align: left;">Độc Giả</th>
+                        <th style="width: 140px; text-align: center;">Ngày Mượn</th>
+                        <th style="width: 140px; text-align: center;">Hạn Hẹn Trả</th>
                         <th style="width: 140px; text-align: center;">Trạng Thái</th>
-                        <th style="width: 180px; text-align: center;">Thao Tác</th>
+                        <th style="width: 120px; text-align: center;">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -147,77 +147,94 @@
                         }
 
                         <tr>
-                            <td class="fw-bold">#@item.MaPhieuMuon</td>
-                            <td>
+                            <td class="text-center fw-bold text-primary">#@item.MaPhieuMuon</td>
+                            <td class="text-center fw-bold">@item.MaDocGia</td>
+                            <td class="text-start">
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center text-primary" style="width: 32px; height: 32px; font-weight: 600; font-size: 0.85rem;">
                                         @string.Concat(item.TenDocGia.Split(' ').Last().Take(1))
                                     </div>
-                                    <div>
-                                        <span class="fw-semibold d-block">@item.TenDocGia</span>
-                                    </div>
+                                    <span class="fw-semibold">@item.TenDocGia</span>
                                 </div>
                             </td>
-                            <td>
-                                <span class="text-truncate-1" title="@item.TenSach">@item.TenSach</span>
-                            </td>
-                            <td>@item.NgayMuon</td>
-                            <td>
+                            <td class="text-center">@item.NgayMuon</td>
+                            <td class="text-center">
                                 <span class="@(isOverdue ? "text-danger fw-bold" : "")">@item.NgayHenTra</span>
                             </td>
                             <td class="text-center">
-                                @if (isOverdue)
-                                {
-                                    <span class="status-badge overdue"><i class="fa-solid fa-triangle-exclamation me-1"></i>Quá hạn</span>
-                                }
-                                else if (item.TrangThai == "ChoDuyet" || item.TrangThai == "Pending" || item.TrangThai == "Chờ duyệt")
-                                {
-                                    <span class="status-badge pending"><i class="fa-solid fa-hourglass-half me-1"></i>Chờ duyệt</span>
-                                }
-                                else if (item.TrangThai == "DangMuon" || item.TrangThai == "Đang mượn")
-                                {
-                                    <span class="status-badge borrowed"><i class="fa-solid fa-book-reader me-1"></i>Đang mượn</span>
-                                }
-                                else
+                                @if (item.TrangThai == "DaTra" || item.TrangThai == "Đã trả")
                                 {
                                     <span class="status-badge returned"><i class="fa-solid fa-circle-check me-1"></i>Đã trả</span>
                                 }
-                            </td>
-                            <td class="text-center">
-                                @if (item.TrangThai == "ChoDuyet" || item.TrangThai == "Pending" || item.TrangThai == "Chờ duyệt")
-                                {
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <button class="btn btn-success btn-sm rounded-pill px-3 approve-btn" data-id="@item.MaPhieuMuon">
-                                            <i class="fa-solid fa-check me-1"></i> Duyệt
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3 reject-btn" data-id="@item.MaPhieuMuon">
-                                            Từ chối
-                                        </button>
-                                    </div>
-                                }
                                 else if (isOverdue)
                                 {
-                                    <button class="btn btn-warning btn-sm rounded-pill px-3 remind-btn" data-id="@item.MaPhieuMuon">
-                                        <i class="fa-solid fa-bell me-1"></i> Nhắc nhở
-                                    </button>
-                                }
-                                else if (item.TrangThai == "DangMuon" || item.TrangThai == "Đang mượn")
-                                {
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 return-btn" data-id="@item.MaPhieuMuon">
-                                        <i class="fa-solid fa-arrow-rotate-left me-1"></i> Nhận trả
-                                    </button>
+                                    <span class="status-badge overdue"><i class="fa-solid fa-triangle-exclamation me-1"></i>Trễ hạn</span>
                                 }
                                 else
                                 {
-                                    <button class="btn btn-light btn-sm rounded-pill px-3" disabled>
-                                        Hoàn tất
-                                    </button>
+                                    <span class="status-badge borrowed"><i class="fa-solid fa-book-reader me-1"></i>Đang mượn</span>
                                 }
+                            </td>
+                            <td class="text-center action-buttons-cell">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center detail-btn" data-id="@item.MaPhieuMuon" title="Chi tiết" style="width: 32px; height: 32px; padding: 0;">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </button>
+                                    
+                                    @if (item.TrangThai == "DaTra" || item.TrangThai == "Đã trả")
+                                    {
+                                        <button class="btn btn-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center remind-btn" data-id="@item.MaPhieuMuon" title="Không thể nhắc nhở (Đã trả)" disabled style="width: 32px; height: 32px; padding: 0; opacity: 0.5;">
+                                            <i class="fa-solid fa-bell"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-warning btn-sm rounded-circle d-flex align-items-center justify-content-center remind-btn" data-id="@item.MaPhieuMuon" title="Nhắc nhở quá hạn" style="width: 32px; height: 32px; padding: 0;">
+                                            <i class="fa-solid fa-bell"></i>
+                                        </button>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- --- MODAL POPUP CHI TIẾT PHIẾU MƯỢN --- -->
+<div class="modal fade" id="pmDetailModal" tabindex="-1" aria-labelledby="pmDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content glass-card" style="background-color: var(--bg-surface-glass); backdrop-filter: blur(20px); border: 1px solid var(--border-color); overflow: hidden; border-radius: 20px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title text-primary fw-bold fs-4" id="pmDetailModalLabel">
+                    <i class="fa-solid fa-circle-info me-2"></i> Chi Tiết Phiếu Mượn <span id="detailPmId">#0</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 120px;">Mã Bản Sách</th>
+                                <th>Tên Sách</th>
+                                <th style="width: 140px;">Vị Trí Kệ</th>
+                                <th style="width: 150px; text-align: center;">Trạng Thái Trả</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailBooksTableBody">
+                            <!-- Render bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
         </div>
     </div>
 </div>
@@ -371,47 +388,79 @@
                 }, 100);
             });
 
-            // ================= CÁC SỰ KIỆN THAO TÁC GIẢ LẬP =================
+            // ================= CÁC SỰ KIỆN THAO TÁC =================
             
-            // Nút duyệt phiếu mượn
-            $('.approve-btn').on('click', function() {
+            // Nút xem chi tiết phiếu mượn
+            $(document).on('click', '.detail-btn', function () {
                 const id = $(this).data('id');
-                const row = $(this).closest('tr');
+                $('#detailPmId').text('#' + id);
                 
-                showToast(`Đã duyệt yêu cầu mượn #${id}! Đang thông báo cho độc giả nhận sách.`, 'fa-circle-check');
-                
-                // Giả lập cập nhật UI
-                $(this).parent().html('<button class="btn btn-outline-primary btn-sm rounded-pill px-3 return-btn" data-id="' + id + '"><i class="fa-solid fa-arrow-rotate-left me-1"></i> Nhận trả</button>');
-                row.find('.status-badge').attr('class', 'status-badge borrowed').html('<i class="fa-solid fa-book-reader me-1"></i>Đang mượn');
-            });
+                // Mở Modal
+                const detailModal = new bootstrap.Modal(document.getElementById('pmDetailModal'));
+                detailModal.show();
 
-            // Nút từ chối phiếu mượn
-            $('.reject-btn').on('click', function() {
-                const id = $(this).data('id');
-                const row = $(this).closest('tr');
-                
-                if (confirm(`Bạn chắc chắn muốn từ chối yêu cầu mượn #${id}?`)) {
-                    showToast(`Đã hủy yêu cầu mượn #${id}.`, 'fa-solid fa-circle-xmark');
-                    row.fadeOut(500, function() {
-                        $(this).remove();
-                    });
-                }
+                $('#detailBooksTableBody').html('<tr><td colspan="4" class="text-center py-4 text-secondary"><i class="fa-solid fa-spinner fa-spin fs-3 mb-2"></i><p>Đang tải chi tiết...</p></td></tr>');
+
+                $.ajax({
+                    url: '/ThuThu/GetPhieuMuonDetail',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            const tbody = $('#detailBooksTableBody');
+                            tbody.empty();
+
+                            response.data.forEach(function (item) {
+                                const isReturned = item.NgayTraThucTe !== "";
+                                tbody.append(`
+                                    <tr>
+                                        <td class="fw-bold text-primary">#${item.MaCuonSach}</td>
+                                        <td class="fw-semibold">${item.TenSach}</td>
+                                        <td><span class="badge bg-secondary-soft text-secondary">${item.ViTriKe}</span></td>
+                                        <td class="text-center">
+                                            ${isReturned ? 
+                                                `<span class="badge bg-success-soft text-success px-2 py-1 rounded-pill small"><i class="fa-solid fa-circle-check me-1"></i>Đã trả (${item.NgayTraThucTe}) - ${item.TinhTrangKhiTra}</span>` : 
+                                                '<span class="badge bg-warning-soft text-warning px-2 py-1 rounded-pill small"><i class="fa-solid fa-hourglass-half me-1"></i>Đang mượn</span>'
+                                            }
+                                        </td>
+                                    </tr>
+                                `);
+                            });
+                        } else {
+                            showToast(response.message || 'Lỗi tải chi tiết phiếu mượn!', 'fa-solid fa-triangle-exclamation');
+                            bootstrap.Modal.getInstance(document.getElementById('pmDetailModal')).hide();
+                        }
+                    },
+                    error: function () {
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
+                        bootstrap.Modal.getInstance(document.getElementById('pmDetailModal')).hide();
+                    }
+                });
             });
 
             // Nút nhắc nhở quá hạn
-            $(document).on('click', '.remind-btn', function() {
+            $(document).on('click', '.remind-btn', function () {
                 const id = $(this).data('id');
-                showToast(`Đã gửi email nhắc nhở trả sách trễ hạn cho phiếu mượn #${id}!`, 'fa-solid fa-paper-plane');
-            });
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i>');
 
-            // Nút nhận trả sách
-            $(document).on('click', '.return-btn', function() {
-                const id = $(this).data('id');
-                const row = $(this).closest('tr');
-                
-                showToast(`Đã nhận trả sách thành công cho phiếu #${id}. Sách đã được chuyển về kệ!`, 'fa-solid fa-square-check');
-                row.find('.status-badge').attr('class', 'status-badge returned').html('<i class="fa-solid fa-circle-check me-1"></i>Đã trả');
-                row.find('.text-center').last().html('<button class="btn btn-light btn-sm rounded-pill px-3" disabled>Hoàn tất</button>');
+                $.ajax({
+                    url: '/ThuThu/GuiNhacNhoPhieu',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (response) {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-bell"></i>');
+                        if (response.success) {
+                            showToast(response.message || 'Đã gửi nhắc nhở quá hạn thành công!', 'fa-solid fa-paper-plane');
+                        } else {
+                            showToast('Có lỗi xảy ra khi gửi nhắc nhở!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-bell"></i>');
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
             });
         });
     </script>

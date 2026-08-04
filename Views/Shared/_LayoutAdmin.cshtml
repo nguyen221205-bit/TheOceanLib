@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Quản trị Hệ thống TheOceanLib</title>
+    <link href="@Url.Content("~/Content/bootstrap.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/Site.css")?v=@(DateTime.Now.Ticks)" rel="stylesheet" />
+    
+    <!-- Google Fonts & Vector Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN for Admin Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <!-- Script khởi tạo theme ngay lập tức để tránh nhấp nháy giao diện -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- --- HEADER ADMIN CHUYÊN NGHIỆP --- -->
+    <header class="admin-header">
+        <!-- Logo bên trái -->
+        <div class="d-flex align-items-center">
+            <a href="@Url.Action("Index", "Admin")" class="d-flex align-items-center gap-2 text-decoration-none">
+                <img src="~/Content/images/Logo.png" alt="Logo" style="height: 38px; object-fit: contain;">
+                <div class="brand-logo-text d-flex align-items-center">
+                    <span class="fs-4">TheOcean<span style="color: var(--text-primary);">Lib</span> <span class="badge bg-danger fs-7 px-2 py-1 ms-1 text-white"><i class="fa-solid fa-user-shield me-1"></i>ADMIN</span></span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Nút Tiện ích & Tài khoản bên phải -->
+        <div class="d-flex align-items-center gap-2">
+            <!-- Chuyển sang giao diện Thủ thư -->
+            <a href="@Url.Action("Dashboard", "ThuThu")" class="btn btn-outline-info btn-sm me-1 rounded-pill px-3" title="Vào giao diện Thủ thư">
+                <i class="fa-solid fa-user-gear me-1"></i> Thủ Thư
+            </a>
+
+            <!-- Quay lại trang độc giả -->
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary btn-sm me-2 rounded-pill px-3" title="Về trang chủ độc giả">
+                <i class="fa-solid fa-arrow-left me-1"></i> Trang Độc Giả
+            </a>
+
+            <!-- Nút Đổi giao diện -->
+            <button class="header-action-btn" id="themeToggleBtn" title="Đổi giao diện">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+
+            @using DoAn_LTWeb.Models
+            @{
+                var currentUser = Session["User"] as NguoiDung;
+            }
+            <!-- Tài khoản Dropdown -->
+            <div class="dropdown">
+                <button class="account-dropdown-toggle dropdown-toggle" type="button" id="accountMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-shield-cat fs-5 text-danger"></i>
+                    <span class="d-none d-lg-inline fw-bold" id="userDisplayName">@(currentUser != null ? currentUser.HoTen : "Quản Trị Viên")</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end account-dropdown-menu" aria-labelledby="accountMenuButton">
+                    @if (currentUser != null)
+                    {
+                        <li><h6 class="dropdown-header">Quyền hạn: System Admin</h6></li>
+                        <li><a class="dropdown-item" href="#"><i class="fa-regular fa-id-card me-1"></i> Hồ sơ Admin</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="@Url.Action("DangXuat", "Home")"><i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Đăng xuất</a></li>
+                    }
+                    else
+                    {
+                        <li><a class="dropdown-item text-primary" href="@Url.Action("DangNhap", "Home")"><i class="fa-solid fa-arrow-right-to-bracket text-emerald me-1"></i> Đăng nhập</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- --- SIDEBAR ADMIN ĐẦY ĐỦ CÁC NÚT CHỨC NĂNG --- -->
+        <aside class="admin-sidebar">
+            <div class="px-3 py-2 text-uppercase text-muted fw-bold border-bottom mb-2" style="font-size: 0.72rem; letter-spacing: 1px;">
+                <i class="fa-solid fa-sliders me-1"></i> Màn hình quản trị
+            </div>
+            <ul class="admin-menu-list">
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
+                    <a href="@Url.Action("Index", "Admin")">
+                        <i class="fa-solid fa-chart-pie text-danger"></i> Dashboard Báo Cáo
+                    </a>
+                </li>
+
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-book-atlas me-1"></i> Quản Lý Sách & Kho
+                </div>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLySach" ? "active" : "")">
+                    <a href="@Url.Action("QuanLySach", "Admin")">
+                        <i class="fa-solid fa-book"></i> Quản Lý Sách & Bản Sách
+                    </a>
+                </li>
+
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-tags me-1"></i> Danh Mục Hệ Thống
+                </div>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLyTheLoai" ? "active" : "")">
+                    <a href="@Url.Action("QuanLyTheLoai", "Admin")">
+                        <i class="fa-solid fa-layer-group"></i> Quản Lý Thể Loại
+                    </a>
+                </li>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLyTacGia" ? "active" : "")">
+                    <a href="@Url.Action("QuanLyTacGia", "Admin")">
+                        <i class="fa-solid fa-feather-pointed"></i> Quản Lý Tác Giả
+                    </a>
+                </li>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLyNXB" ? "active" : "")">
+                    <a href="@Url.Action("QuanLyNXB", "Admin")">
+                        <i class="fa-solid fa-building-columns"></i> Quản Lý Nhà Xuất Bản
+                    </a>
+                </li>
+
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-users-gear me-1"></i> Nhân Sự & Độc Giả
+                </div>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLyTaiKhoan" ? "active" : "")">
+                    <a href="@Url.Action("QuanLyTaiKhoan", "Admin")">
+                        <i class="fa-solid fa-users-viewfinder"></i> Quản Lý Tài Khoản
+                    </a>
+                </li>
+
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-chart-column me-1"></i> Báo Cáo Chuyên Sâu
+                </div>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "BaoCaoThongKe" ? "active" : "")">
+                    <a href="@Url.Action("BaoCaoThongKe", "Admin")">
+                        <i class="fa-solid fa-file-chart-column"></i> Thống Kê & Doanh Thu
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mt-auto p-2.5 rounded-3 text-center border border-dashed border-danger border-opacity-30" style="background-color: rgba(239, 68, 68, 0.05);">
+                <small class="text-muted d-block" style="font-size: 0.75rem;">Quyền hạn tối cao</small>
+                <span class="fw-bold text-danger small"><i class="fa-solid fa-user-shield me-1"></i>System Admin</span>
+            </div>
+        </aside>
+
+        <!-- --- NỘI DUNG CHÍNH BÊN PHẢI --- -->
+        <main class="admin-content-wrapper">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Toast Thông báo -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+        <div id="appToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px; background-color: var(--bg-surface); border: 1px solid var(--border-color) !important;">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i id="toastIcon" class="fa-solid fa-info-circle text-emerald fs-5"></i>
+                    <span id="toastMessage" class="fw-medium">Thông báo thành công!</span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    
+    <script>
+        // Xử lý chuyển đổi Giao diện Tối/Sáng (Theme Toggle)
+        document.addEventListener('DOMContentLoaded', function () {
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const htmlTag = document.documentElement;
+
+            function updateIcon(theme) {
+                if (themeBtn) {
+                    const icon = themeBtn.querySelector('i');
+                    if (icon) {
+                        if (theme === 'dark') {
+                            icon.className = 'fa-solid fa-sun text-warning';
+                        } else {
+                            icon.className = 'fa-solid fa-moon';
+                        }
+                    }
+                }
+            }
+
+            const currentTheme = htmlTag.getAttribute('data-theme') || 'light';
+            updateIcon(currentTheme);
+
+            if (themeBtn) {
+                themeBtn.addEventListener('click', function () {
+                    const activeTheme = htmlTag.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                    htmlTag.setAttribute('data-theme', activeTheme);
+                    localStorage.setItem('theme', activeTheme);
+                    updateIcon(activeTheme);
+                });
+            }
+
+            // Hàm Toast dùng chung
+            window.showAppToast = function (msg, type) {
+                const toastEl = document.getElementById('appToast');
+                const toastMsg = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+
+                if (toastEl && toastMsg) {
+                    toastMsg.innerText = msg;
+                    if (type === 'error') {
+                        toastIcon.className = 'fa-solid fa-circle-exclamation text-danger fs-5';
+                    } else if (type === 'warning') {
+                        toastIcon.className = 'fa-solid fa-triangle-exclamation text-warning fs-5';
+                    } else {
+                        toastIcon.className = 'fa-solid fa-circle-check text-success fs-5';
+                    }
+                    const bsToast = new bootstrap.Toast(toastEl, { delay: 3500 });
+                    bsToast.show();
+                }
+            };
+        });
+    </script>
+    
+    @RenderSection("scripts", required: false)
+</body>
+</html>

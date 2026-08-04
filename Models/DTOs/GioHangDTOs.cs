@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DoAn_LTWeb.Models
+namespace DoAn_LTWeb.Models.DTOs
 {
     public class CartItem
     {
@@ -93,7 +94,7 @@ namespace DoAn_LTWeb.Models
             lst.Clear();
         }
 
-        // Thêm hàm này vào class GioHang trong file CartItem.cs
+        // Cập nhật số lượng
         public void CapNhat(int maSach, int soLuongMoi)
         {
             CartItem item = lst.FirstOrDefault(x => x.iMaSach == maSach);

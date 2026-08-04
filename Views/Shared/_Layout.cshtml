@@ -71,26 +71,56 @@
                     <a href="@Url.Action("XemGioHang", "Home")" class="header-action-btn position-relative text-decoration-none" title="Xem giỏ mượn">
                         <i class="fa-solid fa-basket-shopping"></i>
                         @{
-                            var gioHangSession = Session["GioHang"] as DoAn_LTWeb.Models.GioHang;
+                            var gioHangSession = Session["GioHang"] as DoAn_LTWeb.Models.DTOs.GioHang;
                             int totalCartItems = gioHangSession != null ? gioHangSession.TongSLHang() : 0;
                         }
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="cartBadge">@totalCartItems</span>
                     </a>
 
 
+                    @using DoAn_LTWeb.Models
+                    @{
+                        var currentUser = Session["User"] as NguoiDung;
+                    }
+                    @if (currentUser != null && currentUser.MaVaiTro == 1)
+                    {
+                        <!-- Nút truy cập nhanh Trang Admin -->
+                        <a href="@Url.Action("Index", "Admin")" class="btn btn-danger btn-sm rounded-pill me-1 px-3 d-none d-sm-inline-flex align-items-center gap-1 shadow-sm" title="Vào trang quản trị Admin">
+                            <i class="fa-solid fa-user-shield"></i> Trang Admin
+                        </a>
+                    }
                     <!-- Tài khoản Dropdown -->
                     <div class="dropdown">
                         <button class="account-dropdown-toggle dropdown-toggle" type="button" id="accountMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fa-solid fa-circle-user fs-5 text-emerald"></i>
-                            <span class="d-none d-lg-inline" id="userDisplayName">Đăng nhập</span>
+                            <span class="d-none d-lg-inline" id="userDisplayName">@(currentUser != null ? currentUser.HoTen : "Đăng nhập")</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end account-dropdown-menu" aria-labelledby="accountMenuButton">
-                            <li><h6 class="dropdown-header">Tài khoản cá nhân</h6></li>
-                            <li><a class="dropdown-item" href="#" id="menuProfileLink"><i class="fa-regular fa-id-card"></i> Hồ sơ cá nhân</a></li>
-                            <li><a class="dropdown-item" href="#" id="menuHistoryLink"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử mượn trả</a></li>
-                            <li><a class="dropdown-item" href="@Url.Action("Dashboard", "ThuThu")" id="menuAdminLink"><i class="fa-solid fa-user-shield"></i> Quản trị Thư viện</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#" id="authActionButton"><i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất</a></li>
+                            @if (currentUser != null)
+                            {
+                                <li><h6 class="dropdown-header">Tài khoản cá nhân</h6></li>
+                                <li><a class="dropdown-item" href="#" id="menuProfileLink"><i class="fa-regular fa-id-card me-1"></i> Hồ sơ cá nhân</a></li>
+                                <li><a class="dropdown-item" href="#" id="menuHistoryLink"><i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử mượn trả</a></li>
+                                
+                                if (currentUser.MaVaiTro == 1)
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger fw-bold" href="@Url.Action("Index", "Admin")" id="menuSystemAdminLink"><i class="fa-solid fa-user-shield me-1"></i> Trang Quản Lý Admin</a></li>
+                                    <li><a class="dropdown-item text-primary" href="@Url.Action("Dashboard", "ThuThu")" id="menuLibrarianLink"><i class="fa-solid fa-user-gear me-1"></i> Giao Diện Thủ Thư</a></li>
+                                }
+                                else if (currentUser.MaVaiTro == 2)
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-primary fw-bold" href="@Url.Action("Dashboard", "ThuThu")" id="menuAdminLink"><i class="fa-solid fa-user-gear me-1"></i> Quản Trị Thư Viện</a></li>
+                                }
+                                
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="@Url.Action("DangXuat", "Home")"><i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Đăng xuất</a></li>
+                            }
+                            else
+                            {
+                                <li><a class="dropdown-item text-primary" href="@Url.Action("DangNhap", "Home")"><i class="fa-solid fa-arrow-right-to-bracket text-emerald"></i> Đăng nhập / Đăng ký</a></li>
+                            }
                         </ul>
                     </div>
                 </div>
@@ -275,51 +305,7 @@
                 showToast(nextTheme === 'dark' ? 'Đã chuyển sang giao diện Tối!' : 'Đã chuyển sang giao diện Sáng!', 'fa-circle-half-stroke');
             });
 
-            // ================= 2. QUẢN LÝ TÀI KHOẢN MOCK =================
-            let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
-            function updateAccountUI() {
-                if (currentUser) {
-                    $('#userDisplayName').text(currentUser.name);
-                    $('#menuProfileLink').parent().show();
-                    $('#menuHistoryLink').parent().show();
-                    if (currentUser.role === 'admin') {
-                        $('#menuAdminLink').parent().show();
-                    } else {
-                        $('#menuAdminLink').parent().hide();
-                    }
-                    $('#authActionButton').html('<i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất');
-                } else {
-                    $('#userDisplayName').text('Đăng nhập');
-                    $('#menuProfileLink').parent().hide();
-                    $('#menuHistoryLink').parent().hide();
-                    $('#menuAdminLink').parent().hide();
-                    $('#authActionButton').html('<i class="fa-solid fa-arrow-right-to-bracket text-emerald"></i> Đăng nhập / Đăng ký');
-                }
-            }
-
-            // Click sự kiện đăng nhập / đăng xuất giả lập
-            $('#authActionButton').on('click', function (e) {
-                e.preventDefault();
-                if (currentUser) {
-                    // Đăng xuất
-                    currentUser = null;
-                    localStorage.removeItem('currentUser');
-                    showToast('Đã đăng xuất tài khoản!', 'fa-solid fa-door-open');
-                } else {
-                    // Đăng nhập giả lập Admin
-                    currentUser = {
-                        name: 'Nguyễn Văn Admin',
-                        role: 'admin',
-                        email: 'admin@devlib.edu.vn'
-                    };
-                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                    showToast('Chào mừng Nguyễn Văn Admin đã đăng nhập thành công!', 'fa-solid fa-circle-check');
-                }
-                updateAccountUI();
-            });
-
-            updateAccountUI(); // Khởi chạy ban đầu
 
             // Dữ liệu mẫu ban đầu để demo nếu Storage trống
             const initialFav = [];

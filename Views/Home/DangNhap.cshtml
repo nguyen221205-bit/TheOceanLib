@@ -1,0 +1,195 @@
+@{
+    ViewBag.Title = "Đăng nhập & Đăng ký";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<div class="container py-5 d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 200px);">
+    <div class="glass-card p-4 p-md-5 w-100" style="max-width: 550px; background: var(--bg-surface-glass); border-radius: 24px; box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.08); border: 1px solid var(--border-color);">
+        <!-- TABS ĐIỀU HƯỚNG -->
+        <ul class="nav nav-pills nav-justified mb-4 p-1 bg-white-soft rounded-pill" id="authTabs" role="tablist" style="border: 1px solid var(--border-color);">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill fw-bold py-2" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab" aria-controls="login-panel" aria-selected="true" style="transition: all 0.3s ease;">
+                    <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill fw-bold py-2" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab" aria-controls="register-panel" aria-selected="false" style="transition: all 0.3s ease;">
+                    <i class="fa-solid fa-user-plus me-1"></i> Đăng Ký
+                </button>
+            </li>
+        </ul>
+
+        <!-- TABS CONTENT -->
+        <div class="tab-content" id="authTabsContent">
+            <!-- PANEL ĐĂNG NHẬP -->
+            <div class="tab-pane fade show active" id="login-panel" role="tabpanel" aria-labelledby="login-tab">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-primary mb-1">Chào Mừng Trở Lại</h3>
+                    <p class="text-secondary small">Vui lòng đăng nhập tài khoản của bạn để sử dụng các dịch vụ thư viện.</p>
+                </div>
+
+                <form id="loginForm" method="post">
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label fw-semibold text-secondary small">Địa chỉ Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-regular fa-envelope"></i></span>
+                            <input type="email" class="form-control bg-transparent border-start-0 ps-0" id="loginEmail" name="Email" placeholder="name@example.com" required style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="loginPassword" class="form-label fw-semibold text-secondary small">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-solid fa-lock"></i></span>
+                            <input type="password" class="form-control bg-transparent border-start-0 ps-0" id="loginPassword" name="MatKhau" placeholder="••••••••" required style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2.5 fw-bold bg-gradient shadow-sm mb-3" id="btnLoginSubmit">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập
+                    </button>
+                </form>
+
+                <div class="text-center text-xs text-secondary mt-3">
+                    Bản quyền thuộc về Hệ thống Quản lý Thư viện TheOceanLib.
+                </div>
+            </div>
+
+            <!-- PANEL ĐĂNG KÝ -->
+            <div class="tab-pane fade" id="register-panel" role="tabpanel" aria-labelledby="register-tab">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-primary mb-1">Tạo Tài Khoản</h3>
+                    <p class="text-secondary small">Đăng ký thẻ thư viện trực tuyến nhanh chóng chỉ trong vài bước.</p>
+                </div>
+
+                <form id="registerForm" method="post">
+                    <div class="mb-3">
+                        <label for="regName" class="form-label fw-semibold text-secondary small">Họ và tên <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-regular fa-user"></i></span>
+                            <input type="text" class="form-control bg-transparent border-start-0 ps-0" id="regName" name="HoTen" placeholder="Nguyễn Văn A" required style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="regEmail" class="form-label fw-semibold text-secondary small">Địa chỉ Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-regular fa-envelope"></i></span>
+                            <input type="email" class="form-control bg-transparent border-start-0 ps-0" id="regEmail" name="Email" placeholder="email@example.com" required style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="regPhone" class="form-label fw-semibold text-secondary small">Số điện thoại <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-solid fa-phone"></i></span>
+                            <input type="tel" class="form-control bg-transparent border-start-0 ps-0" id="regPhone" name="SoDienThoai" placeholder="09xxxxxxxx" required pattern="^0[3|5|7|8|9][0-9]{8}$" title="Vui lòng nhập số điện thoại Việt Nam hợp lệ (10 chữ số)" style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="regAddress" class="form-label fw-semibold text-secondary small">Địa chỉ liên hệ</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--border-color); color: var(--text-secondary);"><i class="fa-regular fa-map"></i></span>
+                            <input type="text" class="form-control bg-transparent border-start-0 ps-0" id="regAddress" name="DiaChi" placeholder="Quận / Huyện, Tỉnh / Thành Phố" style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="regPassword" class="form-label fw-semibold text-secondary small">Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control bg-transparent" id="regPassword" name="MatKhau" placeholder="Tối thiểu 6 ký tự" required minlength="6" style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="regConfirmPassword" class="form-label fw-semibold text-secondary small">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control bg-transparent" id="regConfirmPassword" name="ConfirmPassword" placeholder="Nhập lại mật khẩu" required style="color: var(--text-primary); border-color: var(--border-color);" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-emerald w-100 rounded-pill py-2.5 fw-bold bg-gradient shadow-sm mb-3 text-white" id="btnRegisterSubmit">
+                        <i class="fa-solid fa-user-plus me-1"></i> Đăng Ký Tài Khoản
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // ================= 1. XỬ LÝ SUBMIT FORM ĐĂNG NHẬP =================
+            $('#loginForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                const btn = $('#btnLoginSubmit');
+                btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang đăng nhập...');
+
+                $.ajax({
+                    url: '/Home/DangNhap',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập');
+                        
+                        if (response.success) {
+                            showToast(response.message || 'Đăng nhập thành công!', 'fa-solid fa-circle-check');
+                            // Chuyển hướng
+                            setTimeout(function () {
+                                window.location.href = response.redirectUrl;
+                            }, 1000);
+                        } else {
+                            showToast(response.message || 'Email hoặc mật khẩu không đúng!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Đăng Nhập');
+                        showToast('Không thể kết nối đến máy chủ để đăng nhập.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
+            });
+
+            // ================= 2. XỬ LÝ SUBMIT FORM ĐĂNG KÝ =================
+            $('#registerForm').on('submit', function (e) {
+                e.preventDefault();
+
+                // Kiểm tra khớp mật khẩu trên client
+                const pass = $('#regPassword').val();
+                const confirmPass = $('#regConfirmPassword').val();
+                if (pass !== confirmPass) {
+                    showToast('Xác nhận mật khẩu không trùng khớp!', 'fa-solid fa-triangle-exclamation');
+                    return;
+                }
+
+                const btn = $('#btnRegisterSubmit');
+                btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang đăng ký...');
+
+                $.ajax({
+                    url: '/Home/DangKy',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký Tài Khoản');
+                        
+                        if (response.success) {
+                            showToast(response.message || 'Đăng ký thành công!', 'fa-solid fa-circle-check');
+                            // Chuyển hướng sang trang chủ sau đăng nhập tự động
+                            setTimeout(function () {
+                                window.location.href = response.redirectUrl;
+                            }, 1200);
+                        } else {
+                            showToast(response.message || 'Lỗi khi đăng ký tài khoản!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html('<i class="fa-solid fa-user-plus me-1"></i> Đăng Ký Tài Khoản');
+                        showToast('Không thể kết nối đến máy chủ để đăng ký.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
+            });
+        });
+    </script>
+}

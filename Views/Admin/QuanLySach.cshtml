@@ -1,0 +1,30 @@
+@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewBag.Title = "Quản lý Sách & Bản sách";
+}
+
+<div class="container-fluid p-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--text-primary);">
+                <i class="fa-solid fa-book text-primary me-2"></i>Quản Lý Sách & Kho Bản Sách
+            </h3>
+            <p class="text-muted small mb-0">Xem danh sách đầu sách, thêm mới, sửa, xóa và quản lý vị trí kệ cuốn sách vật lý.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 py-2 fw-semibold">
+            <i class="fa-solid fa-plus me-1"></i>Thêm Đầu Sách Mới
+        </button>
+    </div>
+
+    <!-- PREVIEW GLASS CARD -->
+    <div class="glass-card p-4 rounded-4 border text-center py-5">
+        <i class="fa-solid fa-book-open-reader fs-1 text-primary mb-3"></i>
+        <h4 class="fw-bold" style="color: var(--text-primary);">Giao Diện Xem Trước: Quản Lý Sách</h4>
+        <p class="text-muted max-w-600 mx-auto">Tất cả các nút menu chuyển trang đã được kết nối chuẩn vào Layout Admin. Hãy xác nhận giao diện menu để chúng tôi tiến hành xây dựng toàn bộ logic CRUD cho chức năng này!</p>
+        <div class="d-flex justify-content-center gap-2 mt-3">
+            <span class="badge bg-primary px-3 py-2 fs-7">Thêm / Sửa / Xóa Đầu Sách</span>
+            <span class="badge bg-info text-dark px-3 py-2 fs-7">Quản lý Cuốn Sách Vật Lý</span>
+            <span class="badge bg-success px-3 py-2 fs-7">Vị Trí Kệ Sách</span>
+        </div>
+    </div>
+</div>

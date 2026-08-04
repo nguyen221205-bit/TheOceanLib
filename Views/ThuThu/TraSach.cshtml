@@ -1,0 +1,532 @@
+@model List<DoAn_LTWeb.Models.DTOs.PhieuMuonQuanLyDto>
+
+@{
+    Layout = "~/Views/Shared/_LayoutThuThu.cshtml";
+}
+
+<div class="container-fluid px-0">
+    <!-- --- TIÊU ĐỀ TRANG --- -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 text-primary fw-bold">Trả Sách & Lập Phiếu Phạt</h2>
+            <p class="text-secondary mb-0">Xử lý nhận trả sách từ độc giả, kiểm tra tình trạng sách vật lý và lập phiếu phạt vi phạm nếu có trễ hạn, hỏng hóc hoặc mất mát.</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary rounded-pill px-3" onclick="location.reload();">
+                <i class="fa-solid fa-rotate me-1"></i> Tải lại dữ liệu
+            </button>
+        </div>
+    </div>
+
+    <!-- --- BẢNG DANH SÁCH PHIẾU CẦN TRẢ --- -->
+    <div class="glass-card p-4">
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0" id="returnsTable">
+                <thead>
+                    <tr>
+                        <th style="width: 80px; text-align: center;">Mã PM</th>
+                        <th style="width: 120px; text-align: center; white-space: nowrap;">Mã Độc Giả</th>
+                        <th style="text-align: left;">Độc Giả</th>
+                        <th style="width: 140px; text-align: center;">Ngày Mượn</th>
+                        <th style="width: 140px; text-align: center;">Hạn Trả</th>
+                        <th style="width: 140px; text-align: center;">Trạng Trạng Thái</th>
+                        <th style="width: 150px; text-align: center;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-secondary">
+                                <i class="fa-solid fa-folder-open fs-1 mb-3 text-muted" style="opacity: 0.4;"></i>
+                                <p class="mb-0 fw-semibold">Không có phiếu mượn nào đang chờ trả sách!</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model)
+                        {
+                            // Kiểm tra trễ hạn
+                            bool isOverdue = false;
+                            DateTime henTraDate;
+                            if (DateTime.TryParseExact(item.NgayHenTra, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out henTraDate))
+                            {
+                                if (henTraDate < DateTime.Today)
+                                {
+                                    isOverdue = true;
+                                }
+                            }
+
+                            <tr>
+                                <td class="text-center fw-bold text-primary">#@item.MaPhieuMuon</td>
+                                <td class="text-center fw-bold">@item.MaDocGia</td>
+                                <td class="text-start">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary-soft d-flex align-items-center justify-content-center text-primary fw-semibold" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                            @string.Concat(item.TenDocGia.Split(' ').Last().Take(1))
+                                        </div>
+                                        <span class="fw-semibold">@item.TenDocGia</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.NgayMuon</td>
+                                <td class="text-center">
+                                    <span class="@(isOverdue ? "text-danger fw-bold" : "")">@item.NgayHenTra</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (isOverdue)
+                                    {
+                                        <span class="status-badge overdue"><i class="fa-solid fa-triangle-exclamation me-1"></i>Trễ hạn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge borrowed"><i class="fa-solid fa-book-reader me-1"></i>Đang mượn</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-primary btn-sm rounded-pill px-3 handle-return-btn" data-id="@item.MaPhieuMuon">
+                                        <i class="fa-solid fa-arrow-rotate-left me-1"></i> Trả sách
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- --- MODAL POPUP XỬ LÝ TRẢ SÁCH & LẬP PHIẾU PHẠT --- -->
+<div class="modal fade" id="traSachModal" tabindex="-1" aria-labelledby="traSachModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content glass-card" style="background-color: var(--bg-surface-glass); backdrop-filter: blur(20px); border: 1px solid var(--border-color); overflow: hidden; border-radius: 20px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title text-primary fw-bold fs-4" id="traSachModalLabel">
+                    <i class="fa-solid fa-arrow-rotate-left me-2"></i> Chi Tiết & Nhận Trả Sách - Phiếu Mượn <span id="modalPmId">#0</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <!-- CỘT TRÁI: THÔNG TIN ĐỘC GIẢ & THỜI HẠN -->
+                    <div class="col-lg-4">
+                        <div class="glass-card-sub p-4 h-100" style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 16px;">
+                            <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-user me-2"></i>Thông Tin Độc Giả</h6>
+                            <div class="text-center mb-4">
+                                <div class="rounded-circle bg-primary-soft mx-auto d-flex align-items-center justify-content-center text-primary fw-bold fs-2" id="avatarText" style="width: 80px; height: 80px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);">
+                                    D
+                                </div>
+                                <h5 class="mt-3 mb-1 fw-bold text-dark-light" id="readerName">Phan Văn Đức</h5>
+                                <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-1 text-xs">Thẻ Độc Giả: #<span id="readerId">14</span></span>
+                            </div>
+                            
+                            <hr class="my-3" style="opacity: 0.1;">
+                            
+                            <div class="mb-3">
+                                <label class="text-secondary small d-block">Số điện thoại</label>
+                                <span class="fw-semibold text-dark-light" id="readerPhone">0988000007</span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-secondary small d-block">Email</label>
+                                <span class="fw-semibold text-dark-light text-break" id="readerEmail">docgia@library.edu.vn</span>
+                            </div>
+                            <div class="mb-4">
+                                <label class="text-secondary small d-block">Địa chỉ</label>
+                                <span class="fw-semibold text-dark-light" id="readerAddress">Chưa cập nhật</span>
+                            </div>
+                            
+                            <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-calendar-check me-2"></i>Thông Tin Thời Hạn</h6>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="p-2 border rounded text-center bg-white-soft">
+                                        <span class="text-secondary text-xs d-block">Ngày Mượn</span>
+                                        <span class="fw-bold text-dark-light small" id="borrowDate">08/02/2026</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 border rounded text-center bg-white-soft">
+                                        <span class="text-secondary text-xs d-block">Hạn Hẹn Trả</span>
+                                        <span class="fw-bold text-dark-light small" id="dueDate">16/02/2026</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Cảnh báo quá hạn -->
+                            <div id="overdueWarning" class="alert alert-danger mt-3 py-2 px-3 rounded-pill text-center d-none" role="alert" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i> Trễ hạn <span class="fw-bold" id="overdueDaysCount">0</span> ngày!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- CỘT PHẢI: DANH SÁCH SÁCH & CHỌN TÌNH TRẠNG -->
+                    <div class="col-lg-8">
+                        <div class="h-100 d-flex flex-column">
+                            <h6 class="text-primary fw-bold mb-3"><i class="fa-solid fa-book-open me-2"></i>Danh Sách Sách Nhận Trả</h6>
+                            
+                            <div class="flex-grow-1" id="bookReturnListContainer" style="max-height: 380px; overflow-y: auto;">
+                                <!-- Sách sẽ được load bằng Ajax -->
+                            </div>
+                            
+                            <!-- BẢNG LẬP PHIẾU PHẠT (Chỉ hiển thị khi có tiền phạt phát sinh) -->
+                            <div id="fineSummarySection" class="glass-card-sub p-3 mt-3 d-none animate__animated animate__fadeIn" style="background: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.2); border-radius: 16px;">
+                                <h6 class="text-danger fw-bold mb-3"><i class="fa-solid fa-receipt me-2"></i>Phiếu Phạt Phát Sinh</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Số tiền phạt thực tế (đ)</label>
+                                        <input type="number" class="form-control bg-transparent text-danger fw-bold" id="actualFineAmount" style="border-color: rgba(220, 53, 69, 0.3);" value="0">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Trạng thái thanh toán</label>
+                                        <select class="form-select bg-transparent text-danger fw-bold" id="finePaymentStatus" style="border-color: rgba(220, 53, 69, 0.3);">
+                                            <option value="Chưa thanh toán" class="text-dark">Chưa thanh toán</option>
+                                            <option value="Đã thanh toán" class="text-dark">Đã thanh toán</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Lý do phạt / Ghi chú</label>
+                                        <textarea class="form-control bg-transparent text-danger small" id="fineReason" rows="1" style="border-color: rgba(220, 53, 69, 0.3); resize: none;" readonly></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-top-0 px-4 pb-4 pt-0 justify-content-between">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <div class="d-flex gap-2">
+                    <!-- Nút Xác nhận trả thường -->
+                    <button type="button" class="btn btn-primary rounded-pill px-4 bg-gradient" id="btnNormalReturnSubmit">
+                        <i class="fa-solid fa-circle-check me-1"></i> Xác Nhận Trả Sách
+                    </button>
+                    <!-- Nút Xác nhận trả & lập phiếu phạt -->
+                    <button type="button" class="btn btn-danger rounded-pill px-4 bg-gradient d-none" id="btnFineReturnSubmit">
+                        <i class="fa-solid fa-receipt me-1"></i> Xác Nhận Trả & Lập Phiếu Phạt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            let activePmId = 0;
+            let currentBooksData = [];
+            let daysOverdueGlobal = 0;
+
+            // ================= 1. AJAX MỞ MODAL XỬ LÝ TRẢ SÁCH =================
+            $('.handle-return-btn').on('click', function () {
+                const id = $(this).data('id');
+                activePmId = id;
+                $('#modalPmId').text('#' + id);
+
+                // Reset các trường
+                $('#btnNormalReturnSubmit').removeClass('d-none');
+                $('#btnFineReturnSubmit').addClass('d-none');
+                $('#fineSummarySection').addClass('d-none');
+                $('#overdueWarning').addClass('d-none');
+
+                const traModal = new bootstrap.Modal(document.getElementById('traSachModal'));
+                traModal.show();
+
+                $('#bookReturnListContainer').html('<div class="text-center py-5 text-secondary"><i class="fa-solid fa-spinner fa-spin fs-2 mb-2"></i><p>Đang tải chi tiết phiếu mượn...</p></div>');
+
+                $.ajax({
+                    url: '/ThuThu/GetTraSachDetail',
+                    type: 'GET',
+                    data: { id: id },
+                    success: function (response) {
+                        if (response.success) {
+                            const data = response.data;
+                            
+                            // 1. Cập nhật thông tin độc giả (cột trái)
+                            $('#avatarText').text(data.TenDocGia.split(' ').pop().substring(0, 1));
+                            $('#readerName').text(data.TenDocGia);
+                            $('#readerId').text(data.MaDocGia);
+                            $('#readerPhone').text(data.SoDienThoai);
+                            $('#readerEmail').text(data.Email);
+                            $('#readerAddress').text(data.DiaChi);
+                            $('#borrowDate').text(data.NgayMuon);
+                            $('#dueDate').text(data.NgayHenTra);
+
+                            // 2. Tính toán ngày trễ hạn
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            
+                            const parts = data.NgayHenTra.split('/');
+                            const dueDateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                            dueDateObj.setHours(0, 0, 0, 0);
+
+                            const diffTime = today - dueDateObj;
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays > 0) {
+                                daysOverdueGlobal = diffDays;
+                                $('#overdueDaysCount').text(diffDays);
+                                $('#overdueWarning').removeClass('d-none');
+                            } else {
+                                daysOverdueGlobal = 0;
+                            }
+
+                            // Lưu danh sách sách vào biến toàn cục để tính toán
+                            currentBooksData = data.Books.filter(x => x.NgayTraThucTe === "");
+
+                            // 3. Render danh sách sách trả (cột phải)
+                            const container = $('#bookReturnListContainer');
+                            container.empty();
+
+                            if (currentBooksData.length === 0) {
+                                container.html('<div class="text-center py-5 text-success"><i class="fa-solid fa-circle-check fs-1 mb-2"></i><p class="fw-bold">Tất cả sách trong phiếu này đã được trả!</p></div>');
+                                $('#btnNormalReturnSubmit').prop('disabled', true);
+                                return;
+                            }
+
+                            $('#btnNormalReturnSubmit').prop('disabled', false);
+
+                            currentBooksData.forEach(function (book) {
+                                const coverPath = book.AnhBia ? '/Content/Images/' + book.AnhBia : '';
+                                const coverHtml = book.AnhBia ? 
+                                    `<img src="${coverPath}" class="rounded shadow-sm" style="width: 55px; height: 80px; object-fit: cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'text-xs text-muted\\'>Book</div>';">` : 
+                                    `<div class="rounded bg-secondary-soft text-secondary d-flex align-items-center justify-content-center text-xs" style="width: 55px; height: 80px;">Book</div>`;
+
+                                container.append(`
+                                    <div class="book-return-row p-3 border rounded mb-3 bg-white-soft animate__animated animate__fadeIn" id="book-row-${book.MaChiTiet}" style="border-color: var(--border-color) !important;">
+                                        <div class="d-flex gap-3 align-items-center flex-wrap flex-md-nowrap">
+                                            <!-- Checkbox nhận trả -->
+                                            <div class="form-check form-switch ps-0">
+                                                <input class="form-check-input ms-0 return-check" type="checkbox" checked 
+                                                       data-id="${book.MaChiTiet}" data-price="${book.GiaSach}" data-title="${book.TenSach}"
+                                                       style="width: 40px; height: 20px; cursor: pointer;">
+                                            </div>
+                                            
+                                            <!-- Ảnh bìa -->
+                                            <div>${coverHtml}</div>
+                                            
+                                            <!-- Chi tiết sách -->
+                                            <div class="flex-grow-1">
+                                                <h6 class="fw-bold mb-1 text-dark-light text-truncate-2">${book.TenSach}</h6>
+                                                <div class="d-flex gap-2 text-xs flex-wrap">
+                                                    <span class="text-primary fw-bold">Mã bản: #${book.MaCuonSach}</span>
+                                                    <span class="text-secondary">|</span>
+                                                    <span class="text-secondary"><i class="fa-solid fa-map-pin me-1"></i>${book.ViTriKe}</span>
+                                                    <span class="text-secondary">|</span>
+                                                    <span class="text-secondary">Giá gốc: ${book.GiaSach.toLocaleString('vi-VN')}đ</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Chọn tình trạng khi trả -->
+                                            <div style="width: 140px;">
+                                                <label class="text-secondary text-xs mb-1 d-block fw-semibold">Tình trạng</label>
+                                                <select class="form-select form-select-sm bg-transparent text-primary condition-select" data-id="${book.MaChiTiet}">
+                                                    <option value="Bình thường" class="text-dark">Bình thường</option>
+                                                    <option value="Hỏng" class="text-dark">Bị hỏng (50%)</option>
+                                                    <option value="Mất" class="text-dark">Bị mất (100%+20k)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Mức phạt tính riêng của cuốn sách này -->
+                                        <div class="mt-2 text-end d-none fine-item-info text-danger small fw-bold" id="fine-info-${book.MaChiTiet}">
+                                            <i class="fa-solid fa-circle-exclamation me-1"></i> Phạt vi phạm: <span class="fine-val">0</span>đ
+                                        </div>
+                                    </div>
+                                `);
+                            });
+
+                            // Gọi hàm tính tiền phạt ban đầu
+                            recalculateFines();
+                        } else {
+                            showToast(response.message || 'Lỗi tải chi tiết trả sách!', 'fa-solid fa-triangle-exclamation');
+                            bootstrap.Modal.getInstance(document.getElementById('traSachModal')).hide();
+                        }
+                    },
+                    error: function () {
+                        showToast('Không thể kết nối đến máy chủ.', 'fa-solid fa-triangle-exclamation');
+                        bootstrap.Modal.getInstance(document.getElementById('traSachModal')).hide();
+                    }
+                });
+            });
+
+            // ================= 2. SỰ KIỆN THAY ĐỔI TRẠNG THÁI CHECKBOX / SELECT =================
+            $(document).on('change', '.return-check, .condition-select', function () {
+                recalculateFines();
+            });
+
+            // ================= 3. HÀM TỰ ĐỘNG TÍNH TOÁN TIỀN PHẠT TRÊN CLIENT =================
+            function recalculateFines() {
+                let totalFine = 0;
+                let reasonsList = [];
+
+                // 1. Phạt trễ hạn (Nếu phiếu bị trễ hạn và thủ thư tích chọn trả sách)
+                let isAnyBookReturned = false;
+                $('.return-check:checked').each(function () {
+                    isAnyBookReturned = true;
+                });
+
+                let overdueFineAmount = 0;
+                if (daysOverdueGlobal > 0 && isAnyBookReturned) {
+                    overdueFineAmount = daysOverdueGlobal * 5000;
+                    reasonsList.push(`Trễ hạn ${daysOverdueGlobal} ngày (${overdueFineAmount.toLocaleString('vi-VN')}đ)`);
+                }
+
+                // 2. Phạt hư hỏng/mất mát từng cuốn sách
+                $('.return-check').each(function () {
+                    const mact = $(this).data('id');
+                    const price = parseInt($(this).data('price'));
+                    const title = $(this).data('title');
+                    const isChecked = $(this).is(':checked');
+                    
+                    const condition = $(`.condition-select[data-id="${mact}"]`).val();
+                    const fineInfoDiv = $(`#fine-info-${mact}`);
+
+                    let itemFine = 0;
+                    let itemReason = "";
+
+                    if (isChecked) {
+                        if (condition === "Hỏng") {
+                            itemFine = price * 0.5;
+                            itemReason = `Hỏng sách [${title.substring(0, 20)}...] (50%: ${itemFine.toLocaleString('vi-VN')}đ)`;
+                        } else if (condition === "Mất") {
+                            itemFine = price * 1.0 + 20000;
+                            itemReason = `Mất sách [${title.substring(0, 20)}...] (100%+20k: ${itemFine.toLocaleString('vi-VN')}đ)`;
+                        }
+                    }
+
+                    if (itemFine > 0) {
+                        fineInfoDiv.removeClass('d-none').find('.fine-val').text(itemFine.toLocaleString('vi-VN'));
+                        totalFine += itemFine;
+                        reasonsList.push(itemReason);
+                    } else {
+                        fineInfoDiv.addClass('d-none');
+                    }
+                });
+
+                // Cộng tiền phạt trễ hạn
+                totalFine += overdueFineAmount;
+
+                // 3. Hiển thị thông tin lên khối Lập Phiếu Phạt
+                if (totalFine > 0) {
+                    $('#fineSummarySection').removeClass('d-none');
+                    $('#actualFineAmount').val(totalFine);
+                    $('#fineReason').val(reasonsList.join('; '));
+                    
+                    // Đổi nút chân Modal
+                    $('#btnNormalReturnSubmit').addClass('d-none');
+                    $('#btnFineReturnSubmit').removeClass('d-none');
+                } else {
+                    $('#fineSummarySection').addClass('d-none');
+                    $('#actualFineAmount').val(0);
+                    $('#fineReason').val('');
+                    
+                    // Đổi nút chân Modal
+                    $('#btnNormalReturnSubmit').removeClass('d-none');
+                    $('#btnFineReturnSubmit').addClass('d-none');
+                }
+            }
+
+            // ================= 4. SUBMIT XÁC NHẬN TRẢ THƯỜNG / TRẢ CÓ PHẠT =================
+            $('#btnNormalReturnSubmit, #btnFineReturnSubmit').on('click', function () {
+                const itemsToSubmit = [];
+                let hasSelection = false;
+
+                $('.return-check').each(function () {
+                    const mact = parseInt($(this).data('id'));
+                    const macuon = parseInt($(this).data('id')); // default mapping
+                    const isChecked = $(this).is(':checked');
+                    const condition = $(`.condition-select[data-id="${mact}"]`).val();
+                    
+                    // Tính phạt riêng từng cuốn để lưu
+                    const price = parseInt($(this).data('price'));
+                    let itemFine = 0;
+                    let itemReason = "";
+                    if (isChecked) {
+                        if (condition === "Hỏng") {
+                            itemFine = price * 0.5;
+                            itemReason = "Làm hỏng sách vật lý";
+                        } else if (condition === "Mất") {
+                            itemFine = price * 1.0 + 20000;
+                            itemReason = "Làm mất sách vật lý";
+                        }
+                        
+                        // Cộng thêm phạt trễ hạn nếu có cho cuốn sách đầu tiên trả
+                        if (daysOverdueGlobal > 0 && itemsToSubmit.length === 0) {
+                            itemFine += daysOverdueGlobal * 5000;
+                            itemReason += (itemReason ? "; " : "") + `Trễ hạn ${daysOverdueGlobal} ngày`;
+                        }
+                    }
+
+                    itemsToSubmit.push({
+                        MaChiTiet: mact,
+                        MaCuonSach: mact, // map
+                        TraSach: isChecked,
+                        TinhTrang: condition,
+                        TienPhatRieng: itemFine,
+                        LyDoPhatRieng: itemReason
+                    });
+
+                    if (isChecked) hasSelection = true;
+                });
+
+                if (!hasSelection) {
+                    showToast('Vui lòng chọn ít nhất một cuốn sách để trả!', 'fa-solid fa-circle-exclamation');
+                    return;
+                }
+
+                const actualFine = parseFloat($('#actualFineAmount').val()) || 0;
+                const fineReasonText = $('#fineReason').val();
+                const payStatus = $('#finePaymentStatus').val();
+
+                const btn = $(this);
+                btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Đang xử lý...');
+
+                $.ajax({
+                    url: '/ThuThu/XacNhanTraSach',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify({
+                        MaPhieuMuon: activePmId,
+                        Items: itemsToSubmit,
+                        TongTienPhat: actualFine,
+                        LyDoPhat: fineReasonText,
+                        TrangThaiThanhToan: payStatus
+                    }),
+                    success: function (response) {
+                        btn.prop('disabled', false).html(btn.attr('id') === 'btnNormalReturnSubmit' ? 
+                            '<i class="fa-solid fa-circle-check me-1"></i> Xác Nhận Trả Sách' : 
+                            '<i class="fa-solid fa-receipt me-1"></i> Xác Nhận Trả & Lập Phiếu Phạt'
+                        );
+
+                        if (response.success) {
+                            showToast(response.message || 'Xử lý trả sách thành công!', 'fa-solid fa-check-double');
+                            bootstrap.Modal.getInstance(document.getElementById('traSachModal')).hide();
+                            
+                            if (response.hasFine) {
+                                setTimeout(function () {
+                                    window.location.href = '@Url.Action("PhieuPhat", "ThuThu")';
+                                }, 1200);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1200);
+                            }
+                        } else {
+                            showToast(response.message || 'Lỗi khi xử lý trả sách!', 'fa-solid fa-triangle-exclamation');
+                        }
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html(btn.attr('id') === 'btnNormalReturnSubmit' ? 
+                            '<i class="fa-solid fa-circle-check me-1"></i> Xác Nhận Trả Sách' : 
+                            '<i class="fa-solid fa-receipt me-1"></i> Xác Nhận Trả & Lập Phiếu Phạt'
+                        );
+                        showToast('Không thể kết nối đến máy chủ để xử lý trả sách.', 'fa-solid fa-triangle-exclamation');
+                    }
+                });
+            });
+        });
+    </script>
+}
