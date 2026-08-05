@@ -62,11 +62,11 @@
         </div>
     </div>
 
-    <!-- --- KHU VỰC INTERACTIVE TESTER & RESULT --- -->
+    <!-- --- KHU VỰC INTERACTIVE TESTER & RESULT (DẠNG HÀNG DỌC RỘNG RÃI 100%) --- -->
     <div class="row g-4">
-        <!-- Cột Trái: Bảng Điều Khiển Gửi Request API -->
-        <div class="col-12 col-md-6">
-            <div class="glass-card p-4 h-100">
+        <!-- 1. HÀNG TÊN: Bảng Điều Khiển Gửi Request API (Full Width 100%) -->
+        <div class="col-12">
+            <div class="glass-card p-4">
                 <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between" style="border-color: var(--border-color) !important;">
                     <span><i class="fa-solid fa-paper-plane me-2"></i>Bảng Điều Khiển Gửi Request</span>
                     <span class="badge bg-secondary font-monospace" style="font-size: 0.75rem;">HTTP Client</span>
@@ -85,21 +85,21 @@
                 </div>
 
                 <!-- FORM INPUT ĐỘNG THEO ENDPOINT -->
-                <div id="apiFormContainer" class="p-3 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                <div id="apiFormContainer" class="p-3.5 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
                     <!-- 1. Form GET LIST -->
                     <div id="form-GET_LIST" class="api-form-group">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Từ khóa tìm kiếm (search)</label>
-                            <input type="text" id="inputSearchList" class="form-control form-control-sm bg-transparent" placeholder="Ví dụ: Lập trình, Clean Code..." style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="text" id="inputSearchList" class="form-control bg-transparent" placeholder="Ví dụ: Lập trình, Clean Code..." style="border-color: var(--border-color); color: var(--text-primary);" />
                         </div>
-                        <div class="row g-2">
-                            <div class="col-6">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label small fw-semibold text-secondary">Trang (page)</label>
-                                <input type="number" id="inputPageList" class="form-control form-control-sm bg-transparent" value="1" min="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputPageList" class="form-control bg-transparent" value="1" min="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
-                            <div class="col-6">
+                            <div class="col-12 col-md-6">
                                 <label class="form-label small fw-semibold text-secondary">Số lượng/Trang (pageSize)</label>
-                                <input type="number" id="inputPageSizeList" class="form-control form-control-sm bg-transparent" value="10" min="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputPageSizeList" class="form-control bg-transparent" value="10" min="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
                         </div>
                     </div>
@@ -108,66 +108,68 @@
                     <div id="form-GET_BY_ID" class="api-form-group d-none">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Mã Sách (ID) <span class="text-danger">*</span></label>
-                            <input type="number" id="inputIdGet" class="form-control form-control-sm bg-transparent" value="1" placeholder="Nhập ID sách..." style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="number" id="inputIdGet" class="form-control bg-transparent" value="1" placeholder="Nhập ID sách..." style="border-color: var(--border-color); color: var(--text-primary);" />
                         </div>
                     </div>
 
                     <!-- 3. Form POST CREATE -->
                     <div id="form-POST_CREATE" class="api-form-group d-none">
-                        <div class="mb-2">
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Tên Sách <span class="text-danger">*</span></label>
-                            <input type="text" id="inputCreateTenSach" class="form-control form-control-sm bg-transparent" value="Lập Trình Web RESTful API C# Expert" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="text" id="inputCreateTenSach" class="form-control bg-transparent" value="Lập Trình Web RESTful API C# Expert" style="border-color: var(--border-color); color: var(--text-primary);" />
                         </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã Thể Loại</label>
-                                <input type="number" id="inputCreateMaTheLoai" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputCreateMaTheLoai" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
-                            <div class="col-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã Tác Giả</label>
-                                <input type="number" id="inputCreateMaTacGia" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputCreateMaTacGia" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
-                            <div class="col-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã NXB</label>
-                                <input type="number" id="inputCreateMaNXB" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputCreateMaNXB" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold text-secondary">Năm Xuất Bản</label>
-                            <input type="number" id="inputCreateNamXB" class="form-control form-control-sm bg-transparent" value="2026" style="border-color: var(--border-color); color: var(--text-primary);" />
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Năm Xuất Bản</label>
+                                <input type="number" id="inputCreateNamXB" class="form-control bg-transparent" value="2026" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label small fw-semibold text-secondary">Tên file Ảnh bìa</label>
+                                <input type="text" id="inputCreateAnhBia" class="form-control bg-transparent" value="designpatterns.jpg" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            </div>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small fw-semibold text-secondary">Mô Tả Sách</label>
-                            <textarea id="inputCreateMoTa" class="form-control form-control-sm bg-transparent" rows="2" style="border-color: var(--border-color); color: var(--text-primary);">Sách hướng dẫn xây dựng Web API chuẩn RESTful kiến trúc chuyên nghiệp.</textarea>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold text-secondary">Tên file Ảnh bìa</label>
-                            <input type="text" id="inputCreateAnhBia" class="form-control form-control-sm bg-transparent" value="designpatterns.jpg" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <textarea id="inputCreateMoTa" class="form-control bg-transparent" rows="2" style="border-color: var(--border-color); color: var(--text-primary);">Sách hướng dẫn xây dựng Web API chuẩn RESTful kiến trúc chuyên nghiệp.</textarea>
                         </div>
                     </div>
 
                     <!-- 4. Form PUT UPDATE -->
                     <div id="form-PUT_UPDATE" class="api-form-group d-none">
-                        <div class="mb-2">
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Mã Sách Cần Sửa (ID) <span class="text-danger">*</span></label>
-                            <input type="number" id="inputUpdateId" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="number" id="inputUpdateId" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                         </div>
-                        <div class="mb-2">
+                        <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Tên Sách Mới</label>
-                            <input type="text" id="inputUpdateTenSach" class="form-control form-control-sm bg-transparent" value="Clean Code & REST API Best Practices (Updated)" style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="text" id="inputUpdateTenSach" class="form-control bg-transparent" value="Clean Code & REST API Best Practices (Updated)" style="border-color: var(--border-color); color: var(--text-primary);" />
                         </div>
-                        <div class="row g-2 mb-2">
-                            <div class="col-4">
+                        <div class="row g-3 mb-2">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã Thể Loại</label>
-                                <input type="number" id="inputUpdateMaTheLoai" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputUpdateMaTheLoai" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
-                            <div class="col-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã Tác Giả</label>
-                                <input type="number" id="inputUpdateMaTacGia" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputUpdateMaTacGia" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
-                            <div class="col-4">
+                            <div class="col-12 col-md-4">
                                 <label class="form-label small fw-semibold text-secondary">Mã NXB</label>
-                                <input type="number" id="inputUpdateMaNXB" class="form-control form-control-sm bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
+                                <input type="number" id="inputUpdateMaNXB" class="form-control bg-transparent" value="1" style="border-color: var(--border-color); color: var(--text-primary);" />
                             </div>
                         </div>
                     </div>
@@ -176,52 +178,52 @@
                     <div id="form-DELETE" class="api-form-group d-none">
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary">Mã Sách Cần Xóa (ID) <span class="text-danger">*</span></label>
-                            <input type="number" id="inputDeleteId" class="form-control form-control-sm bg-transparent" value="999" placeholder="Nhập ID sách cần xóa..." style="border-color: var(--border-color); color: var(--text-primary);" />
+                            <input type="number" id="inputDeleteId" class="form-control bg-transparent" value="999" placeholder="Nhập ID sách cần xóa..." style="border-color: var(--border-color); color: var(--text-primary);" />
                             <div class="form-text extra-small text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i>Lưu ý: Không thể xóa sách nếu đang có bản sách vật lý liên quan trong kho.</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Nút Thực Thi API -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-primary rounded-pill px-4 py-2 bg-gradient font-monospace shadow-sm" id="btnExecuteApi">
+                <div class="d-flex justify-content-start align-items-center">
+                    <button type="button" class="btn btn-primary rounded-pill px-5 py-2.5 bg-gradient font-monospace shadow-sm fs-6 fw-bold" id="btnExecuteApi">
                         <i class="fa-solid fa-play me-2"></i>CHẠY THỬ API (EXECUTE REQUEST)
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Cột Phải: Kết Quả Trả Về & Code Snippet -->
-        <div class="col-12 col-md-6">
-            <div class="glass-card p-4 h-100 d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+        <!-- 2. HÀNG DƯỚI: Kết Quả Trả Về & Code Snippet (Full Width 100%) -->
+        <div class="col-12" id="responseSection">
+            <div class="glass-card p-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
                     <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-terminal me-2"></i>Kết Quả Response (Real-time)</h5>
                     <div id="statusBadgeContainer">
-                        <span class="badge bg-secondary font-monospace px-3 py-1.5" id="resStatusBadge">Status: Ready</span>
-                        <span class="badge bg-dark font-monospace text-info px-2 py-1.5 ms-1" id="resTimeBadge">0 ms</span>
+                        <span class="badge bg-secondary font-monospace px-3 py-2 fs-7" id="resStatusBadge">Status: Ready</span>
+                        <span class="badge bg-dark font-monospace text-info px-3 py-2 fs-7 ms-1" id="resTimeBadge">0 ms</span>
                     </div>
                 </div>
 
                 <!-- URL & HTTP Method Header -->
-                <div class="p-2 rounded-3 mb-3 font-monospace small d-flex align-items-center gap-2" style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color);">
-                    <span class="badge bg-primary" id="resMethodBadge">GET</span>
-                    <span class="text-truncate text-info flex-grow-1" id="resUrlText">/api/SachApi</span>
+                <div class="p-2.5 rounded-3 mb-3 font-monospace small d-flex align-items-center gap-2" style="background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-color);">
+                    <span class="badge bg-primary px-3 py-1.5 fs-7" id="resMethodBadge">GET</span>
+                    <span class="text-truncate text-info flex-grow-1 fs-6" id="resUrlText">/api/SachApi</span>
                 </div>
 
-                <!-- Màn Hình Terminal JSON Pretty Print -->
-                <div class="position-relative flex-grow-1 mb-3">
-                    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2 rounded-pill px-3" id="btnCopyJson" title="Sao chép JSON">
+                <!-- Màn Hình Terminal JSON Pretty Print Rộng Rãi -->
+                <div class="position-relative mb-4">
+                    <button class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-3 rounded-pill px-3 shadow-sm" id="btnCopyJson" title="Sao chép JSON">
                         <i class="fa-regular fa-copy me-1"></i> Copy JSON
                     </button>
-                    <pre class="rounded-4 p-3 font-monospace h-100 mb-0" id="jsonOutputConsole" style="background: #060b16; border: 1px solid var(--border-color); color: #38bdf8; max-height: 380px; overflow-y: auto; font-size: 0.85rem;">
+                    <pre class="rounded-4 p-4 font-monospace mb-0" id="jsonOutputConsole" style="background: #060b16; border: 1px solid var(--border-color); color: #38bdf8; min-height: 250px; max-height: 480px; overflow-y: auto; font-size: 0.9rem; line-height: 1.5;">
 {
-    "message": "Sẵn sàng chạy thử API. Hãy chọn thao tác và bấm nút 'CHẠY THỬ API' ở bên trái!"
+    "message": "Sẵn sàng chạy thử API. Hãy chọn thao tác và bấm nút 'CHẠY THỬ API' ở trên!"
 }
                     </pre>
                 </div>
 
                 <!-- Code Snippet Generator -->
-                <div class="p-3 rounded-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
+                <div class="p-3.5 rounded-4" style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color);">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="small fw-bold text-secondary"><i class="fa-solid fa-code me-1"></i>Mẫu Code Gọi API (Code Snippet)</span>
                         <select id="snippetLanguageSelect" class="form-select form-select-sm bg-transparent w-auto" style="border-color: var(--border-color); color: var(--text-primary);">
@@ -230,7 +232,7 @@
                             <option value="CSHARP" style="background: var(--bg-surface); color: var(--text-primary);">C# (HttpClient)</option>
                         </select>
                     </div>
-                    <pre class="rounded-3 p-2 font-monospace small mb-0 text-secondary" id="snippetCodeBox" style="background: #0b1528; border: 1px solid var(--border-color); max-height: 120px; overflow: auto; font-size: 0.78rem;">fetch('/api/SachApi').then(res => res.json()).then(data => console.log(data));</pre>
+                    <pre class="rounded-3 p-3 font-monospace small mb-0 text-secondary" id="snippetCodeBox" style="background: #0b1528; border: 1px solid var(--border-color); max-height: 140px; overflow: auto; font-size: 0.82rem;">fetch('/api/SachApi').then(res => res.json()).then(data => console.log(data));</pre>
                 </div>
             </div>
         </div>
@@ -331,6 +333,11 @@
                         // Formatted JSON Output
                         $('#jsonOutputConsole').text(JSON.stringify(res, null, 4));
                         updateSnippet();
+
+                        // Cuộn xuống khu vực kết quả tự động
+                        $('html, body').animate({
+                            scrollTop: $('#responseSection').offset().top - 80
+                        }, 300);
                     },
                     error: function (xhr) {
                         const endTime = performance.now();
@@ -345,6 +352,11 @@
 
                         $('#jsonOutputConsole').text(JSON.stringify(errJson, null, 4));
                         updateSnippet();
+
+                        // Cuộn xuống khu vực kết quả tự động
+                        $('html, body').animate({
+                            scrollTop: $('#responseSection').offset().top - 80
+                        }, 300);
                     }
                 });
             });
