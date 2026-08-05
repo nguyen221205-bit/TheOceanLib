@@ -50,21 +50,62 @@
             color: #0ea5e9 !important;
             font-weight: 700 !important;
         }
+
+        /* --- CSS THU GỌN SIDEBAR FLEXIBLE --- */
+        .admin-sidebar {
+            transition: width 0.3s ease, padding 0.3s ease !important;
+        }
+        .admin-content-wrapper {
+            transition: margin-left 0.3s ease !important;
+        }
+        body.sidebar-collapsed .admin-sidebar {
+            width: 76px !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        body.sidebar-collapsed .admin-content-wrapper {
+            margin-left: 76px !important;
+        }
+        body.sidebar-collapsed .admin-sidebar .sidebar-group-title,
+        body.sidebar-collapsed .admin-sidebar .menu-text-label,
+        body.sidebar-collapsed .admin-sidebar .transition-icon,
+        body.sidebar-collapsed .admin-sidebar .admin-submenu-list,
+        body.sidebar-collapsed .admin-sidebar .sidebar-footer-box {
+            display: none !important;
+        }
+        body.sidebar-collapsed .admin-sidebar .admin-menu-item a,
+        body.sidebar-collapsed .admin-sidebar .nav-dropdown-toggle {
+            justify-content: center !important;
+            padding: 0.8rem 0 !important;
+        }
+        body.sidebar-collapsed .admin-sidebar .admin-menu-item a i,
+        body.sidebar-collapsed .admin-sidebar .nav-dropdown-toggle i:first-child {
+            margin-right: 0 !important;
+            font-size: 1.25rem !important;
+        }
     </style>
 </head>
 <body>
-    <!-- Script khởi tạo theme ngay lập tức để tránh nhấp nháy giao diện -->
+    <!-- Script khởi tạo theme & sidebar state ngay lập tức để tránh nhấp nháy giao diện -->
     <script>
         (function () {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
+
+            const savedSidebar = localStorage.getItem('sidebarCollapsed');
+            if (savedSidebar === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
         })();
     </script>
 
     <!-- --- HEADER ADMIN CHUYÊN NGHIỆP --- -->
     <header class="admin-header">
-        <!-- Logo bên trái -->
-        <div class="d-flex align-items-center">
+        <!-- Logo bên trái & Nút Toggle Sidebar -->
+        <div class="d-flex align-items-center gap-2">
+            <button class="header-action-btn me-1" id="sidebarToggleBtn" title="Thu gọn / Mở rộng Sidebar">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
             <a href="@Url.Action("Index", "Admin")" class="d-flex align-items-center gap-2 text-decoration-none">
                 <img src="~/Content/images/Logo.png" alt="Logo" style="height: 38px; object-fit: contain;">
                 <div class="brand-logo-text d-flex align-items-center">
@@ -124,22 +165,22 @@
     <div class="admin-container">
         <!-- --- SIDEBAR ADMIN ĐẦY ĐỦ CÁC NÚT CHỨC NĂNG --- -->
         <aside class="admin-sidebar">
-            <div class="px-3 py-2 text-uppercase text-muted fw-bold border-bottom mb-2" style="font-size: 0.72rem; letter-spacing: 1px;">
+            <div class="px-3 py-2 text-uppercase text-muted fw-bold border-bottom mb-2 sidebar-group-title" style="font-size: 0.72rem; letter-spacing: 1px;">
                 <i class="fa-solid fa-sliders me-1"></i> Màn hình quản trị
             </div>
             <ul class="admin-menu-list">
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
-                    <a href="@Url.Action("Index", "Admin")">
-                        <i class="fa-solid fa-chart-pie text-danger"></i> Dashboard Báo Cáo
+                    <a href="@Url.Action("Index", "Admin")" title="Dashboard Báo Cáo">
+                        <i class="fa-solid fa-chart-pie text-danger"></i> <span class="menu-text-label">Dashboard Báo Cáo</span>
                     </a>
                 </li>
 
-                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold sidebar-group-title" style="font-size: 0.72rem; letter-spacing: 1px;">
                     <i class="fa-solid fa-book-atlas me-1"></i> Quản Lý Sách & Kho
                 </div>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLySach" ? "active" : "")">
-                    <a href="@Url.Action("QuanLySach", "Admin")">
-                        <i class="fa-solid fa-book"></i> Quản Lý Sách & Bản Sách
+                    <a href="@Url.Action("QuanLySach", "Admin")" title="Quản Lý Sách & Bản Sách">
+                        <i class="fa-solid fa-book"></i> <span class="menu-text-label">Quản Lý Sách & Bản Sách</span>
                     </a>
                 </li>
 
@@ -152,9 +193,10 @@
                        href="#menuDanhMucHeThong" 
                        role="button" 
                        aria-expanded="@(isCatActive ? "true" : "false")" 
-                       aria-controls="menuDanhMucHeThong">
+                       aria-controls="menuDanhMucHeThong"
+                       title="Danh Mục Hệ Thống">
                         <span class="fw-semibold" style="font-size: 0.92rem;">
-                            <i class="fa-solid fa-tags text-info me-2"></i> Danh Mục Hệ Thống
+                            <i class="fa-solid fa-tags text-info me-2"></i> <span class="menu-text-label">Danh Mục Hệ Thống</span>
                         </span>
                         <i class="fa-solid fa-chevron-down dropdown-arrow small transition-icon text-muted"></i>
                     </a>
@@ -162,48 +204,48 @@
                     <div class="collapse @(isCatActive ? "show" : "")" id="menuDanhMucHeThong">
                         <ul class="admin-submenu-list list-unstyled mb-0">
                             <li class="admin-menu-item submenu-item @(ViewBag.ActiveMenu == "QuanLyTheLoai" ? "active" : "")">
-                                <a href="@Url.Action("QuanLyTheLoai", "Admin")">
-                                    <i class="fa-solid fa-layer-group me-2"></i> Quản Lý Thể Loại
+                                <a href="@Url.Action("QuanLyTheLoai", "Admin")" title="Quản Lý Thể Loại">
+                                    <i class="fa-solid fa-layer-group me-2"></i> <span class="menu-text-label">Quản Lý Thể Loại</span>
                                 </a>
                             </li>
                             <li class="admin-menu-item submenu-item @(ViewBag.ActiveMenu == "QuanLyTacGia" ? "active" : "")">
-                                <a href="@Url.Action("QuanLyTacGia", "Admin")">
-                                    <i class="fa-solid fa-feather-pointed me-2"></i> Quản Lý Tác Giả
+                                <a href="@Url.Action("QuanLyTacGia", "Admin")" title="Quản Lý Tác Giả">
+                                    <i class="fa-solid fa-feather-pointed me-2"></i> <span class="menu-text-label">Quản Lý Tác Giả</span>
                                 </a>
                             </li>
                             <li class="admin-menu-item submenu-item @(ViewBag.ActiveMenu == "QuanLyNXB" ? "active" : "")">
-                                <a href="@Url.Action("QuanLyNXB", "Admin")">
-                                    <i class="fa-solid fa-building-columns me-2"></i> Quản Lý Nhà Xuất Bản
+                                <a href="@Url.Action("QuanLyNXB", "Admin")" title="Quản Lý Nhà Xuất Bản">
+                                    <i class="fa-solid fa-building-columns me-2"></i> <span class="menu-text-label">Quản Lý Nhà Xuất Bản</span>
                                 </a>
                             </li>
                         </ul>
                     </div>
                 </li>
 
-                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold sidebar-group-title" style="font-size: 0.72rem; letter-spacing: 1px;">
                     <i class="fa-solid fa-users-gear me-1"></i> Nhân Sự & Độc Giả
                 </div>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuanLyTaiKhoan" ? "active" : "")">
-                    <a href="@Url.Action("QuanLyTaiKhoan", "Admin")">
-                        <i class="fa-solid fa-users-viewfinder"></i> Quản Lý Tài Khoản
+                    <a href="@Url.Action("QuanLyTaiKhoan", "Admin")" title="Quản Lý Tài Khoản">
+                        <i class="fa-solid fa-users-viewfinder"></i> <span class="menu-text-label">Quản Lý Tài Khoản</span>
                     </a>
                 </li>
 
-                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold sidebar-group-title" style="font-size: 0.72rem; letter-spacing: 1px;">
                     <i class="fa-solid fa-chart-column me-1"></i> Báo Cáo Chuyên Sâu
                 </div>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "BaoCaoThongKe" ? "active" : "")">
-                    <a href="@Url.Action("BaoCaoThongKe", "Admin")">
-                        <i class="fa-solid fa-file-chart-column"></i> Thống Kê & Doanh Thu
+                    <a href="@Url.Action("BaoCaoThongKe", "Admin")" title="Thống Kê & Doanh Thu">
+                        <i class="fa-solid fa-file-chart-column"></i> <span class="menu-text-label">Thống Kê & Doanh Thu</span>
                     </a>
                 </li>
 
-                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold sidebar-group-title" style="font-size: 0.72rem; letter-spacing: 1px;">
                     <i class="fa-solid fa-code me-1"></i> Developer & Web API
                 </div>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "ApiConsole" ? "active" : "")">
-                    <a href="@Url.Action("ApiConsole", "Admin")">
-                        <i class="fa-solid fa-plug text-warning"></i> Quản Lý & Test Web API
+                    <a href="@Url.Action("ApiConsole", "Admin")" title="Quản Lý & Test Web API">
+                        <i class="fa-solid fa-plug text-warning"></i> <span class="menu-text-label">Quản Lý & Test Web API</span>
                     </a>
                 </li>
             </ul>
@@ -264,6 +306,16 @@
                     htmlTag.setAttribute('data-theme', activeTheme);
                     localStorage.setItem('theme', activeTheme);
                     updateIcon(activeTheme);
+                });
+            }
+
+            // Xử lý Thu gọn / Mở rộng Sidebar Admin
+            const sidebarBtn = document.getElementById('sidebarToggleBtn');
+            if (sidebarBtn) {
+                sidebarBtn.addEventListener('click', function () {
+                    document.body.classList.toggle('sidebar-collapsed');
+                    const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+                    localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
                 });
             }
 
