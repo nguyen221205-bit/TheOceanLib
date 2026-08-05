@@ -29,25 +29,68 @@
     --shadow-lg: 0 10px 25px rgba(0, 119, 182, 0.12);
 }
 
-/* Dark Theme Overrides (Ocean Dark) */
+/* Dark Theme Overrides (Ocean Dark High-Contrast) */
 [data-theme="dark"] {
     --bg-app: #060b16; /* Deep Abyss Blue */
-    --bg-surface: #0b1528; /* Deep Ocean Floor */
-    --bg-surface-glass: rgba(11, 21, 40, 0.8);
-    --border-color: #1e293b;
-    --text-primary: #f0f7ff;
-    --text-secondary: #90e0ef; /* Sea Foam */
-    --text-muted: #486581;
+    --bg-surface: #0f172a; /* Slate Dark Surface */
+    --bg-surface-glass: rgba(15, 23, 42, 0.85);
+    --border-color: #334155; /* Slate 700 - Clear visible borders */
+    --text-primary: #f8fafc; /* High contrast bright white */
+    --text-secondary: #cbd5e1; /* Slate 300 - High contrast silver */
+    --text-muted: #94a3b8; /* Slate 400 - Clear legible muted text */
     
-    --primary: #00b4d8;
-    --primary-light: #90e0ef;
-    --accent: #00b4d8;
-    --accent-hover: #00f5d4;
-    --accent-glow: rgba(0, 245, 212, 0.3);
+    --primary: #38bdf8; /* Cyan Neon */
+    --primary-light: #7dd3fc;
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --accent-glow: rgba(56, 189, 248, 0.3);
     
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 180, 216, 0.15);
-    --shadow-lg: 0 10px 30px rgba(0, 180, 216, 0.25);
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(56, 189, 248, 0.15);
+    --shadow-lg: 0 10px 30px rgba(56, 189, 248, 0.25);
+}
+
+[data-theme="dark"] .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .text-secondary {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .table {
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .table td, [data-theme="dark"] .table th {
+    border-color: #334155;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: rgba(30, 41, 59, 0.6) !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .form-text {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .admin-sidebar .text-muted {
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .admin-menu-item a {
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .admin-menu-item a:hover {
+    color: #38bdf8;
+    background-color: rgba(56, 189, 248, 0.12);
 }
 
 /* --- BASE STYLES --- */

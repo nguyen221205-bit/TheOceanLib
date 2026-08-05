@@ -9,6 +9,8 @@
     <!-- Google Fonts & Vector Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     @Scripts.Render("~/bundles/modernizr")
 </head>
@@ -98,9 +100,12 @@
                         <ul class="dropdown-menu dropdown-menu-end account-dropdown-menu" aria-labelledby="accountMenuButton">
                             @if (currentUser != null)
                             {
-                                <li><h6 class="dropdown-header">Tài khoản cá nhân</h6></li>
-                                <li><a class="dropdown-item" href="#" id="menuProfileLink"><i class="fa-regular fa-id-card me-1"></i> Hồ sơ cá nhân</a></li>
-                                <li><a class="dropdown-item" href="#" id="menuHistoryLink"><i class="fa-solid fa-clock-rotate-left me-1"></i> Lịch sử mượn trả</a></li>
+                                <li><h6 class="dropdown-header">Tài khoản: <strong>@currentUser.HoTen</strong></h6></li>
+                                <li><a class="dropdown-item" href="@Url.Action("TaiKhoan", "Home", new { tab = "profile" })" id="menuProfileLink"><i class="fa-regular fa-id-card me-1 text-primary"></i> Hồ sơ cá nhân</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("TaiKhoan", "Home", new { tab = "requests" })"><i class="fa-solid fa-paper-plane me-1 text-info"></i> Yêu cầu mượn online</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("TaiKhoan", "Home", new { tab = "loans" })" id="menuHistoryLink"><i class="fa-solid fa-book-bookmark me-1 text-success"></i> Sách đang & đã mượn</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("TaiKhoan", "Home", new { tab = "fines" })"><i class="fa-solid fa-file-invoice-dollar me-1 text-warning"></i> Phiếu phạt của tôi</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("TaiKhoan", "Home", new { tab = "password" })"><i class="fa-solid fa-key me-1 text-secondary"></i> Đổi mật khẩu</a></li>
                                 
                                 if (currentUser.MaVaiTro == 1)
                                 {
@@ -441,7 +446,18 @@
     {
         <script>
             document.addEventListener("DOMContentLoaded", function() {
-                if (typeof window.showToast === 'function') {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Thành công!',
+                        text: "@Html.Raw(TempData["SuccessMessage"])",
+                        icon: 'success',
+                        confirmButtonText: 'Đồng ý',
+                        buttonsStyling: false,
+                        customClass: {
+                            confirmButton: 'btn btn-primary rounded-pill px-4'
+                        }
+                    });
+                } else if (typeof window.showToast === 'function') {
                     window.showToast("@Html.Raw(TempData["SuccessMessage"])", "fa-circle-check");
                 }
             });

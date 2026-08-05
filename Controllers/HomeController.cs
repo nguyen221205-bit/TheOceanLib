@@ -18,15 +18,16 @@ namespace DoAn_LTWeb.Controllers
             return View(dssp);
         }
 
-        public ActionResult HienThiDSSP(int? maTheLoai, string tuKhoa)
+        public ActionResult HienThiDSSP(int? maTheLoai, string tuKhoa, string sort = "moi-nhat", int page = 1)
         {
-            var query = data.Sach.Include("TacGia").Include("CuonSach").AsQueryable();
+            var query = data.Sach.Include("TacGia").Include("CuonSach").Include("TheLoai").AsQueryable();
 
             if (maTheLoai.HasValue)
             {
                 query = query.Where(s => s.MaTheLoai == maTheLoai.Value);
                 var theLoai = data.TheLoai.FirstOrDefault(tl => tl.MaTheLoai == maTheLoai.Value);
                 ViewBag.TenTheLoai = theLoai != null ? theLoai.TenTheLoai : "";
+                ViewBag.MaTheLoai = maTheLoai.Value;
             }
 
             if (!string.IsNullOrEmpty(tuKhoa))
@@ -38,7 +39,37 @@ namespace DoAn_LTWeb.Controllers
                 ViewBag.TuKhoa = tuKhoa;
             }
 
-            List<Sach> dssp = query.ToList();
+            // Sắp xếp
+            switch (sort)
+            {
+                case "ten-az":
+                    query = query.OrderBy(s => s.TenSach);
+                    break;
+                case "ten-za":
+                    query = query.OrderByDescending(s => s.TenSach);
+                    break;
+                case "nam-xb":
+                    query = query.OrderByDescending(s => s.NamXuatBan);
+                    break;
+                default: // "moi-nhat"
+                    query = query.OrderByDescending(s => s.MaSach);
+                    break;
+            }
+
+            ViewBag.Sort = sort;
+
+            // Phân trang
+            int pageSize = 8;
+            int totalItems = query.Count();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.PageSize = pageSize;
+
+            List<Sach> dssp = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             return View(dssp);
         }
 
@@ -46,7 +77,50 @@ namespace DoAn_LTWeb.Controllers
         public ActionResult MenuTheLoai()
         {
             var listTheLoai = data.TheLoai.ToList();
-            return PartialView("_MenuTheLoai", listTheLoai);
+            List<MenuTheLoaiCap2Dto> menuList = new List<MenuTheLoaiCap2Dto>();
+
+            foreach (var tl in listTheLoai)
+            {
+                var dto = new MenuTheLoaiCap2Dto
+                {
+                    MaTheLoai = tl.MaTheLoai,
+                    TenTheLoai = tl.TenTheLoai
+                };
+
+                // Lấy danh sách Tác giả tiêu biểu có sách thuộc thể loại này
+                var tacGias = data.Sach
+                                  .Where(s => s.MaTheLoai == tl.MaTheLoai && s.TacGia != null)
+                                  .GroupBy(s => new { s.TacGia.MaTacGia, s.TacGia.TenTacGia })
+                                  .Select(g => new TacGiaMenuDto
+                                  {
+                                      MaTacGia = g.Key.MaTacGia,
+                                      TenTacGia = g.Key.TenTacGia,
+                                      SoLuongSach = g.Count()
+                                  })
+                                  .Take(5)
+                                  .ToList();
+
+                dto.DanhSachTacGia = tacGias;
+
+                // Lấy 3 cuốn sách nổi bật thuộc thể loại này
+                var sachs = data.Sach
+                                .Where(s => s.MaTheLoai == tl.MaTheLoai)
+                                .OrderByDescending(s => s.MaSach)
+                                .Select(s => new SachMenuDto
+                                {
+                                    MaSach = s.MaSach,
+                                    TenSach = s.TenSach,
+                                    AnhBia = s.AnhBia
+                                })
+                                .Take(3)
+                                .ToList();
+
+                dto.DanhSachSachNoiBat = sachs;
+
+                menuList.Add(dto);
+            }
+
+            return PartialView("_MenuTheLoai", menuList);
         }
 
         public ActionResult ChiTietSach(int id)
@@ -367,9 +441,9 @@ namespace DoAn_LTWeb.Controllers
             // Làm sạch giỏ hàng sau khi gửi yêu cầu mượn thành công
             Session["GioHang"] = null;
 
-            TempData["SuccessMessage"] = "Gửi yêu cầu mượn sách thành công! Yêu cầu của bạn đã được chuyển đến mục Yêu Cầu Mượn phía Thủ thư để chờ duyệt.";
+            TempData["SuccessMessage"] = "Gửi yêu cầu mượn sách thành công! Yêu cầu của bạn đã được gửi tới Thủ thư. Vui lòng theo dõi trạng thái và chờ duyệt tại đây.";
 
-            return RedirectToAction("Index");
+            return RedirectToAction("TaiKhoan", "Home", new { tab = "requests" });
         }
 
         public ActionResult SachMuonNhieu()
@@ -583,6 +657,248 @@ namespace DoAn_LTWeb.Controllers
         {
             Session["User"] = null;
             return RedirectToAction("Index", "Home");
+        }
+
+        // ================= PHÂN HỆ ĐỘC GIẢ (READER PORTAL & HISTORY) =================
+
+        // GET: Home/TaiKhoan
+        public ActionResult TaiKhoan(string tab = "profile")
+        {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return RedirectToAction("DangNhap", "Home", new { returnUrl = Url.Action("TaiKhoan", "Home", new { tab = tab }) });
+            }
+
+            var userDb = data.NguoiDung.Find(user.MaNguoiDung);
+            if (userDb == null)
+            {
+                Session["User"] = null;
+                return RedirectToAction("DangNhap", "Home");
+            }
+
+            Session["User"] = userDb;
+
+            TaiKhoanDocGiaDto model = new TaiKhoanDocGiaDto
+            {
+                NguoiDung = userDb,
+                ActiveTab = string.IsNullOrEmpty(tab) ? "profile" : tab.ToLower()
+            };
+
+            // 1. Lấy danh sách Yêu cầu mượn
+            var listYeuCau = data.YeuCauMuon
+                                 .Include("ChiTietYeuCauMuon.Sach.TacGia")
+                                 .Where(y => y.MaDocGia == userDb.MaNguoiDung)
+                                 .OrderByDescending(y => y.MaYeuCau)
+                                 .ToList();
+
+            foreach (var yc in listYeuCau)
+            {
+                var dto = new YeuCauMuonDocGiaDto
+                {
+                    MaYeuCau = yc.MaYeuCau,
+                    NgayYeuCau = yc.NgayYeuCau,
+                    TrangThai = yc.TrangThai
+                };
+
+                var groupedSach = yc.ChiTietYeuCauMuon
+                                    .GroupBy(c => c.MaSach)
+                                    .Select(g => new ChiTietYeuCauItemDto
+                                    {
+                                        MaSach = g.Key,
+                                        TenSach = g.FirstOrDefault()?.Sach?.TenSach ?? "Chưa rõ",
+                                        AnhBia = g.FirstOrDefault()?.Sach?.AnhBia ?? "",
+                                        TenTacGia = g.FirstOrDefault()?.Sach?.TacGia?.TenTacGia ?? "Chưa cập nhật",
+                                        SoLuong = g.Count()
+                                    }).ToList();
+
+                dto.DanhSachSach = groupedSach;
+                model.DanhSachYeuCau.Add(dto);
+            }
+
+            // 2. Lấy danh sách Phiếu mượn
+            var listPhieuMuon = data.PhieuMuon
+                                    .Include("ChiTietPhieuMuon.CuonSach.Sach.TacGia")
+                                    .Include("NguoiDung1") // Thủ thư cấp
+                                    .Where(p => p.MaDocGia == userDb.MaNguoiDung)
+                                    .OrderByDescending(p => p.MaPhieuMuon)
+                                    .ToList();
+
+            foreach (var pm in listPhieuMuon)
+            {
+                var dto = new PhieuMuonDocGiaDto
+                {
+                    MaPhieuMuon = pm.MaPhieuMuon,
+                    NgayMuon = pm.NgayMuon,
+                    NgayHenTra = pm.NgayHenTra,
+                    TrangThai = pm.TrangThai,
+                    TenThuThu = pm.NguoiDung1 != null ? pm.NguoiDung1.HoTen : "Hệ thống"
+                };
+
+                foreach (var ct in pm.ChiTietPhieuMuon)
+                {
+                    var sach = ct.CuonSach?.Sach;
+                    dto.DanhSachCuonSach.Add(new ChiTietPhieuMuonItemDto
+                    {
+                        MaChiTiet = ct.MaChiTiet,
+                        MaCuonSach = ct.MaCuonSach,
+                        TenSach = sach != null ? sach.TenSach : "Bản sách #" + ct.MaCuonSach,
+                        AnhBia = sach != null ? sach.AnhBia : "",
+                        TenTacGia = sach?.TacGia != null ? sach.TacGia.TenTacGia : "Chưa cập nhật",
+                        NgayTraThucTe = ct.NgayTraThucTe,
+                        TinhTrangKhiTra = ct.TinhTrangKhiTra
+                    });
+                }
+
+                model.DanhSachPhieuMuon.Add(dto);
+            }
+
+            // 3. Lấy danh sách Phiếu phạt
+            var listPhieuPhat = data.PhieuPhat
+                                    .Include("ChiTietPhieuMuon.CuonSach.Sach")
+                                    .Where(p => p.ChiTietPhieuMuon.PhieuMuon.MaDocGia == userDb.MaNguoiDung)
+                                    .OrderByDescending(p => p.MaPhieuPhat)
+                                    .ToList();
+
+            foreach (var pp in listPhieuPhat)
+            {
+                var sach = pp.ChiTietPhieuMuon?.CuonSach?.Sach;
+                model.DanhSachPhieuPhat.Add(new PhieuPhatDocGiaDto
+                {
+                    MaPhieuPhat = pp.MaPhieuPhat,
+                    MaPhieuMuon = pp.ChiTietPhieuMuon != null ? pp.ChiTietPhieuMuon.MaPhieuMuon : 0,
+                    TenSach = sach != null ? sach.TenSach : "Bản sách #" + (pp.ChiTietPhieuMuon != null ? pp.ChiTietPhieuMuon.MaCuonSach : 0),
+                    AnhBia = sach != null ? sach.AnhBia : "",
+                    MaCuonSach = pp.ChiTietPhieuMuon != null ? pp.ChiTietPhieuMuon.MaCuonSach : 0,
+                    SoTienPhat = pp.SoTienPhat,
+                    LyDoPhat = pp.LyDo,
+                    NgayLap = pp.NgayLap,
+                    TrangThaiThanhToan = pp.TrangThaiThanhToan
+                });
+            }
+
+            return View(model);
+        }
+
+        // POST: Home/CapNhatThongTin
+        [HttpPost]
+        public ActionResult CapNhatThongTin(CapNhatThongTinInput input)
+        {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại để thực hiện thao tác!" });
+            }
+
+            if (input == null || string.IsNullOrWhiteSpace(input.HoTen) || string.IsNullOrWhiteSpace(input.SoDienThoai))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập đầy đủ Họ tên và Số điện thoại!" });
+            }
+
+            var userDb = data.NguoiDung.Find(user.MaNguoiDung);
+            if (userDb == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin tài khoản trên hệ thống!" });
+            }
+
+            userDb.HoTen = input.HoTen.Trim();
+            userDb.SoDienThoai = input.SoDienThoai.Trim();
+            userDb.DiaChi = (input.DiaChi ?? "").Trim();
+
+            data.SaveChanges();
+
+            Session["User"] = userDb;
+
+            return Json(new { success = true, message = "Cập nhật thông tin cá nhân thành công!" });
+        }
+
+        // POST: Home/DoiMatKhau
+        [HttpPost]
+        public ActionResult DoiMatKhau(DoiMatKhauInput input)
+        {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại để thực hiện thao tác!" });
+            }
+
+            if (input == null || string.IsNullOrEmpty(input.MatKhauCu) || string.IsNullOrEmpty(input.MatKhauMoi) || string.IsNullOrEmpty(input.XacNhanMatKhau))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập đầy đủ thông tin các trường mật khẩu!" });
+            }
+
+            if (input.MatKhauMoi.Length < 6)
+            {
+                return Json(new { success = false, message = "Mật khẩu mới phải có độ dài tối thiểu 6 ký tự!" });
+            }
+
+            if (input.MatKhauMoi != input.XacNhanMatKhau)
+            {
+                return Json(new { success = false, message = "Mật khẩu mới và Xác nhận mật khẩu không trùng khớp!" });
+            }
+
+            var userDb = data.NguoiDung.Find(user.MaNguoiDung);
+            if (userDb == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin tài khoản trên hệ thống!" });
+            }
+
+            string storedHash = (userDb.MatKhau ?? "").Trim();
+            bool isValid = false;
+
+            try
+            {
+                isValid = BCrypt.Net.BCrypt.Verify(input.MatKhauCu, storedHash);
+            }
+            catch
+            {
+                isValid = false;
+            }
+
+            if (!isValid && input.MatKhauCu == storedHash)
+            {
+                isValid = true;
+            }
+
+            if (!isValid)
+            {
+                return Json(new { success = false, message = "Mật khẩu hiện tại nhập vào không chính xác!" });
+            }
+
+            string hashedNew = BCrypt.Net.BCrypt.HashPassword(input.MatKhauMoi, 12);
+            userDb.MatKhau = hashedNew;
+
+            data.SaveChanges();
+            Session["User"] = userDb;
+
+            return Json(new { success = true, message = "Đổi mật khẩu thành công! Hãy bảo mật thông tin tài khoản của bạn." });
+        }
+
+        // POST: Home/HuyYeuCauMuon
+        [HttpPost]
+        public ActionResult HuyYeuCauMuon(int id)
+        {
+            var user = Session["User"] as NguoiDung;
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại để thực hiện thao tác!" });
+            }
+
+            var yc = data.YeuCauMuon.FirstOrDefault(y => y.MaYeuCau == id && y.MaDocGia == user.MaNguoiDung);
+            if (yc == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy yêu cầu mượn cần hủy!" });
+            }
+
+            if (yc.TrangThai != "Chờ duyệt")
+            {
+                return Json(new { success = false, message = $"Không thể hủy yêu cầu mượn đang ở trạng thái '{yc.TrangThai}'!" });
+            }
+
+            yc.TrangThai = "Đã hủy";
+            data.SaveChanges();
+
+            return Json(new { success = true, message = $"Đã hủy yêu cầu mượn #{yc.MaYeuCau} thành công!" });
         }
     }
 }

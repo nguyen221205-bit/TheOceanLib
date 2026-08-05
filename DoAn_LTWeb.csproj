@@ -142,6 +142,7 @@
     <Compile Include="Models\DTOs\PhieuMuonDTOs.cs" />
     <Compile Include="Models\DTOs\TraSachDTOs.cs" />
     <Compile Include="Models\DTOs\PhieuPhatDTOs.cs" />
+    <Compile Include="Models\DTOs\DocGiaDTOs.cs" />
     <Compile Include="Models\ChiTietPhieuMuon.cs">
       <DependentUpon>ModelsDuLieu.tt</DependentUpon>
     </Compile>
@@ -307,6 +308,7 @@
     <Content Include="Views\Home\LienHeHoTro.cshtml" />
     <Content Include="Views\Home\SachMuonNhieu.cshtml" />
     <Content Include="Views\Home\TaiLieuMoi.cshtml" />
+    <Content Include="Views\Home\TaiKhoan.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

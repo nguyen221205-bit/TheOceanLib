@@ -1,18 +1,269 @@
-@using DoAn_LTWeb.Models
-@model List<TheLoai>
+@using DoAn_LTWeb.Models.DTOs
+@model List<MenuTheLoaiCap2Dto>
 
-<div class="dropdown">
+<style>
+    .menu-2tier-wrapper {
+        position: relative;
+    }
+
+    .category-2tier-menu {
+        min-width: 620px;
+        max-width: 750px;
+        padding: 0;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(20px);
+        background: var(--bg-surface, #ffffff);
+        max-height: 480px;
+    }
+
+    .category-level1-group {
+        width: 250px;
+        max-height: 480px;
+        overflow-y: auto;
+        background: rgba(14, 165, 233, 0.04);
+        border-end-style: solid;
+        border-end-width: 1px;
+        border-end-color: rgba(226, 232, 240, 0.2);
+        padding: 8px 0;
+    }
+
+    /* Thanh cuộn hiện đại cho Cấp 1 */
+    .category-level1-group::-webkit-scrollbar {
+        width: 5px;
+    }
+    .category-level1-group::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .category-level1-group::-webkit-scrollbar-thumb {
+        background: rgba(14, 165, 233, 0.3);
+        border-radius: 4px;
+    }
+    .category-level1-group::-webkit-scrollbar-thumb:hover {
+        background: #0ea5e9;
+    }
+
+    .category-level1-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        color: var(--text-primary, #0f172a);
+        font-weight: 600;
+        font-size: 0.88rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border-radius: 10px;
+        margin: 2px 8px;
+        cursor: pointer;
+    }
+
+    .category-level1-item:hover, .category-level1-item.active {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+
+    .category-level1-item:hover .item-icon, .category-level1-item.active .item-icon {
+        color: #ffffff !important;
+    }
+
+    .category-level2-container {
+        flex: 1;
+        max-height: 480px;
+        overflow-y: auto;
+        padding: 16px 20px;
+    }
+
+    /* Thanh cuộn Cấp 2 */
+    .category-level2-container::-webkit-scrollbar {
+        width: 5px;
+    }
+    .category-level2-container::-webkit-scrollbar-thumb {
+        background: rgba(14, 165, 233, 0.2);
+        border-radius: 4px;
+    }
+
+    .category-level2-panel {
+        display: none;
+        animation: fadeInFast 0.25s ease;
+    }
+
+    .category-level2-panel.active {
+        display: block;
+    }
+
+    @@keyframes fadeInFast {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .level2-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted, #64748b);
+        margin-bottom: 8px;
+    }
+
+    .author-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: rgba(14, 165, 233, 0.08);
+        color: var(--text-primary, #0f172a);
+        font-size: 0.82rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        margin-bottom: 6px;
+        margin-right: 4px;
+        border: 1px solid rgba(14, 165, 233, 0.15);
+    }
+
+    .author-chip:hover {
+        background: #0ea5e9;
+        color: #ffffff;
+        border-color: #0ea5e9;
+    }
+
+    .book-mini-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text-primary, #0f172a);
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .book-mini-card:hover {
+        background: rgba(14, 165, 233, 0.08);
+        border-color: rgba(14, 165, 233, 0.2);
+    }
+
+    .book-mini-card img {
+        width: 40px;
+        height: 54px;
+        object-fit: cover;
+        border-radius: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+</style>
+
+<div class="dropdown menu-2tier-wrapper">
     <button class="category-dropdown-btn dropdown-toggle" type="button" id="categoryMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="fa-solid fa-bars"></i> Menu danh mục
+        <i class="fa-solid fa-bars me-1"></i> Menu danh mục
     </button>
-    <ul class="dropdown-menu account-dropdown-menu" aria-labelledby="categoryMenuButton">
-        @foreach (var item in Model)
-        {
-            <li>
-                <a class="dropdown-item" href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = item.MaTheLoai })">
-                    <i class="fa-solid fa-tag text-primary me-2"></i> @item.TenTheLoai
-                </a>
-            </li>
-        }
-    </ul>
+    <div class="dropdown-menu category-2tier-menu p-0" aria-labelledby="categoryMenuButton">
+        <div class="d-flex h-100">
+            <!-- CẤP 1: DANH SÁCH THỂ LOẠI (CÓ THANH CUỘN NỘI BỘ SIÊU MƯỢT) -->
+            <div class="category-level1-group">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var item = Model[i];
+                    <a class="category-level1-item @(i == 0 ? "active" : "")" 
+                       href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = item.MaTheLoai })"
+                       data-target="panel-tl-@(item.MaTheLoai)">
+                        <span class="text-truncate" title="@item.TenTheLoai">
+                            <i class="fa-solid fa-folder-open text-primary me-2 item-icon"></i>@item.TenTheLoai
+                        </span>
+                        <i class="fa-solid fa-chevron-right small opacity-50 ms-1"></i>
+                    </a>
+                }
+            </div>
+
+            <!-- CẤP 2: NỘI DUNG CHI TIẾT (LUÔN CỐ ĐỊNH NẰM TRONG TẦM MẮT) -->
+            <div class="category-level2-container">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var item = Model[i];
+                    <div class="category-level2-panel @(i == 0 ? "active" : "")" id="panel-tl-@(item.MaTheLoai)">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <h6 class="fw-bold mb-0 text-primary">
+                                <i class="fa-solid fa-tags me-1"></i>@item.TenTheLoai
+                            </h6>
+                            <a href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = item.MaTheLoai })" class="btn btn-sm btn-outline-primary rounded-pill extra-small px-3">
+                                Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+
+                        <!-- CẤP 2: TÁC GIẢ KHUYÊN ĐỌC -->
+                        <div class="mb-3">
+                            <div class="level2-title"><i class="fa-solid fa-user-pen me-1"></i>Tác giả chuyên môn</div>
+                            @if (item.DanhSachTacGia != null && item.DanhSachTacGia.Count > 0)
+                            {
+                                <div class="d-flex flex-wrap">
+                                    @foreach (var tg in item.DanhSachTacGia)
+                                    {
+                                        <a href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = item.MaTheLoai, tuKhoa = tg.TenTacGia })" class="author-chip">
+                                            <i class="fa-regular fa-user"></i>@tg.TenTacGia 
+                                            <span class="badge bg-secondary rounded-pill extra-small">@tg.SoLuongSach</span>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Đang cập nhật tác giả...</span>
+                            }
+                        </div>
+
+                        <!-- CẤP 2: SÁCH NỔI BẬT KHUYÊN ĐỌC -->
+                        <div>
+                            <div class="level2-title"><i class="fa-solid fa-star me-1 text-warning"></i>Sách nổi bật</div>
+                            @if (item.DanhSachSachNoiBat != null && item.DanhSachSachNoiBat.Count > 0)
+                            {
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach (var s in item.DanhSachSachNoiBat)
+                                    {
+                                        <a href="@Url.Action("ChiTietSach", "Home", new { id = s.MaSach })" class="book-mini-card">
+                                            <img src="~/Content/HinhAnh/@s.AnhBia" alt="@s.TenSach" onerror="this.src='https://placehold.co/80x110/0f172a/ffffff?text=Book'" />
+                                            <div class="text-truncate">
+                                                <div class="fw-semibold small text-truncate" title="@s.TenSach">@s.TenSach</div>
+                                                <span class="text-muted extra-small"><i class="fa-solid fa-eye me-1"></i>Xem chi tiết</span>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Chưa có sách nổi bật...</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const level1Items = document.querySelectorAll('.category-level1-item');
+        const level2Panels = document.querySelectorAll('.category-level2-panel');
+
+        level1Items.forEach(item => {
+            item.addEventListener('mouseenter', function () {
+                const targetId = this.getAttribute('data-target');
+
+                level1Items.forEach(i => i.classList.remove('active'));
+                level2Panels.forEach(p => p.classList.remove('active'));
+
+                this.classList.add('active');
+                const targetPanel = document.getElementById(targetId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+            });
+        });
+    });
+</script>

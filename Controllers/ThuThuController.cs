@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -145,6 +146,41 @@ namespace DoAn_LTWeb.Controllers
             }
         }
 
+        private void KiemTraVaHuyDonQuaHan2Ngay()
+        {
+            try
+            {
+                var now = DateTime.Now;
+                var twoDaysAgo = now.AddDays(-2);
+                var expiredList = data.YeuCauMuon
+                    .Where(y => y.TrangThai == "Đã duyệt" && y.NgayYeuCau.HasValue && y.NgayYeuCau.Value < twoDaysAgo)
+                    .ToList();
+
+                if (expiredList.Count > 0)
+                {
+                    foreach (var yc in expiredList)
+                    {
+                        yc.TrangThai = "Đã hủy";
+
+                        var details = data.ChiTietYeuCauMuon.Where(c => c.MaYeuCau == yc.MaYeuCau).ToList();
+                        foreach (var ct in details)
+                        {
+                            var heldCopies = data.CuonSach
+                                .Where(cs => cs.MaSach == ct.MaSach && cs.TrangThai == "Giữ sách")
+                                .Take(1)
+                                .ToList();
+                            foreach (var copy in heldCopies)
+                            {
+                                copy.TrangThai = "Có sẵn";
+                            }
+                        }
+                    }
+                    data.SaveChanges();
+                }
+            }
+            catch (Exception) { }
+        }
+
         // GET: ThuThu/YeuCauMuon
         public ActionResult YeuCauMuon()
         {
@@ -153,11 +189,14 @@ namespace DoAn_LTWeb.Controllers
 
             try
             {
-                // Truy vấn các yêu cầu mượn ở trạng thái "Chờ duyệt" / "ChoDuyet" / "Pending"
+                KiemTraVaHuyDonQuaHan2Ngay();
+
+                // Truy vấn các yêu cầu mượn ở trạng thái "Chờ duyệt" và "Đã duyệt"
                 var dbList = data.YeuCauMuon
                     .Include(y => y.NguoiDung)
-                    .Where(y => y.TrangThai == "ChoDuyet" || y.TrangThai == "Chờ duyệt" || y.TrangThai == "Pending")
-                    .OrderByDescending(y => y.NgayYeuCau)
+                    .Where(y => y.TrangThai == "ChoDuyet" || y.TrangThai == "Chờ duyệt" || y.TrangThai == "Đã duyệt" || y.TrangThai == "Pending")
+                    .OrderBy(y => y.TrangThai == "Chờ duyệt" ? 0 : 1)
+                    .ThenByDescending(y => y.NgayYeuCau)
                     .ToList();
 
                 List<YeuCauMuonDto> list = new List<YeuCauMuonDto>();
@@ -189,8 +228,8 @@ namespace DoAn_LTWeb.Controllers
         {
             try
             {
+                KiemTraVaHuyDonQuaHan2Ngay();
 
-                // Thực tế lấy từ database
                 var yc = data.YeuCauMuon.Include(y => y.NguoiDung).FirstOrDefault(y => y.MaYeuCau == id);
                 if (yc == null)
                 {
@@ -201,8 +240,8 @@ namespace DoAn_LTWeb.Controllers
                 var grouped = details.GroupBy(d => d.Sach).Select(g =>
                 {
                     var sach = g.Key;
-                    int qtyRequested = g.Count(); // Tính số lượng sách độc giả yêu cầu (qua gom nhóm bản ghi trùng)
-                    var availableCopies = data.CuonSach.Where(cs => cs.MaSach == sach.MaSach && cs.TrangThai == "Có sẵn").ToList();
+                    int qtyRequested = g.Count();
+                    var availableCopies = data.CuonSach.Where(cs => cs.MaSach == sach.MaSach && (cs.TrangThai == "Có sẵn" || cs.TrangThai == "Giữ sách")).ToList();
                     
                     return new SachYeuCauDto
                     {
@@ -216,9 +255,11 @@ namespace DoAn_LTWeb.Controllers
                             MaCuonSach = cs.MaCuonSach,
                             ViTriKe = cs.ViTriKe ?? "Kệ mặc định"
                         }).ToList(),
-                        TrangThaiKho = availableCopies.Count >= qtyRequested ? "Có sẵn" : "Không đủ sách"
+                        TrangThaiKho = availableCopies.Count >= qtyRequested ? "Khả dụng" : "Không đủ sách"
                     };
                 }).ToList();
+
+                DateTime? dateExpire = yc.NgayYeuCau.HasValue ? yc.NgayYeuCau.Value.AddDays(2) : (DateTime?)null;
 
                 var detailDto = new YeuCauDetailDto
                 {
@@ -228,6 +269,9 @@ namespace DoAn_LTWeb.Controllers
                     SoDienThoai = yc.NguoiDung != null ? yc.NguoiDung.SoDienThoai : "Không có",
                     Email = yc.NguoiDung != null ? yc.NguoiDung.Email : "Không có",
                     DiaChi = yc.NguoiDung != null ? yc.NguoiDung.DiaChi : "Không có",
+                    TrangThai = yc.TrangThai,
+                    NgayGui = yc.NgayYeuCau.HasValue ? yc.NgayYeuCau.Value.ToString("dd/MM/yyyy HH:mm") : "N/A",
+                    HanDenNhan = dateExpire.HasValue ? dateExpire.Value.ToString("HH:mm dd/MM/yyyy") : "N/A",
                     DanhSachSach = grouped
                 };
 
@@ -239,14 +283,13 @@ namespace DoAn_LTWeb.Controllers
             }
         }
 
-        // POST: ThuThu/DuyetYeuCau
+        // POST: ThuThu/DuyetYeuCau (BƯỚC 1: Duyệt đơn & Giữ sách trong 48h)
         [HttpPost]
-        public ActionResult DuyetYeuCau(int id, string ngayMuon, string ngayHenTra)
+        public ActionResult DuyetYeuCau(int id)
         {
             try
             {
-                DateTime parsedNgayMuon = DateTime.Parse(ngayMuon);
-                DateTime parsedNgayHenTra = DateTime.Parse(ngayHenTra);
+                KiemTraVaHuyDonQuaHan2Ngay();
 
                 var yc = data.YeuCauMuon.FirstOrDefault(y => y.MaYeuCau == id);
                 if (yc == null)
@@ -254,19 +297,12 @@ namespace DoAn_LTWeb.Controllers
                     return Json(new { success = false, message = "Không tìm thấy yêu cầu mượn!" });
                 }
 
-                // 1. Tạo mới phiếu mượn chính thức
-                var currentLibrarian = Session["User"] as NguoiDung;
-                PhieuMuon pm = new PhieuMuon();
-                pm.MaDocGia = yc.MaDocGia;
-                pm.MaThuThu = currentLibrarian != null ? currentLibrarian.MaNguoiDung : (int?)null;
-                pm.NgayMuon = parsedNgayMuon;
-                pm.NgayHenTra = parsedNgayHenTra;
-                pm.TrangThai = "Đang mượn";
+                if (yc.TrangThai != "Chờ duyệt")
+                {
+                    return Json(new { success = false, message = $"Yêu cầu mượn #{id} đang ở trạng thái '{yc.TrangThai}', không thể thực hiện phê duyệt!" });
+                }
 
-                data.PhieuMuon.Add(pm);
-                data.SaveChanges(); // Lưu để lấy MaPhieuMuon tự tăng
-
-                // 2. Gom nhóm sách đăng ký mượn để gán bản sách vật lý tương ứng
+                // 1. Chuyển trạng thái các bản sách vật lý khả dụng sang "Giữ sách"
                 var details = data.ChiTietYeuCauMuon.Where(c => c.MaYeuCau == id).ToList();
                 var grouped = details.GroupBy(d => d.MaSach).ToList();
 
@@ -275,7 +311,6 @@ namespace DoAn_LTWeb.Controllers
                     int maSach = group.Key;
                     int qty = group.Count();
 
-                    // Tìm bản cuốn sách vật lý đang "Có sẵn"
                     var availableCopies = data.CuonSach
                         .Where(cs => cs.MaSach == maSach && cs.TrangThai == "Có sẵn")
                         .Take(qty)
@@ -283,31 +318,113 @@ namespace DoAn_LTWeb.Controllers
 
                     if (availableCopies.Count < qty)
                     {
-                        return Json(new { success = false, message = $"Không đủ số lượng bản sách vật lý 'Có sẵn' cho mã sách #{maSach}!" });
+                        return Json(new { success = false, message = $"Không đủ số lượng bản sách 'Có sẵn' cho mã sách #{maSach} (Kho hiện có: {availableCopies.Count}, Yêu cầu: {qty})!" });
                     }
 
                     foreach (var copy in availableCopies)
                     {
-                        // Tạo chi tiết phiếu mượn
+                        copy.TrangThai = "Giữ sách";
+                    }
+                }
+
+                // 2. Đánh dấu yêu cầu mượn là "Đã duyệt"
+                yc.TrangThai = "Đã duyệt";
+                data.SaveChanges();
+
+                DateTime expireDate = yc.NgayYeuCau.HasValue ? yc.NgayYeuCau.Value.AddDays(2) : DateTime.Now.AddDays(2);
+
+                return Json(new { 
+                    success = true, 
+                    message = $"Đã phê duyệt và giữ sách cho yêu cầu #{yc.MaYeuCau}! Hạn độc giả đến quầy nhận sách là trước {expireDate:HH:mm dd/MM/yyyy} (48 giờ)." 
+                });
+            }
+            catch (Exception ex)
+            {
+                var inner = ex;
+                while (inner.InnerException != null) inner = inner.InnerException;
+                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + inner.Message });
+            }
+        }
+
+        // POST: ThuThu/XacNhanTraoSach (BƯỚC 2: Độc giả đến quầy ➔ Trao sách ➔ Tạo Phiếu mượn chính thức)
+        [HttpPost]
+        public ActionResult XacNhanTraoSach(int id, int? soNgayMuon = 14)
+        {
+            try
+            {
+                KiemTraVaHuyDonQuaHan2Ngay();
+
+                var yc = data.YeuCauMuon.FirstOrDefault(y => y.MaYeuCau == id);
+                if (yc == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy yêu cầu mượn!" });
+                }
+
+                if (yc.TrangThai != "Đã duyệt")
+                {
+                    return Json(new { success = false, message = $"Yêu cầu mượn #{id} đang ở trạng thái '{yc.TrangThai}', không thể trao sách!" });
+                }
+
+                int days = (soNgayMuon.HasValue && soNgayMuon.Value > 0) ? soNgayMuon.Value : 14;
+                DateTime ngayMuonThucTe = DateTime.Now;
+                DateTime ngayHenTra = ngayMuonThucTe.AddDays(days);
+
+                // 1. Tạo mới phiếu mượn chính thức với Ngày mượn là HÔM NAY (ngày độc giả nhận sách tại quầy)
+                var currentLibrarian = Session["User"] as NguoiDung;
+                PhieuMuon pm = new PhieuMuon();
+                pm.MaDocGia = yc.MaDocGia;
+                pm.MaThuThu = currentLibrarian != null ? currentLibrarian.MaNguoiDung : (int?)null;
+                pm.NgayMuon = ngayMuonThucTe;
+                pm.NgayHenTra = ngayHenTra;
+                pm.TrangThai = "Đang mượn";
+
+                data.PhieuMuon.Add(pm);
+                data.SaveChanges(); // Lưu để lấy MaPhieuMuon tự tăng
+
+                // 2. Chuyển các cuốn sách từ "Giữ sách" / "Có sẵn" sang "Đang mượn"
+                var details = data.ChiTietYeuCauMuon.Where(c => c.MaYeuCau == id).ToList();
+                var grouped = details.GroupBy(d => d.MaSach).ToList();
+
+                foreach (var group in grouped)
+                {
+                    int maSach = group.Key;
+                    int qty = group.Count();
+
+                    var targetCopies = data.CuonSach
+                        .Where(cs => cs.MaSach == maSach && (cs.TrangThai == "Giữ sách" || cs.TrangThai == "Có sẵn"))
+                        .Take(qty)
+                        .ToList();
+
+                    if (targetCopies.Count < qty)
+                    {
+                        return Json(new { success = false, message = $"Không đủ cuốn sách khả dụng cho mã sách #{maSach}!" });
+                    }
+
+                    foreach (var copy in targetCopies)
+                    {
                         ChiTietPhieuMuon ct = new ChiTietPhieuMuon();
                         ct.MaPhieuMuon = pm.MaPhieuMuon;
                         ct.MaCuonSach = copy.MaCuonSach;
                         data.ChiTietPhieuMuon.Add(ct);
 
-                        // Đổi trạng thái cuốn sách thành "Đang mượn"
                         copy.TrangThai = "Đang mượn";
                     }
                 }
 
-                // 3. Đánh dấu yêu cầu mượn là "Đã duyệt"
-                yc.TrangThai = "Đã duyệt";
+                // 3. Cập nhật YeuCauMuon thành "Đã nhận sách"
+                yc.TrangThai = "Đã nhận sách";
                 data.SaveChanges();
 
-                return Json(new { success = true, message = $"Đã phê duyệt yêu cầu mượn thành công! Đã chuyển đổi yêu cầu thành Phiếu Mượn chính thức #{pm.MaPhieuMuon}." });
+                return Json(new { 
+                    success = true, 
+                    message = $"Xác nhận trao sách thành công! Đã tạo Phiếu Mượn chính thức #{pm.MaPhieuMuon} (Ngày mượn: {ngayMuonThucTe:dd/MM/yyyy}, Hạn trả: {ngayHenTra:dd/MM/yyyy})." 
+                });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + ex.Message });
+                var inner = ex;
+                while (inner.InnerException != null) inner = inner.InnerException;
+                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + inner.Message });
             }
         }
 
@@ -321,6 +438,20 @@ namespace DoAn_LTWeb.Controllers
                 if (yc == null)
                 {
                     return Json(new { success = false, message = "Không tìm thấy yêu cầu mượn!" });
+                }
+
+                // Giải phóng các cuốn sách đang "Giữ sách" cho yêu cầu này
+                var details = data.ChiTietYeuCauMuon.Where(c => c.MaYeuCau == id).ToList();
+                foreach (var ct in details)
+                {
+                    var heldCopies = data.CuonSach
+                        .Where(cs => cs.MaSach == ct.MaSach && cs.TrangThai == "Giữ sách")
+                        .Take(1)
+                        .ToList();
+                    foreach (var copy in heldCopies)
+                    {
+                        copy.TrangThai = "Có sẵn";
+                    }
                 }
 
                 // Đánh dấu yêu cầu là "Từ chối"
@@ -803,6 +934,202 @@ namespace DoAn_LTWeb.Controllers
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + ex.Message });
+            }
+        }
+
+        // GET: ThuThu/TraCuuDocGia
+        public ActionResult TraCuuDocGia(string q, string status)
+        {
+            ViewBag.ActiveMenu = "TraCuuDocGia";
+            ViewBag.Title = "Tra cứu & Quản lý Thẻ Độc giả";
+            ViewBag.SearchQuery = q;
+            ViewBag.StatusFilter = status;
+
+            try
+            {
+                var readers = data.NguoiDung.Where(u => u.MaVaiTro == 3).ToList();
+
+                // Thống kê tổng số
+                ViewBag.TongDocGia = readers.Count;
+                ViewBag.TheHoatDong = readers.Count(u => string.IsNullOrEmpty(u.TrangThaiThe) || u.TrangThaiThe == "Hoạt động" || u.TrangThaiThe == "Active");
+                ViewBag.TheBiKhoa = readers.Count(u => u.TrangThaiThe == "Đã khóa" || u.TrangThaiThe == "Locked");
+
+                if (!string.IsNullOrEmpty(q))
+                {
+                    string search = q.Trim().ToLower();
+                    readers = readers.Where(u =>
+                        u.MaNguoiDung.ToString().Contains(search) ||
+                        (u.HoTen != null && u.HoTen.ToLower().Contains(search)) ||
+                        (u.SoDienThoai != null && u.SoDienThoai.Contains(search)) ||
+                        (u.Email != null && u.Email.ToLower().Contains(search))
+                    ).ToList();
+                }
+
+                if (!string.IsNullOrEmpty(status))
+                {
+                    if (status == "active")
+                    {
+                        readers = readers.Where(u => string.IsNullOrEmpty(u.TrangThaiThe) || u.TrangThaiThe == "Hoạt động" || u.TrangThaiThe == "Active").ToList();
+                    }
+                    else if (status == "locked")
+                    {
+                        readers = readers.Where(u => u.TrangThaiThe == "Đã khóa" || u.TrangThaiThe == "Locked").ToList();
+                    }
+                }
+
+                List<DocGiaTraCuuItemDto> list = new List<DocGiaTraCuuItemDto>();
+
+                foreach (var r in readers)
+                {
+                    var loans = data.PhieuMuon.Where(p => p.MaDocGia == r.MaNguoiDung).ToList();
+                    int totalLoans = loans.Count;
+                    int activeLoans = loans.Count(p => p.TrangThai == "Đang mượn");
+
+                    var unpaidFines = data.PhieuPhat
+                        .Where(fp => fp.ChiTietPhieuMuon.PhieuMuon.MaDocGia == r.MaNguoiDung && (fp.TrangThaiThanhToan == "ChuaThanhToan" || fp.TrangThaiThanhToan == "Chưa thanh toán"))
+                        .ToList();
+
+                    decimal totalUnpaidFine = unpaidFines.Sum(fp => fp.SoTienPhat);
+
+                    list.Add(new DocGiaTraCuuItemDto
+                    {
+                        MaNguoiDung = r.MaNguoiDung,
+                        HoTen = r.HoTen,
+                        Email = r.Email,
+                        SoDienThoai = r.SoDienThoai,
+                        DiaChi = r.DiaChi,
+                        TrangThaiThe = string.IsNullOrEmpty(r.TrangThaiThe) ? "Hoạt động" : r.TrangThaiThe,
+                        NgayTao = r.NgayTao,
+                        SoLuotMuon = totalLoans,
+                        DangMuonCount = activeLoans,
+                        TongPhatChuaNop = totalUnpaidFine
+                    });
+                }
+
+                return View(list);
+            }
+            catch (Exception)
+            {
+                return View(new List<DocGiaTraCuuItemDto>());
+            }
+        }
+
+        // GET: ThuThu/GetDocGiaDetail/{id}
+        [HttpGet]
+        public ActionResult GetDocGiaDetail(int id)
+        {
+            try
+            {
+                var r = data.NguoiDung.FirstOrDefault(u => u.MaNguoiDung == id);
+                if (r == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy độc giả!" }, JsonRequestBehavior.AllowGet);
+                }
+
+                // 1. Danh sách phiếu mượn
+                var loans = data.PhieuMuon.Include(p => p.NguoiDung1).Where(p => p.MaDocGia == id).OrderByDescending(p => p.NgayMuon).ToList();
+                List<PhieuMuonDocGiaDto> listPm = new List<PhieuMuonDocGiaDto>();
+
+                foreach (var pm in loans)
+                {
+                    var details = data.ChiTietPhieuMuon.Include(c => c.CuonSach.Sach).Where(c => c.MaPhieuMuon == pm.MaPhieuMuon).ToList();
+                    var listBooks = details.Select(ct => new ChiTietPhieuMuonItemDto
+                    {
+                        MaChiTiet = ct.MaChiTiet,
+                        MaCuonSach = ct.MaCuonSach,
+                        TenSach = ct.CuonSach != null && ct.CuonSach.Sach != null ? ct.CuonSach.Sach.TenSach : "N/A",
+                        AnhBia = ct.CuonSach != null && ct.CuonSach.Sach != null ? ct.CuonSach.Sach.AnhBia : "",
+                        NgayTraThucTe = ct.NgayTraThucTe,
+                        TinhTrangKhiTra = ct.TinhTrangKhiTra
+                    }).ToList();
+
+                    listPm.Add(new PhieuMuonDocGiaDto
+                    {
+                        MaPhieuMuon = pm.MaPhieuMuon,
+                        NgayMuon = pm.NgayMuon,
+                        NgayHenTra = pm.NgayHenTra,
+                        TrangThai = pm.TrangThai,
+                        TenThuThu = pm.NguoiDung1 != null ? pm.NguoiDung1.HoTen : "Hệ thống",
+                        DanhSachCuonSach = listBooks
+                    });
+                }
+
+                // 2. Danh sách phiếu phạt
+                var fines = data.PhieuPhat.Include(fp => fp.ChiTietPhieuMuon.CuonSach.Sach).Where(fp => fp.ChiTietPhieuMuon.PhieuMuon.MaDocGia == id).OrderByDescending(fp => fp.NgayLap).ToList();
+                List<PhieuPhatDocGiaDto> listFines = new List<PhieuPhatDocGiaDto>();
+
+                foreach (var fp in fines)
+                {
+                    var book = fp.ChiTietPhieuMuon != null && fp.ChiTietPhieuMuon.CuonSach != null ? fp.ChiTietPhieuMuon.CuonSach.Sach : null;
+                    listFines.Add(new PhieuPhatDocGiaDto
+                    {
+                        MaPhieuPhat = fp.MaPhieuPhat,
+                        MaPhieuMuon = fp.ChiTietPhieuMuon != null ? fp.ChiTietPhieuMuon.MaPhieuMuon : 0,
+                        TenSach = book != null ? book.TenSach : "Phí vi phạm chung",
+                        AnhBia = book != null ? book.AnhBia : "",
+                        MaCuonSach = fp.ChiTietPhieuMuon != null ? fp.ChiTietPhieuMuon.MaCuonSach : 0,
+                        SoTienPhat = fp.SoTienPhat,
+                        LyDoPhat = fp.LyDo,
+                        NgayLap = fp.NgayLap,
+                        TrangThaiThanhToan = fp.TrangThaiThanhToan
+                    });
+                }
+
+                var modalDto = new DocGiaChiTietModalDto
+                {
+                    MaNguoiDung = r.MaNguoiDung,
+                    HoTen = r.HoTen,
+                    Email = r.Email,
+                    SoDienThoai = r.SoDienThoai,
+                    DiaChi = r.DiaChi,
+                    TrangThaiThe = string.IsNullOrEmpty(r.TrangThaiThe) ? "Hoạt động" : r.TrangThaiThe,
+                    NgayTao = r.NgayTao,
+                    DanhSachPhieuMuon = listPm,
+                    DanhSachPhieuPhat = listFines
+                };
+
+                return Json(new { success = true, data = modalDto }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        // POST: ThuThu/DoiTrangThaiThe
+        [HttpPost]
+        public ActionResult DoiTrangThaiThe(int id)
+        {
+            try
+            {
+                var r = data.NguoiDung.FirstOrDefault(u => u.MaNguoiDung == id);
+                if (r == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy độc giả trong CSDL!" });
+                }
+
+                if (r.TrangThaiThe == "Đã khóa" || r.TrangThaiThe == "Locked")
+                {
+                    r.TrangThaiThe = "Hoạt động";
+                }
+                else
+                {
+                    r.TrangThaiThe = "Đã khóa";
+                }
+
+                data.SaveChanges();
+
+                return Json(new { 
+                    success = true, 
+                    newStatus = r.TrangThaiThe, 
+                    message = $"Đã cập nhật trạng thái thẻ độc giả #{r.MaNguoiDung} thành '{r.TrangThaiThe}' thành công!" 
+                });
+            }
+            catch (Exception ex)
+            {
+                var inner = ex;
+                while (inner.InnerException != null) inner = inner.InnerException;
+                return Json(new { success = false, message = "Lỗi xử lý cơ sở dữ liệu: " + inner.Message });
             }
         }
     }

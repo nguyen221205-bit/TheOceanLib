@@ -18,7 +18,7 @@
         <p class="text-secondary">Vui lòng kiểm tra kỹ danh sách sách đã chọn và điền thông tin để hoàn tất đăng ký mượn.</p>
     </div>
 
-    @using (Html.BeginForm("XacNhanMuon", "Home", FormMethod.Post, new { @class = "row g-4" }))
+    @using (Html.BeginForm("XacNhanMuon", "Home", FormMethod.Post, new { id = "formXacNhanMuon", @class = "row g-4" }))
     {
         <!-- Bảng Nhập Thông Tin Độc Giả (Bên trái) -->
         <div class="col-lg-7 col-md-12">
@@ -39,28 +39,33 @@
                            style="color: var(--text-primary); border-color: var(--border-color);" />
                 </div>
 
-                <div class="row g-3 mb-3">
+                <div class="row g-3 mb-1">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">
-                            Ngày mượn
+                            Thời điểm gửi yêu cầu
                         </label>
 
                         <input type="text"
                                class="form-control bg-transparent"
-                               value="@now.ToString("dd/MM/yyyy HH:mm:ss")"
+                               value="@now.ToString("dd/MM/yyyy HH:mm")"
                                readonly
                                style="color: var(--text-primary); border-color: var(--border-color);" />
                     </div>
                     <div class="col-md-6">
-                        <label for="NgayTra" class="form-label fw-semibold">Ngày hẹn trả <span class="text-danger">*</span></label>
-                        <input type="date"
-                               class="form-control bg-transparent"
-                               id="NgayTra"
-                               name="NgayTra"
-                               value="@returnDate"
-                               required
-                               style="color: var(--text-primary); border-color: var(--border-color);" />
+                        <label for="SoNgayMuon" class="form-label fw-semibold">Thời hạn mượn mong muốn <span class="text-danger">*</span></label>
+                        <select class="form-select bg-transparent"
+                                id="SoNgayMuon"
+                                name="SoNgayMuon"
+                                style="color: var(--text-primary); border-color: var(--border-color);">
+                            <option value="7" style="background: var(--bg-surface, #0f172a); color: var(--text-primary, #ffffff);">7 ngày (1 tuần)</option>
+                            <option value="14" selected style="background: var(--bg-surface, #0f172a); color: var(--text-primary, #ffffff);">14 ngày (2 tuần - Mặc định)</option>
+                            <option value="21" style="background: var(--bg-surface, #0f172a); color: var(--text-primary, #ffffff);">21 ngày (3 tuần)</option>
+                            <option value="30" style="background: var(--bg-surface, #0f172a); color: var(--text-primary, #ffffff);">30 ngày (1 tháng)</option>
+                        </select>
                     </div>
+                </div>
+                <div class="form-text small text-secondary mb-3">
+                    <i class="fa-solid fa-circle-info me-1"></i>Hạn trả sách sẽ bắt đầu được tính chính xác [N] ngày kể từ thời điểm bạn nhận sách thực tế tại quầy Thư viện.
                 </div>
 
                 <div class="mb-3">
@@ -78,20 +83,20 @@
                 <div class="mb-4">
                     <label for="DiaChi" class="form-label fw-semibold">Địa chỉ nhận sách <span class="text-danger">*</span></label>
                     <textarea class="form-control bg-transparent"
-                              id="DiaChi"
-                              name="DiaChi"
-                              rows="3"
-                              placeholder="Nhập địa chỉ của bạn"
-                              required
-                              style="color: var(--text-primary); border-color: var(--border-color);">@(ViewBag.User != null ? ViewBag.User.DiaChi : "")</textarea>
+                               id="DiaChi"
+                               name="DiaChi"
+                               rows="3"
+                               placeholder="Nhập địa chỉ của bạn"
+                               required
+                               style="color: var(--text-primary); border-color: var(--border-color);">@(ViewBag.User != null ? ViewBag.User.DiaChi : "")</textarea>
                 </div>
 
                 <div class="d-flex gap-3">
                     <a href="@Url.Action("XemGioHang", "Home")" class="btn btn-outline-secondary py-2 px-4">
                         <i class="fa-solid fa-arrow-left me-1"></i> Quay lại giỏ hàng
                     </a>
-                    <button type="submit" class="btn btn-success py-2 px-4 flex-grow-1 fw-bold">
-                        <i class="fa-regular fa-circle-check me-1"></i> Xác nhận đăng ký mượn
+                    <button type="button" id="btnOpenRulesModal" class="btn btn-primary py-2 px-4 flex-grow-1 fw-bold">
+                        <i class="fa-solid fa-file-signature me-1"></i> Đăng ký mượn
                     </button>
                 </div>
             </div>
@@ -146,3 +151,159 @@
         </div>
     }
 </div>
+
+<!-- MODAL QUY ĐỊNH MƯỢN SÁCH THƯ VIỆN THEOCEANLIB -->
+<div class="modal fade" id="modalQuyDinhMuon" tabindex="-1" aria-labelledby="modalQuyDinhMuonLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content rounded-4 border-0 shadow-lg" style="background: var(--bg-surface, #ffffff); color: var(--text-primary, #0f172a);">
+            <div class="modal-header border-bottom pb-3">
+                <h5 class="modal-title fw-bold text-primary" id="modalQuyDinhMuonLabel">
+                    <i class="fa-solid fa-scale-balanced me-2 text-warning"></i> QUY ĐỊNH MƯỢN SÁCH THƯ VIỆN THEOCEANLIB
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4" style="max-height: 420px; overflow-y: auto;">
+                <div class="lh-relaxed pe-2" style="font-size: 0.92rem;">
+                    
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-circle-info me-1"></i> Điều 1. Đối tượng áp dụng</h6>
+                    <p class="text-secondary ps-3 mb-3">Quy định này áp dụng đối với tất cả thành viên đã đăng ký tài khoản và sử dụng chức năng mượn sách trên hệ thống TheOceanLib.</p>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-check me-1"></i> Điều 2. Điều kiện mượn sách</h6>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Người dùng phải có tài khoản đang hoạt động trên hệ thống.</li>
+                        <li>Tài khoản không đang bị khóa hoặc tạm ngừng quyền mượn sách.</li>
+                        <li>Người dùng không còn khoản phạt hoặc nghĩa vụ chưa hoàn thành theo quy định của thư viện.</li>
+                        <li>Số lượng sách đang mượn không vượt quá giới hạn cho phép của thư viện.</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-list-check me-1"></i> Điều 3. Quy trình mượn sách</h6>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Người dùng gửi yêu cầu mượn sách thông qua hệ thống.</li>
+                        <li>Yêu cầu sẽ được thủ thư xem xét và phê duyệt.</li>
+                        <li>Chỉ các yêu cầu ở trạng thái <strong>Đã duyệt</strong> mới được phép nhận sách.</li>
+                        <li>Người dùng có trách nhiệm nhận sách theo hướng dẫn của thư viện sau khi yêu cầu được chấp thuận.</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-shield-heart me-1"></i> Điều 4. Trách nhiệm của người mượn</h6>
+                    <p class="text-secondary ps-3 mb-1">Trong thời gian mượn sách, người dùng có trách nhiệm:</p>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Giữ gìn sách nguyên vẹn, sạch sẽ và không tự ý sửa chữa.</li>
+                        <li>Không làm rách, viết, vẽ hoặc đánh dấu lên sách.</li>
+                        <li>Không chuyển nhượng hoặc cho người khác mượn lại sách dưới bất kỳ hình thức nào.</li>
+                        <li>Trả sách đúng thời hạn được ghi trên phiếu mượn.</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-clock-rotate-left me-1"></i> Điều 5. Gia hạn mượn sách</h6>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Người dùng chỉ được gia hạn khi sách chưa quá hạn trả.</li>
+                        <li>Việc gia hạn phải được thực hiện theo quy định và được thư viện chấp thuận (nếu áp dụng).</li>
+                        <li>Thư viện có quyền từ chối yêu cầu gia hạn trong trường hợp sách đang có người khác đăng ký mượn hoặc vì lý do nghiệp vụ.</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-box-archive me-1"></i> Điều 6. Trả sách</h6>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Người dùng phải trả đầy đủ số lượng sách đã mượn.</li>
+                        <li>Khi trả sách, thủ thư sẽ kiểm tra tình trạng thực tế của sách.</li>
+                        <li>Việc trả sách chỉ được xác nhận hoàn tất sau khi thư viện kiểm tra và cập nhật trên hệ thống.</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-gavel me-1 text-danger"></i> Điều 7. Xử lý vi phạm</h6>
+                    <p class="text-secondary ps-3 mb-1">Người dùng phải chịu trách nhiệm đối với các trường hợp sau:</p>
+                    
+                    <div class="ps-3 mb-2">
+                        <strong class="d-block text-dark mb-1">1. Trả sách quá hạn:</strong>
+                        <ul class="text-secondary ps-4 mb-2">
+                            <li>Người dùng có thể bị áp dụng mức xử phạt theo quy định hiện hành của thư viện.</li>
+                            <li>Trong thời gian chưa hoàn thành nghĩa vụ, quyền mượn sách có thể bị tạm ngừng.</li>
+                        </ul>
+                    </div>
+
+                    <div class="ps-3 mb-2">
+                        <strong class="d-block text-dark mb-1">2. Làm hỏng sách:</strong>
+                        <ul class="text-secondary ps-4 mb-2">
+                            <li>Trường hợp sách bị hư hỏng do lỗi của người mượn, người dùng phải <strong>bồi thường 50% giá trị của cuốn sách</strong>.</li>
+                            <li>Người dùng vẫn phải hoàn trả cuốn sách cho thư viện để phục vụ công tác quản lý theo quy định.</li>
+                        </ul>
+                    </div>
+
+                    <div class="ps-3 mb-3">
+                        <strong class="d-block text-dark mb-1">3. Làm mất sách:</strong>
+                        <ul class="text-secondary ps-4 mb-2">
+                            <li>Trường hợp làm mất sách, người dùng phải <strong>bồi thường 100% giá trị của cuốn sách</strong>.</li>
+                            <li>Chỉ sau khi hoàn thành nghĩa vụ bồi thường, người dùng mới được tiếp tục sử dụng chức năng mượn sách.</li>
+                        </ul>
+                    </div>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-building-columns me-1"></i> Điều 8. Quyền của thư viện</h6>
+                    <ul class="text-secondary ps-4 mb-3">
+                        <li>Từ chối yêu cầu mượn nếu người dùng không đáp ứng các điều kiện theo quy định.</li>
+                        <li>Tạm ngừng hoặc khóa quyền mượn sách đối với người dùng có hành vi vi phạm.</li>
+                        <li>Điều chỉnh thời hạn mượn, số lượng sách được mượn và các quy định liên quan nhằm phục vụ công tác quản lý.</li>
+                        <li>Kiểm tra tình trạng sách trước khi cho mượn và sau khi người dùng hoàn trả để xác định trách nhiệm (nếu có).</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-handshake-simple me-1"></i> Điều 9. Cam kết của người dùng</h6>
+                    <ul class="text-secondary ps-4 mb-0">
+                        <li>Đã đọc, hiểu và đồng ý tuân thủ toàn bộ Quy định mượn sách của Thư viện TheOceanLib.</li>
+                        <li>Cam kết sử dụng tài liệu đúng mục đích, bảo quản sách cẩn thận và hoàn trả đúng thời hạn.</li>
+                        <li>Chấp nhận thực hiện nghĩa vụ bồi thường và các hình thức xử lý theo quy định của thư viện nếu xảy ra vi phạm trong quá trình mượn sách.</li>
+                    </ul>
+
+                </div>
+
+                <!-- CHECKBOX XÁC NHẬN ĐỒNG Ý QUY ĐỊNH -->
+                <div class="p-3 bg-primary bg-opacity-10 rounded-3 border border-primary border-opacity-20 d-flex align-items-center gap-2 mt-4">
+                    <input class="form-check-input ms-0 me-2" type="checkbox" id="chkAgreeRules" style="width: 20px; height: 20px; cursor: pointer;">
+                    <label class="form-check-label fw-bold mb-0 text-primary" for="chkAgreeRules" style="cursor: pointer; font-size: 0.95rem;">
+                        <i class="fa-solid fa-check-double me-1"></i> Tôi đã đọc và đồng ý với mọi quy định của Thư Viện
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top pt-3">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    Hủy bỏ
+                </button>
+                <button type="button" id="btnConfirmSubmitBorrow" class="btn btn-success rounded-pill px-4 fw-bold" disabled>
+                    <i class="fa-regular fa-paper-plane me-1"></i> Xác nhận mượn sách
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var modalRules = new bootstrap.Modal(document.getElementById('modalQuyDinhMuon'));
+
+            // 1. Click nút "Đăng ký mượn" -> Kiểm tra thông tin -> Mở Modal Quy định
+            $('#btnOpenRulesModal').click(function () {
+                var form = document.getElementById('formXacNhanMuon');
+                if (form.checkValidity()) {
+                    // Reset checkbox & nút xác nhận
+                    $('#chkAgreeRules').prop('checked', false);
+                    $('#btnConfirmSubmitBorrow').prop('disabled', true);
+                    modalRules.show();
+                } else {
+                    form.reportValidity();
+                }
+            });
+
+            // 2. Toggle checkbox đồng ý quy định
+            $('#chkAgreeRules').change(function () {
+                var isChecked = $(this).is(':checked');
+                $('#btnConfirmSubmitBorrow').prop('disabled', !isChecked);
+            });
+
+            // 3. Click "Xác nhận mượn sách" trong Modal -> Submit form chính
+            $('#btnConfirmSubmitBorrow').click(function () {
+                if ($('#chkAgreeRules').is(':checked')) {
+                    modalRules.hide();
+                    $('#formXacNhanMuon').submit();
+                }
+            });
+        });
+    </script>
+}

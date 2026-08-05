@@ -1,0 +1,782 @@
+@model DoAn_LTWeb.Models.DTOs.TaiKhoanDocGiaDto
+
+@{
+    ViewBag.Title = "Trang Cá Nhân & Lịch Sử Mượn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var user = Model.NguoiDung;
+    string activeTab = Model.ActiveTab ?? "profile";
+    
+    int requestCount = Model.DanhSachYeuCau != null ? Model.DanhSachYeuCau.Count : 0;
+    int pendingRequestCount = Model.DanhSachYeuCau != null ? Model.DanhSachYeuCau.Count(x => x.TrangThai == "Chờ duyệt") : 0;
+    int loanCount = Model.DanhSachPhieuMuon != null ? Model.DanhSachPhieuMuon.Count : 0;
+    int activeLoanCount = Model.DanhSachPhieuMuon != null ? Model.DanhSachPhieuMuon.Count(x => x.TrangThai == "Đang mượn" || x.TrangThai == "Quá hạn") : 0;
+    int fineCount = Model.DanhSachPhieuPhat != null ? Model.DanhSachPhieuPhat.Count : 0;
+    int unpaidFineCount = Model.DanhSachPhieuPhat != null ? Model.DanhSachPhieuPhat.Count(x => x.TrangThaiThanhToan == "ChuaThanhToan") : 0;
+    decimal unpaidFineAmount = Model.DanhSachPhieuPhat != null ? Model.DanhSachPhieuPhat.Where(x => x.TrangThaiThanhToan == "ChuaThanhToan").Sum(x => x.SoTienPhat) : 0;
+}
+
+<style>
+    .reader-portal-banner {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.15));
+        border: 1px solid rgba(14, 165, 233, 0.25);
+        backdrop-filter: blur(16px);
+        border-radius: 20px;
+    }
+
+    .reader-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary, #ffffff);
+    }
+
+    .badge-reader-id {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+    }
+
+    .badge-card-active {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+    }
+
+    .badge-card-locked {
+        background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        border: none !important;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+    }
+    
+    .custom-pill-nav .nav-link {
+        color: var(--text-secondary, #64748b);
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    .custom-pill-nav .nav-link:hover {
+        color: #0ea5e9;
+        background: rgba(14, 165, 233, 0.08);
+    }
+    
+    .custom-pill-nav .nav-link.active {
+        color: #fff;
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+    }
+    
+    .glass-card-portal {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    [data-theme="dark"] .glass-card-portal {
+        background: rgba(15, 23, 42, 0.85);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+</style>
+
+<div class="container py-4">
+    <!-- WELCOME BANNER -->
+    <div class="reader-portal-banner p-4 mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-auto">
+                <div class="rounded-circle bg-primary bg-opacity-20 p-3 text-primary d-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
+                    <i class="fa-solid fa-user-graduate fs-1"></i>
+                </div>
+            </div>
+            <div class="col">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                    <h3 class="reader-name mb-0">@user.HoTen</h3>
+                    <span class="badge badge-reader-id rounded-pill px-3 py-1.5 fs-7">
+                        <i class="fa-solid fa-id-card me-1"></i>Độc giả #DG@(user.MaNguoiDung)
+                    </span>
+                    @if (user.TrangThaiThe == "HoatDong")
+                    {
+                        <span class="badge badge-card-active rounded-pill px-3 py-1.5 fs-7">
+                            <i class="fa-solid fa-circle-check me-1"></i>Thẻ Hoạt Động
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-card-locked rounded-pill px-3 py-1.5 fs-7">
+                            <i class="fa-solid fa-lock me-1"></i>Thẻ Bị Khóa
+                        </span>
+                    }
+                </div>
+                <p class="text-muted mb-0 small">
+                    <i class="fa-regular fa-envelope me-1"></i>@user.Email 
+                    <span class="mx-2">•</span> 
+                    <i class="fa-solid fa-phone me-1"></i>@(string.IsNullOrEmpty(user.SoDienThoai) ? "Chưa cập nhật SĐT" : user.SoDienThoai)
+                    <span class="mx-2">•</span>
+                    <i class="fa-regular fa-calendar me-1"></i>Tham gia: @(user.NgayTao.HasValue ? user.NgayTao.Value.ToString("dd/MM/yyyy") : "N/A")
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK STATS -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="glass-card-portal p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 bg-primary bg-opacity-10 text-primary fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Yêu cầu mượn</span>
+                    <h5 class="fw-bold mb-0">@pendingRequestCount <small class="fs-6 text-muted">chờ duyệt / @requestCount đơn</small></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="glass-card-portal p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 bg-info bg-opacity-10 text-info fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Sách đang mượn</span>
+                    <h5 class="fw-bold mb-0">@activeLoanCount <small class="fs-6 text-muted">đang mượn / @loanCount lượt</small></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="glass-card-portal p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 bg-warning bg-opacity-10 text-warning fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Phiếu phạt chưa nộp</span>
+                    <h5 class="fw-bold mb-0 text-warning">@unpaidFineCount <small class="fs-6 text-muted">phiếu</small></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+            <div class="glass-card-portal p-3 d-flex align-items-center gap-3">
+                <div class="rounded-circle p-3 bg-danger bg-opacity-10 text-danger fs-4 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">Tổng tiền phạt</span>
+                    <h5 class="fw-bold mb-0 text-danger">@unpaidFineAmount.ToString("#,##0") <small class="fs-6">VNĐ</small></h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN TABS CONTAINER -->
+    <div class="glass-card-portal p-4">
+        <ul class="nav nav-pills custom-pill-nav gap-2 mb-4 border-bottom pb-3" id="portalTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "profile" ? "active" : "")" id="profile-tab" data-bs-toggle="tab" data-bs-target="#tab-profile" type="button" role="tab">
+                    <i class="fa-solid fa-user-gear me-2"></i>Hồ sơ cá nhân
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "requests" ? "active" : "")" id="requests-tab" data-bs-toggle="tab" data-bs-target="#tab-requests" type="button" role="tab">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Yêu cầu mượn
+                    @if (pendingRequestCount > 0)
+                    {
+                        <span class="badge bg-warning text-dark rounded-pill ms-1">@pendingRequestCount</span>
+                    }
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "loans" ? "active" : "")" id="loans-tab" data-bs-toggle="tab" data-bs-target="#tab-loans" type="button" role="tab">
+                    <i class="fa-solid fa-book-bookmark me-2"></i>Sách đang & đã mượn
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "fines" ? "active" : "")" id="fines-tab" data-bs-toggle="tab" data-bs-target="#tab-fines" type="button" role="tab">
+                    <i class="fa-solid fa-file-invoice-dollar me-2"></i>Phiếu phạt của tôi
+                    @if (unpaidFineCount > 0)
+                    {
+                        <span class="badge bg-danger rounded-pill ms-1">@unpaidFineCount</span>
+                    }
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == "password" ? "active" : "")" id="password-tab" data-bs-toggle="tab" data-bs-target="#tab-password" type="button" role="tab">
+                    <i class="fa-solid fa-key me-2"></i>Đổi mật khẩu
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="portalTabContent">
+
+            <!-- TAB 1: HỒ SƠ CÁ NHÂN -->
+            <div class="tab-pane fade @(activeTab == "profile" ? "show active" : "")" id="tab-profile" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-id-card text-primary me-2"></i>Cập nhật thông tin tài khoản</h5>
+                        <p class="text-muted small mb-4">Vui lòng đảm bảo thông tin Số điện thoại và Địa chỉ chính xác để thư viện liên hệ khi trao nhận sách.</p>
+                        
+                        <form id="formCapNhatThongTin">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Địa chỉ Email <span class="text-muted fw-normal">(Không thể thay đổi)</span></label>
+                                <input type="email" class="form-control bg-light" value="@user.Email" readonly disabled />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Họ và Tên <span class="text-danger">*</span></label>
+                                <input type="text" name="HoTen" id="txtHoTen" class="form-control" value="@user.HoTen" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                                <input type="tel" name="SoDienThoai" id="txtSoDienThoai" class="form-control" value="@user.SoDienThoai" required placeholder="Nhập SĐT..." />
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Địa chỉ liên hệ</label>
+                                <textarea name="DiaChi" id="txtDiaChi" class="form-control" rows="3" placeholder="Nhập địa chỉ nhà hoặc phòng KTX...">@user.DiaChi</textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="button" id="btnSaveProfile" class="btn btn-primary rounded-pill px-4">
+                                    <i class="fa-solid fa-floppy-disk me-2"></i>Lưu thông tin
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: YÊU CẦU MƯỢN ONLINE -->
+            <div class="tab-pane fade @(activeTab == "requests" ? "show active" : "")" id="tab-requests" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0"><i class="fa-solid fa-paper-plane text-primary me-2"></i>Lịch sử đăng ký mượn online</h5>
+                    <a href="@Url.Action("HienThiDSSP", "Home")" class="btn btn-sm btn-outline-primary rounded-pill">
+                        <i class="fa-solid fa-plus me-1"></i>Đăng ký mượn thêm
+                    </a>
+                </div>
+
+                @if (Model.DanhSachYeuCau == null || Model.DanhSachYeuCau.Count == 0)
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-inbox fs-1 d-block mb-3 opacity-50"></i>
+                        <span>Bạn chưa gửi yêu cầu mượn sách online nào.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày đăng ký</th>
+                                    <th>Danh sách sách đăng ký</th>
+                                    <th>Tổng số cuốn</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.DanhSachYeuCau)
+                                {
+                                    <tr>
+                                        <td class="fw-bold text-primary">#YC@(item.MaYeuCau)</td>
+                                        <td>@(item.NgayYeuCau.HasValue ? item.NgayYeuCau.Value.ToString("HH:mm - dd/MM/yyyy") : "N/A")</td>
+                                        <td>
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (var s in item.DanhSachSach)
+                                                {
+                                                    <li class="small">
+                                                        <i class="fa-solid fa-book text-muted me-1"></i><strong>@s.TenSach</strong> 
+                                                        <span class="text-muted">(Tác giả: @s.TenTacGia)</span> 
+                                                        <span class="badge bg-secondary rounded-pill">x@(s.SoLuong)</span>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </td>
+                                        <td class="fw-bold text-center">@item.DanhSachSach.Sum(x => x.SoLuong)</td>
+                                        <td>
+                                            @if (item.TrangThai == "Chờ duyệt")
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5">
+                                                    <i class="fa-solid fa-spinner fa-spin me-1"></i>Chờ thủ thư duyệt
+                                                </span>
+                                            }
+                                            else if (item.TrangThai == "Đã duyệt")
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3 py-1.5 mb-1">
+                                                    <i class="fa-solid fa-bookmark me-1"></i>Đã duyệt - Giữ sách tại quầy
+                                                </span>
+                                                <div class="extra-small text-warning fw-semibold">
+                                                    <i class="fa-solid fa-clock me-1"></i>Hạn nhận trước: @(item.NgayYeuCau.HasValue ? item.NgayYeuCau.Value.AddDays(2).ToString("HH:mm dd/MM/yyyy") : "48h")
+                                                </div>
+                                            }
+                                            else if (item.TrangThai == "Từ chối")
+                                            {
+                                                <span class="badge bg-danger rounded-pill px-3 py-1.5">
+                                                    <i class="fa-solid fa-xmark me-1"></i>Từ chối
+                                                </span>
+                                            }
+                                            else if (item.TrangThai == "Đã hủy")
+                                            {
+                                                <span class="badge bg-secondary rounded-pill px-3 py-1.5">
+                                                    <i class="fa-solid fa-ban me-1"></i>Đã hủy
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary rounded-pill px-3 py-1.5">@item.TrangThai</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (item.TrangThai == "Chờ duyệt" || item.TrangThai == "Đã duyệt")
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill btn-cancel-request" data-id="@(item.MaYeuCau)">
+                                                    <i class="fa-solid fa-ban me-1"></i>Hủy đơn
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <!-- TAB 3: SÁCH ĐANG & ĐÃ MƯỢN -->
+            <div class="tab-pane fade @(activeTab == "loans" ? "show active" : "")" id="tab-loans" role="tabpanel">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-book-bookmark text-primary me-2"></i>Phiếu mượn chính thức tại thư viện</h5>
+                
+                @if (Model.DanhSachPhieuMuon == null || Model.DanhSachPhieuMuon.Count == 0)
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-book-open fs-1 d-block mb-3 opacity-50"></i>
+                        <span>Bạn chưa có phiếu mượn sách nào trong cơ sở dữ liệu.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Mã phiếu</th>
+                                    <th>Ngày mượn</th>
+                                    <th>Hạn trả sách</th>
+                                    <th>Chi tiết bản sách</th>
+                                    <th>Thủ thư duyệt</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pm in Model.DanhSachPhieuMuon)
+                                {
+                                    bool isOverdue = pm.TrangThai == "Quá hạn" || (pm.TrangThai == "Đang mượn" && pm.NgayHenTra.HasValue && pm.NgayHenTra.Value < DateTime.Now);
+                                    <tr class="@(isOverdue ? "table-danger" : "")">
+                                        <td class="fw-bold text-primary">#PM@(pm.MaPhieuMuon)</td>
+                                        <td>@(pm.NgayMuon.HasValue ? pm.NgayMuon.Value.ToString("dd/MM/yyyy") : "N/A")</td>
+                                        <td class="fw-bold @(isOverdue ? "text-danger" : "text-dark")">
+                                            @(pm.NgayHenTra.HasValue ? pm.NgayHenTra.Value.ToString("dd/MM/yyyy") : "N/A")
+                                            @if (isOverdue && pm.TrangThai != "Đã trả")
+                                            {
+                                                <span class="badge bg-danger rounded-pill ms-1">Quá hạn!</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach (var c in pm.DanhSachCuonSach)
+                                                {
+                                                    <li class="small">
+                                                        <span class="badge bg-light text-dark border me-1">#CS@(c.MaCuonSach)</span>
+                                                        <strong>@c.TenSach</strong>
+                                                        @if (c.NgayTraThucTe.HasValue)
+                                                        {
+                                                            <span class="text-success ms-1">(Đã trả: @c.NgayTraThucTe.Value.ToString("dd/MM") - @c.TinhTrangKhiTra)</span>
+                                                        }
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </td>
+                                        <td class="small text-muted">@pm.TenThuThu</td>
+                                        <td>
+                                            @if (pm.TrangThai == "Đã trả")
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3 py-1.5"><i class="fa-solid fa-check me-1"></i>Đã trả hết</span>
+                                            }
+                                            else if (isOverdue)
+                                            {
+                                                <span class="badge bg-danger rounded-pill px-3 py-1.5"><i class="fa-solid fa-triangle-exclamation me-1"></i>Quá hạn</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-primary rounded-pill px-3 py-1.5"><i class="fa-solid fa-book-reader me-1"></i>Đang mượn</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <!-- TAB 4: PHIẾU PHẠT CỦA TÔI -->
+            <div class="tab-pane fade @(activeTab == "fines" ? "show active" : "")" id="tab-fines" role="tabpanel">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>Các khoản phạt vi phạm</h5>
+
+                @if (Model.DanhSachPhieuPhat == null || Model.DanhSachPhieuPhat.Count == 0)
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-shield-halved fs-1 d-block mb-3 text-success opacity-50"></i>
+                        <span>Tuyệt vời! Bạn không có bất kỳ khoản phạt nào.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Mã phiếu phạt</th>
+                                    <th>Mã phiếu mượn</th>
+                                    <th>Sách vi phạm</th>
+                                    <th>Lý do phạt</th>
+                                    <th>Số tiền phạt</th>
+                                    <th>Trạng thái</th>
+                                    <th class="text-end">Thanh toán</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pp in Model.DanhSachPhieuPhat)
+                                {
+                                    bool isPaid = pp.TrangThaiThanhToan == "DaThanhToan";
+                                    <tr>
+                                        <td class="fw-bold text-danger">#PP@(pp.MaPhieuPhat)</td>
+                                        <td class="fw-semibold">#PM@(pp.MaPhieuMuon)</td>
+                                        <td>
+                                            <strong>@pp.TenSach</strong> 
+                                            <span class="badge bg-light text-dark border">#CS@(pp.MaCuonSach)</span>
+                                        </td>
+                                        <td class="text-muted small">@pp.LyDoPhat</td>
+                                        <td class="fw-bold text-danger fs-6">@pp.SoTienPhat.ToString("#,##0") VNĐ</td>
+                                        <td>
+                                            @if (isPaid)
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3 py-1.5"><i class="fa-solid fa-circle-check me-1"></i>Đã thanh toán</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-1.5"><i class="fa-solid fa-clock me-1"></i>Chưa thanh toán</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            @if (!isPaid)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill btn-show-vietqr" 
+                                                        data-id="@pp.MaPhieuPhat" 
+                                                        data-amount="@Convert.ToInt64(pp.SoTienPhat)" 
+                                                        data-reason="@pp.LyDoPhat">
+                                                    <i class="fa-solid fa-qrcode me-1"></i>Quét mã VietQR
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-success small fw-semibold"><i class="fa-solid fa-check-double me-1"></i>Hoàn tất</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <!-- TAB 5: ĐỔI MẬT KHẨU -->
+            <div class="tab-pane fade @(activeTab == "password" ? "show active" : "")" id="tab-password" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-8 col-lg-6">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-key text-primary me-2"></i>Thay đổi mật khẩu tài khoản</h5>
+                        <p class="text-muted small mb-4">Để đảm bảo an toàn, vui lòng không chia sẻ mật khẩu tài khoản cho bất kỳ ai.</p>
+
+                        <form id="formDoiMatKhau">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="MatKhauCu" id="txtMatKhauCu" class="form-control" required placeholder="Nhập mật khẩu hiện tại..." />
+                                    <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="txtMatKhauCu"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="MatKhauMoi" id="txtMatKhauMoi" class="form-control" minlength="6" required placeholder="Ít nhất 6 ký tự..." />
+                                    <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="txtMatKhauMoi"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="XacNhanMatKhau" id="txtXacNhanMatKhau" class="form-control" minlength="6" required placeholder="Nhập lại mật khẩu mới..." />
+                                    <button class="btn btn-outline-secondary toggle-pwd" type="button" data-target="txtXacNhanMatKhau"><i class="fa-solid fa-eye"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="button" id="btnChangePassword" class="btn btn-warning rounded-pill px-4">
+                                    <i class="fa-solid fa-key me-2"></i>Xác nhận Đổi mật khẩu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL VIETQR THANH TOÁN TIỀN PHẠT -->
+<div class="modal fade" id="modalVietQRDocGia" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="fa-solid fa-qrcode me-2"></i>Chuyển Khoản Nộp Phạt VietQR
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="text-muted small mb-3">Sử dụng ứng dụng Ngân hàng (MB, Vietcombank, Techcombank, Momo...) quét mã bên dưới để nộp tiền phạt trực tuyến:</p>
+                
+                <div class="p-3 bg-light rounded-4 d-inline-block mb-3 border">
+                    <img id="imgVietQRDocGia" src="" alt="Mã VietQR" class="img-fluid rounded" style="max-height: 260px;" />
+                </div>
+
+                <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-start small">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Mã phiếu phạt:</span>
+                        <strong class="text-primary" id="lblMaPhieuPhat">#PP0</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Số tiền nộp:</span>
+                        <strong class="text-danger fs-6" id="lblSoTienPhat">0 VNĐ</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Nội dung CK:</span>
+                        <strong class="text-dark" id="lblNoiDungCK">NOP PHAT PP...</strong>
+                    </div>
+                </div>
+                <p class="text-muted extra-small mt-3 mb-0"><i class="fa-solid fa-info-circle me-1"></i>Sau khi chuyển khoản thành công, vui lòng chụp lại biên lai và đưa cho thủ thư xác nhận.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Helper notify thông báo an toàn
+            function notify(title, msg, iconType) {
+                if (typeof Swal !== 'undefined') {
+                    return Swal.fire(title, msg, iconType);
+                } else {
+                    alert(title + ": " + msg);
+                    return Promise.resolve({ isConfirmed: true });
+                }
+            }
+
+            // Mắt thần Ẩn/Hiện mật khẩu
+            $('.toggle-pwd').click(function () {
+                var targetId = $(this).data('target');
+                var input = $('#' + targetId);
+                var icon = $(this).find('i');
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                }
+            });
+
+            // 1. Cập nhật thông tin cá nhân qua AJAX
+            $('#btnSaveProfile').click(function (e) {
+                e.preventDefault();
+                var hoTen = $('#txtHoTen').val().trim();
+                var sdt = $('#txtSoDienThoai').val().trim();
+                var diaChi = $('#txtDiaChi').val().trim();
+
+                if (!hoTen || !sdt) {
+                    notify('Thông báo', 'Vui lòng nhập đầy đủ Họ tên và Số điện thoại!', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("CapNhatThongTin", "Home")',
+                    type: 'POST',
+                    data: {
+                        HoTen: hoTen,
+                        SoDienThoai: sdt,
+                        DiaChi: diaChi
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Thành công!', res.message, 'success').then(function () {
+                                    location.reload();
+                                });
+                            } else {
+                                alert(res.message);
+                                location.reload();
+                            }
+                        } else {
+                            notify('Lỗi', res.message, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi CapNhatThongTin:', error);
+                        notify('Lỗi', 'Không thể kết nối tới máy chủ!', 'error');
+                    }
+                });
+            });
+
+            // 2. Đổi mật khẩu qua AJAX
+            $('#btnChangePassword').click(function (e) {
+                e.preventDefault();
+                var matKhauCu = $('#txtMatKhauCu').val();
+                var matKhauMoi = $('#txtMatKhauMoi').val();
+                var xacNhan = $('#txtXacNhanMatKhau').val();
+
+                if (!matKhauCu || !matKhauMoi || !xacNhan) {
+                    notify('Thông báo', 'Vui lòng điền đầy đủ thông tin các trường mật khẩu!', 'warning');
+                    return;
+                }
+
+                if (matKhauMoi.length < 6) {
+                    notify('Thông báo', 'Mật khẩu mới phải có độ dài tối thiểu 6 ký tự!', 'warning');
+                    return;
+                }
+
+                if (matKhauMoi !== xacNhan) {
+                    notify('Thông báo', 'Mật khẩu mới và Xác nhận mật khẩu không trùng khớp!', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("DoiMatKhau", "Home")',
+                    type: 'POST',
+                    data: {
+                        MatKhauCu: matKhauCu,
+                        MatKhauMoi: matKhauMoi,
+                        XacNhanMatKhau: xacNhan
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            if (typeof Swal !== 'undefined') {
+                                Swal.fire('Thành công!', res.message, 'success').then(function () {
+                                    $('#formDoiMatKhau')[0].reset();
+                                });
+                            } else {
+                                alert(res.message);
+                                $('#formDoiMatKhau')[0].reset();
+                            }
+                        } else {
+                            notify('Lỗi', res.message, 'error');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Lỗi DoiMatKhau:', error);
+                        notify('Lỗi', 'Không thể kết nối tới máy chủ!', 'error');
+                    }
+                });
+            });
+
+            // 3. Hủy Yêu Cầu Mượn qua AJAX (Event Delegation)
+            $(document).on('click', '.btn-cancel-request', function (e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+
+                var doCancel = function () {
+                    $.ajax({
+                        url: '@Url.Action("HuyYeuCauMuon", "Home")',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            if (res.success) {
+                                if (typeof Swal !== 'undefined') {
+                                    Swal.fire('Đã hủy!', res.message, 'success').then(function () {
+                                        location.reload();
+                                    });
+                                } else {
+                                    alert(res.message);
+                                    location.reload();
+                                }
+                            } else {
+                                notify('Không thể hủy', res.message, 'error');
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Lỗi HuyYeuCauMuon:', error);
+                            notify('Lỗi', 'Không thể kết nối tới hệ thống!', 'error');
+                        }
+                    });
+                };
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Xác nhận hủy?',
+                        text: 'Bạn có chắc chắn muốn hủy yêu cầu mượn #' + id + ' này không?',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Có, Hủy ngay',
+                        cancelButtonText: 'Bỏ qua'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            doCancel();
+                        }
+                    });
+                } else {
+                    if (confirm('Bạn có chắc chắn muốn hủy yêu cầu mượn #' + id + ' này không?')) {
+                        doCancel();
+                    }
+                }
+            });
+
+            // 4. Mở Modal mã VietQR cho Độc giả
+            $(document).on('click', '.btn-show-vietqr', function (e) {
+                e.preventDefault();
+                var id = $(this).data('id');
+                var amount = $(this).data('amount');
+                var memo = "NOP PHAT PP" + id + " DG" + "@(user.MaNguoiDung)";
+                
+                var qrUrl = "https://img.vietqr.io/image/MB-0000123456789-compact.png?amount=" + amount + "&addInfo=" + encodeURIComponent(memo) + "&accountName=THEOCEANLIB%20THU%20VIEN";
+
+                $('#lblMaPhieuPhat').text('#PP' + id);
+                $('#lblSoTienPhat').text(Number(amount).toLocaleString('vi-VN') + ' VNĐ');
+                $('#lblNoiDungCK').text(memo);
+                $('#imgVietQRDocGia').attr('src', qrUrl);
+
+                var modal = new bootstrap.Modal(document.getElementById('modalVietQRDocGia'));
+                modal.show();
+            });
+        });
+    </script>
+}

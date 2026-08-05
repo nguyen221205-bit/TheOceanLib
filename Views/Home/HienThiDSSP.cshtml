@@ -1,24 +1,48 @@
 @using DoAn_LTWeb.Models
 @model List<Sach>
 @{
-    ViewBag.Title = "HienThiDSSP";
+    ViewBag.Title = "Danh sách sách";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int currentPage = ViewBag.CurrentPage != null ? (int)ViewBag.CurrentPage : 1;
+    int totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    int totalItems = ViewBag.TotalItems != null ? (int)ViewBag.TotalItems : Model.Count;
+    string sort = ViewBag.Sort as string ?? "moi-nhat";
+    int? maTheLoai = ViewBag.MaTheLoai as int?;
+    string tuKhoa = ViewBag.TuKhoa as string ?? "";
 }
 
 <div class="container py-4">
-    <h2 class="mb-4 fw-bold" style="color: var(--primary);">
-        <i class="fa-solid fa-book-open text-accent me-2"></i>
-        @if (!string.IsNullOrEmpty(ViewBag.TuKhoa))
-        {
-            <span>Kết quả tìm kiếm cho: "@ViewBag.TuKhoa" (@Model.Count kết quả)</span>
-        }
-        else
-        {
-            @(!string.IsNullOrEmpty(ViewBag.TenTheLoai) ? "Danh mục: " + ViewBag.TenTheLoai : "Tất cả sách mượn")
-        }
-    </h2>
+    <!-- HEADER BAR WITH SEARCH & SORTING -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="mb-1 fw-bold" style="color: var(--primary);">
+                <i class="fa-solid fa-book-open text-accent me-2"></i>
+                @if (!string.IsNullOrEmpty(tuKhoa))
+                {
+                    <span>Kết quả tìm kiếm cho: "@tuKhoa" (@totalItems kết quả)</span>
+                }
+                else
+                {
+                    @(!string.IsNullOrEmpty(ViewBag.TenTheLoai) ? "Danh mục: " + ViewBag.TenTheLoai : "Tất cả sách mượn")
+                }
+            </h2>
+            <p class="text-muted small mb-0">Hiển thị @Model.Count trên tổng số @totalItems cuốn sách khả dụng.</p>
+        </div>
 
-    <div class="row g-4">
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 small text-muted text-nowrap fw-semibold"><i class="fa-solid fa-arrow-down-short-wide me-1"></i>Sắp xếp:</label>
+            <select id="sortSelect" class="form-select form-select-sm rounded-pill shadow-sm" style="min-width: 170px;">
+                <option value="moi-nhat" @(sort == "moi-nhat" ? "selected" : "")>Mới nhất</option>
+                <option value="ten-az" @(sort == "ten-az" ? "selected" : "")>Tên sách (A - Z)</option>
+                <option value="ten-za" @(sort == "ten-za" ? "selected" : "")>Tên sách (Z - A)</option>
+                <option value="nam-xb" @(sort == "nam-xb" ? "selected" : "")>Năm xuất bản giảm dần</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- BOOK GRID -->
+    <div class="row g-4 mb-4">
         @if (Model.Count == 0)
         {
             <div class="col-12 text-center py-5 text-secondary">
@@ -28,63 +52,103 @@
             </div>
         }
         @foreach (Sach item in Model)
-    {
-        <div class="col-sm-6 col-md-4 col-lg-3">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="book-card-img-wrapper" style="height: 300px; overflow: hidden; background-color: var(--bg-app); position: relative;">
-                    <img src="~/Content/HinhAnh/@item.AnhBia"
-                         class="card-img-top w-100 h-100"
-                         style="object-fit: cover; object-position: center; transition: transform var(--transition-speed) ease;"
-                         alt="@item.TenSach" />
-                </div>
-
-                <div class="card-body d-flex flex-column gap-2 p-3">
-                    <h5 class="card-title text-truncate mb-0 fs-6 fw-bold" title="@item.TenSach" style="color: var(--primary);">
-                        @item.TenSach
-                    </h5>
-                    <div class="book-author text-secondary small" style="color: var(--text-secondary);">
-                        <i class="fa-regular fa-user me-1 text-accent"></i>
-                        <span>@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")</span>
+        {
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="book-card-img-wrapper" style="height: 300px; overflow: hidden; background-color: var(--bg-app); position: relative;">
+                        <img src="~/Content/HinhAnh/@item.AnhBia"
+                             class="card-img-top w-100 h-100"
+                             style="object-fit: cover; object-position: center; transition: transform var(--transition-speed) ease;"
+                             alt="@item.TenSach" />
                     </div>
-                    <div class="book-quantity text-muted small mt-auto" style="color: var(--text-muted);">
-                        <i class="fa-solid fa-boxes-stacked me-1"></i>
-                        <span>Sẵn có: @item.SoLuongChuaMuon / @(item.TongSoLuong.HasValue ? item.TongSoLuong.Value.ToString() : "0")</span>
+
+                    <div class="card-body d-flex flex-column gap-2 p-3">
+                        <h5 class="card-title text-truncate mb-0 fs-6 fw-bold" title="@item.TenSach" style="color: var(--primary);">
+                            @item.TenSach
+                        </h5>
+                        <div class="book-author text-secondary small" style="color: var(--text-secondary);">
+                            <i class="fa-regular fa-user me-1 text-accent"></i>
+                            <span>@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")</span>
+                        </div>
+                        <div class="book-quantity text-muted small mt-auto" style="color: var(--text-muted);">
+                            <i class="fa-solid fa-boxes-stacked me-1"></i>
+                            <span>Sẵn có: @item.SoLuongChuaMuon / @(item.TongSoLuong.HasValue ? item.TongSoLuong.Value.ToString() : "0")</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="card-footer text-center p-3 bg-transparent border-top-0 d-flex gap-2 justify-content-center align-items-center">
-                    @Html.ActionLink("Chi tiết",
-                                     "ChiTietSach",
-                                     new { id = item.MaSach },
-                                     new { @class = "btn btn-outline-primary btn-sm flex-grow-1" })
+                    <div class="card-footer text-center p-3 bg-transparent border-top-0 d-flex gap-2 justify-content-center align-items-center">
+                        @Html.ActionLink("Chi tiết",
+                                         "ChiTietSach",
+                                         new { id = item.MaSach },
+                                         new { @class = "btn btn-outline-primary btn-sm flex-grow-1" })
 
-                    <!-- Nút Thêm giỏ (AJAX) -->
-                    <button type="button"
-                            class="btn btn-success btn-sm btn-chon-sach flex-grow-1"
-                            data-id="@item.MaSach">
-                        Thêm giỏ
-                    </button>
+                        <!-- Nút Thêm giỏ (AJAX) -->
+                        <button type="button"
+                                class="btn btn-success btn-sm btn-chon-sach flex-grow-1"
+                                data-id="@item.MaSach">
+                            Thêm giỏ
+                        </button>
 
-                    <!-- Nút Yêu thích (Client-side) -->
-                    <button type="button"
-                            class="btn btn-outline-danger btn-sm btn-them-yeu-thich px-2.5"
-                            data-id="@item.MaSach"
-                            data-title="@item.TenSach"
-                            data-author="@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")"
-                            data-img="@Url.Content("~/Content/HinhAnh/" + item.AnhBia)"
-                            title="Thêm yêu thích">
-                        <i class="fa-regular fa-heart"></i>
-                    </button>
+                        <!-- Nút Yêu thích (Client-side) -->
+                        <button type="button"
+                                class="btn btn-outline-danger btn-sm btn-them-yeu-thich px-2.5"
+                                data-id="@item.MaSach"
+                                data-title="@item.TenSach"
+                                data-author="@(item.TacGia != null ? item.TacGia.TenTacGia : "Chưa cập nhật")"
+                                data-img="@Url.Content("~/Content/HinhAnh/" + item.AnhBia)"
+                                title="Thêm yêu thích">
+                            <i class="fa-regular fa-heart"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
+        }
+    </div>
+
+    <!-- PAGINATION TOOLBAR -->
+    @if (totalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Book catalog pagination">
+                <ul class="pagination custom-pagination gap-1">
+                    <!-- Nút Trang trước -->
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link rounded-pill px-3" href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = maTheLoai, tuKhoa = tuKhoa, sort = sort, page = currentPage - 1 })">
+                            <i class="fa-solid fa-chevron-left me-1"></i>Trước
+                        </a>
+                    </li>
+
+                    @for (int p = 1; p <= totalPages; p++)
+                    {
+                        <li class="page-item @(p == currentPage ? "active" : "")">
+                            <a class="page-link rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = maTheLoai, tuKhoa = tuKhoa, sort = sort, page = p })">@p</a>
+                        </li>
+                    }
+
+                    <!-- Nút Trang sau -->
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link rounded-pill px-3" href="@Url.Action("HienThiDSSP", "Home", new { maTheLoai = maTheLoai, tuKhoa = tuKhoa, sort = sort, page = currentPage + 1 })">
+                            Sau<i class="fa-solid fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     }
-</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
+        // Lựa chọn Sắp xếp thay đổi
+        $('#sortSelect').change(function () {
+            var selectedSort = $(this).val();
+            var urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('sort', selectedSort);
+            urlParams.set('page', '1');
+            window.location.search = urlParams.toString();
+        });
+
         // Đánh dấu các sách đã có trong Danh sách Yêu thích khi tải trang
         const favList = JSON.parse(localStorage.getItem('favList')) || [];
         $('.btn-them-yeu-thich').each(function() {
@@ -101,7 +165,7 @@
             var maSach = $(this).data('id');
 
             $.ajax({
-                url: '/Home/ChonSach', // Viết thẳng đường dẫn để không bị trình biên dịch báo lỗi Razor
+                url: '/Home/ChonSach',
                 type: 'POST',
                 data: { id: maSach },
                 success: function (response) {
@@ -128,7 +192,6 @@
             var author = btn.data('author');
             var img = btn.data('img');
             
-            // Thay đổi icon sang hình tim đỏ
             btn.find('i').removeClass('fa-regular').addClass('fa-solid text-danger');
             
             if (typeof window.addToFav === 'function') {
@@ -137,3 +200,4 @@
         });
     });
 </script>
+

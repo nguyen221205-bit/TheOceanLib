@@ -104,18 +104,13 @@
                         <i class="fa-solid fa-arrow-rotate-left"></i> Trả sách
                     </a>
                 </li>
-                <li class="admin-menu-item @(ViewBag.ActiveMenu == "QuaHan" ? "active" : "")">
-                    <a href="#">
-                        <i class="fa-solid fa-calendar-times text-danger"></i> Quá hạn
-                    </a>
-                </li>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "PhieuPhat" ? "active" : "")">
                     <a href="@Url.Action("PhieuPhat", "ThuThu")">
                         <i class="fa-solid fa-file-invoice-dollar"></i> Phiếu phạt
                     </a>
                 </li>
                 <li class="admin-menu-item @(ViewBag.ActiveMenu == "TraCuuDocGia" ? "active" : "")">
-                    <a href="#">
+                    <a href="@Url.Action("TraCuuDocGia", "ThuThu")">
                         <i class="fa-solid fa-users-viewfinder"></i> Tra cứu độc giả
                     </a>
                 </li>

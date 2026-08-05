@@ -21,6 +21,9 @@ namespace DoAn_LTWeb.Models.DTOs
         public string SoDienThoai { get; set; }
         public string Email { get; set; }
         public string DiaChi { get; set; }
+        public string TrangThai { get; set; }
+        public string NgayGui { get; set; }
+        public string HanDenNhan { get; set; }
         public List<SachYeuCauDto> DanhSachSach { get; set; }
     }
 
