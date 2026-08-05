@@ -134,6 +134,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ThuThuController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\SachApiController.cs" />
     <Compile Include="Models\DTOs\GioHangDTOs.cs" />
     <Compile Include="Models\Sach_Extension.cs" />
     <Compile Include="Models\DTOs\SachMuonNhieuVM.cs" />
@@ -143,6 +144,7 @@
     <Compile Include="Models\DTOs\TraSachDTOs.cs" />
     <Compile Include="Models\DTOs\PhieuPhatDTOs.cs" />
     <Compile Include="Models\DTOs\DocGiaDTOs.cs" />
+    <Compile Include="Models\DTOs\SachApiDTOs.cs" />
     <Compile Include="Models\ChiTietPhieuMuon.cs">
       <DependentUpon>ModelsDuLieu.tt</DependentUpon>
     </Compile>
@@ -293,6 +295,7 @@
     <Content Include="Views\Admin\QuanLyNXB.cshtml" />
     <Content Include="Views\Admin\QuanLyTaiKhoan.cshtml" />
     <Content Include="Views\Admin\BaoCaoThongKe.cshtml" />
+    <Content Include="Views\Admin\ApiConsole.cshtml" />
     <Content Include="Views\ThuThu\Dashboard.cshtml" />
     <Content Include="Views\ThuThu\YeuCauMuon.cshtml" />
     <Content Include="Views\ThuThu\PhieuMuon.cshtml" />
