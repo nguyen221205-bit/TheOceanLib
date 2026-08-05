@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -12,6 +12,13 @@ namespace DoAn_LTWeb
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+
+            // RESTful Web API Custom Route
+            routes.MapRoute(
+                name: "RestApiRoute",
+                url: "api/{controller}/{action}/{id}",
+                defaults: new { controller = "SachApi", action = "Index", id = UrlParameter.Optional }
+            );
 
             routes.MapRoute(
                 name: "Default",

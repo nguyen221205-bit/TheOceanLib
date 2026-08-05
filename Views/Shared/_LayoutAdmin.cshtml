@@ -197,6 +197,15 @@
                         <i class="fa-solid fa-file-chart-column"></i> Thống Kê & Doanh Thu
                     </a>
                 </li>
+
+                <div class="px-3 pt-3 pb-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-code me-1"></i> Developer & Web API
+                </div>
+                <li class="admin-menu-item @(ViewBag.ActiveMenu == "ApiConsole" ? "active" : "")">
+                    <a href="@Url.Action("ApiConsole", "Admin")">
+                        <i class="fa-solid fa-plug text-warning"></i> Quản Lý & Test Web API
+                    </a>
+                </li>
             </ul>
             
             <div class="mt-auto p-2.5 rounded-3 text-center border border-dashed border-danger border-opacity-30" style="background-color: rgba(239, 68, 68, 0.05);">

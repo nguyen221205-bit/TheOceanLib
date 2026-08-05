@@ -1015,5 +1015,17 @@ namespace DoAn_LTWeb.Controllers
         }
 
         #endregion
+
+        #region --- QUẢN LÝ & TEST WEB API (RESTFUL API CONSOLE) ---
+
+        // GET: Admin/ApiConsole
+        public ActionResult ApiConsole()
+        {
+            ViewBag.ActiveMenu = "ApiConsole";
+            ViewBag.Title = "Quản lý & Chạy thử Web API (RESTful API Console)";
+            return View();
+        }
+
+        #endregion
     }
 }
