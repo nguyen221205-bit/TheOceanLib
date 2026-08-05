@@ -22,7 +22,7 @@ namespace DoAn_LTWeb.Models.DTOs
         public string TenSach { get; set; }
         public string AnhBia { get; set; }
         public string ViTriKe { get; set; }
-        public int GiaSach { get; set; }
+        public decimal GiaSach { get; set; }
         public string NgayTraThucTe { get; set; }
         public string TinhTrangKhiTra { get; set; }
     }

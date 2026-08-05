@@ -119,6 +119,8 @@
                                         <span><i class="fa-solid fa-barcode me-1 text-secondary"></i>ISBN: <strong>@(string.IsNullOrWhiteSpace(item.ISBN) ? "N/A" : item.ISBN)</strong></span>
                                         <span>•</span>
                                         <span><i class="fa-regular fa-calendar me-1"></i>Năm XB: <strong>@(item.NamXuatBan.HasValue ? item.NamXuatBan.Value.ToString() : "N/A")</strong></span>
+                                        <span>•</span>
+                                        <span><i class="fa-solid fa-coins me-1 text-warning"></i>Giá bìa: <strong class="text-success">@(item.GiaBia.HasValue ? string.Format("{0:N0}đ", item.GiaBia.Value) : "Chưa có")</strong></span>
                                     </div>
                                 </td>
                                 <td>
@@ -252,6 +254,12 @@
                         <div class="col-12 col-md-4">
                             <label class="form-label fw-semibold">Năm xuất bản</label>
                             <input type="number" class="form-control rounded-3" id="book_NamXuatBan" name="NamXuatBan" placeholder="VD: 2024" min="1900" max="2099" />
+                        </div>
+
+                        <!-- Giá bìa -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Giá bìa (VNĐ)</label>
+                            <input type="number" class="form-control rounded-3" id="book_GiaBia" name="GiaBia" placeholder="VD: 150000" min="0" step="1000" />
                         </div>
 
                         <!-- Upload / Chọn Ảnh bìa -->
@@ -439,6 +447,7 @@
                         $('#book_MaTacGia').val(s.MaTacGia || '');
                         $('#book_MaNXB').val(s.MaNXB || '');
                         $('#book_NamXuatBan').val(s.NamXuatBan || '');
+                        $('#book_GiaBia').val(s.GiaBia || '');
                         $('#book_AnhBia').val(s.AnhBia || '');
                         $('#book_MoTa').val(s.MoTa || '');
 

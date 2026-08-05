@@ -324,8 +324,8 @@
                                                 <label class="text-secondary text-xs mb-1 d-block fw-semibold">Tình trạng</label>
                                                 <select class="form-select form-select-sm bg-transparent text-primary condition-select" data-id="${book.MaChiTiet}">
                                                     <option value="Bình thường" class="text-dark">Bình thường</option>
-                                                    <option value="Hỏng" class="text-dark">Bị hỏng (50%)</option>
-                                                    <option value="Mất" class="text-dark">Bị mất (100%+20k)</option>
+                                                    <option value="Hỏng" class="text-dark">Bị hỏng (50% giá bìa)</option>
+                                                    <option value="Mất" class="text-dark">Bị mất (100% giá bìa)</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -392,8 +392,8 @@
                             itemFine = price * 0.5;
                             itemReason = `Hỏng sách [${title.substring(0, 20)}...] (50%: ${itemFine.toLocaleString('vi-VN')}đ)`;
                         } else if (condition === "Mất") {
-                            itemFine = price * 1.0 + 20000;
-                            itemReason = `Mất sách [${title.substring(0, 20)}...] (100%+20k: ${itemFine.toLocaleString('vi-VN')}đ)`;
+                            itemFine = price * 1.0;
+                            itemReason = `Mất sách [${title.substring(0, 20)}...] (100% giá bìa: ${itemFine.toLocaleString('vi-VN')}đ)`;
                         }
                     }
 

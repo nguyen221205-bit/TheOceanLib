@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
   <!-- EF Runtime content -->
   <edmx:Runtime>
@@ -169,6 +169,7 @@ FROM [dbo].[V_ThongKeSoLuongSach] AS [V_ThongKeSoLuongSach]</DefiningQuery>
     <Property Name="NamXuatBan" Type="int" />
     <Property Name="AnhBia" Type="varchar" MaxLength="255" />
     <Property Name="MoTa" Type="nvarchar(max)" />
+    <Property Name="GiaBia" Type="decimal" Precision="18" Scale="0" />
   </EntityType>
   <EntityType Name="sysdiagrams">
     <Key>
@@ -594,6 +595,7 @@ warning 6002: The table/view 'QuanLyThuVien.dbo.V_ThongKeSoLuongSach' does not h
     <Property Name="NamXuatBan" Type="Int32" />
     <Property Name="AnhBia" Type="String" MaxLength="255" Unicode="false" FixedLength="false" />
     <Property Name="MoTa" Type="String" MaxLength="Max" Unicode="true" FixedLength="false" />
+    <Property Name="GiaBia" Type="Decimal" Precision="18" Scale="0" />
     <NavigationProperty Name="CuonSach" Relationship="QuanLyThuVienModel.FK_CuonSach_Sach" FromRole="Sach" ToRole="CuonSach" />
     <NavigationProperty Name="ChiTietYeuCauMuon" Relationship="QuanLyThuVienModel.FK_CTYCM_Sach" FromRole="Sach" ToRole="ChiTietYeuCauMuon" />
     <NavigationProperty Name="NhaXuatBan" Relationship="QuanLyThuVienModel.FK_Sach_NhaXuatBan" FromRole="Sach" ToRole="NhaXuatBan" />
@@ -918,6 +920,7 @@ warning 6002: The table/view 'QuanLyThuVien.dbo.V_ThongKeSoLuongSach' does not h
           <ScalarProperty Name="NamXuatBan" ColumnName="NamXuatBan" />
           <ScalarProperty Name="AnhBia" ColumnName="AnhBia" />
           <ScalarProperty Name="MoTa" ColumnName="MoTa" />
+          <ScalarProperty Name="GiaBia" ColumnName="GiaBia" />
         </MappingFragment>
       </EntityTypeMapping>
     </EntitySetMapping>

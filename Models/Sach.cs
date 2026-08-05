@@ -29,6 +29,7 @@ namespace DoAn_LTWeb.Models
         public Nullable<int> NamXuatBan { get; set; }
         public string AnhBia { get; set; }
         public string MoTa { get; set; }
+        public Nullable<decimal> GiaBia { get; set; }
     
         public virtual ICollection<CuonSach> CuonSach { get; set; }
         public virtual ICollection<ChiTietYeuCauMuon> ChiTietYeuCauMuon { get; set; }

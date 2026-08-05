@@ -194,7 +194,8 @@ namespace DoAn_LTWeb.Controllers
                 sach.MaNXB,
                 sach.NamXuatBan,
                 sach.AnhBia,
-                sach.MoTa
+                sach.MoTa,
+                sach.GiaBia
             };
 
             return Json(new { success = true, sach = result }, JsonRequestBehavior.AllowGet);
@@ -224,6 +225,7 @@ namespace DoAn_LTWeb.Controllers
                 sachInDb.MaNXB = model.MaNXB;
                 sachInDb.NamXuatBan = model.NamXuatBan;
                 sachInDb.MoTa = model.MoTa;
+                sachInDb.GiaBia = model.GiaBia;
 
                 // Xử lý đổi ảnh bìa mới
                 if (fileAnhBia != null && fileAnhBia.ContentLength > 0)

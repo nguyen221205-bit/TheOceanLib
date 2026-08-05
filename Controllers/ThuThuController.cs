@@ -566,7 +566,7 @@ namespace DoAn_LTWeb.Controllers
                     TenSach = ct.CuonSach.Sach != null ? ct.CuonSach.Sach.TenSach : "Sách không rõ",
                     AnhBia = ct.CuonSach.Sach != null ? ct.CuonSach.Sach.AnhBia : "",
                     ViTriKe = ct.CuonSach.ViTriKe ?? "Kệ mặc định",
-                    GiaSach = 150000,
+                    GiaSach = (ct.CuonSach != null && ct.CuonSach.Sach != null && ct.CuonSach.Sach.GiaBia.HasValue) ? ct.CuonSach.Sach.GiaBia.Value : 0,
                     NgayTraThucTe = ct.NgayTraThucTe.HasValue ? ct.NgayTraThucTe.Value.ToString("dd/MM/yyyy") : "",
                     TinhTrangKhiTra = ct.TinhTrangKhiTra
                 }).ToList();
